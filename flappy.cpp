@@ -6,7 +6,6 @@
 
 #pragma comment(lib, "winmm.lib")
 
-
 #define BLACK			0
 #define BLUE			1
 #define GREEN			2
@@ -29,6 +28,7 @@ using namespace std;
 bool sound_active = true;
 int terminalColumns, terminalRows;
 string smallLogo = "";
+int tmp_count = 0;
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
@@ -181,7 +181,15 @@ void loadingFrame(int progress) {
                     lineSpace = lineSpace + " ";
                 }
             }
-            text = text + tmp + lineSpace + " LOADING...\n";
+            text = text + tmp + lineSpace + " LOADING";
+            for(int k=0; k<tmp_count; k++) {
+                text = text + ".";
+            }
+            text = text + "\n";
+            tmp_count = tmp_count + 1;
+            if(tmp_count > 4) {
+                tmp_count = 0;
+            }
         } else {
             text = text + "\n";
         }
@@ -385,13 +393,27 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
     if (_kbhit()) {
         char p = _getch();
         if ((p == 'w') || (p == 'W')) {
-            if(*chooseMenu > 0) {
-                *chooseMenu = *chooseMenu - 1;
-            }
+            switch (type_menu) {
+                case 0:
+                case 1:
+                    if(*chooseMenu > 0) {
+                        *chooseMenu = *chooseMenu - 1;
+                    } else {
+                        *chooseMenu = max;
+                    };
+                    break;
+            };
         } else if ((p == 's') || (p == 'S')) {
-            if(*chooseMenu < max) {
-                *chooseMenu = *chooseMenu + 1;
-            }
+            switch (type_menu) {
+                case 0:
+                case 1:
+                    if(*chooseMenu < max) {
+                        *chooseMenu = *chooseMenu + 1;
+                    } else {
+                        *chooseMenu = 0;
+                    };
+                    break;
+            };
         } else if ((p == '\r') || (p == ' ')) {
             switch(type_menu) {
                 case 0:
@@ -466,7 +488,7 @@ int main() {
         if(i<20) {
             Sleep(100);
         } else if(i<70) {
-            Sleep(10);
+            Sleep(20);
         } else if (i<90) {
             Sleep(30);
         } else {
