@@ -37,16 +37,20 @@ DWORD written;
 
 void inputMenu(int *chooseMenu, int max, int type_menu);
 
+void cursorPos_up() {
+    SetConsoleCursorPosition(hConsole, newPos);
+}
+
 void clearTerminal() {
+    cursorPos_up();
+
     GetConsoleScreenBufferInfo(hConsole, &bufferInfo);
 
     COORD size = {bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1, bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1};
 
-    SetConsoleCursorPosition(hConsole, newPos);
-
     FillConsoleOutputCharacter(hConsole, ' ', size.X * size.Y, newPos, &written);
 
-    SetConsoleCursorPosition(hConsole, newPos);
+    cursorPos_up();
     return;
 }
 
@@ -130,7 +134,7 @@ void showLogoFullTerminal(string logo[], int sizeLogo) {
                 _i = true;
             }
         }
-        clearTerminal();
+        cursorPos_up();
         cout << text;
         Sleep(100);
     }
@@ -216,6 +220,9 @@ void loadingFrame(int progress) {
             text = text + tmp + lineSpace + " LOADING";
             for(int k=0; k<tmp_count; k++) {
                 text = text + ".";
+            };
+            for(int k=0; k< 4 - tmp_count; k++) {
+                text = text + " ";
             }
             text = text + "\n";
             tmp_count = tmp_count + 1;
@@ -226,7 +233,7 @@ void loadingFrame(int progress) {
             text = text + "\n";
         }
     }
-    clearTerminal();
+    cursorPos_up();
     cout << text;
     return;
 }
