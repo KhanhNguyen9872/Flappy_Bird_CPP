@@ -25,7 +25,7 @@
 
 using namespace std;
 
-bool sound_active = true;
+int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
 string smallLogo = "";
 int tmp_count = 0;
@@ -264,7 +264,7 @@ string menuText(string text[], int size, int choose) {
 }
 
 void playSound(string file) {
-    if (sound_active) {
+    if (settingsData[0]) {
         PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
     }
     return;
@@ -284,6 +284,7 @@ void lockSizeTerminal() {
         }
         Sleep(1000);
     }
+    return;
 }
 
 void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
@@ -320,23 +321,27 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
 
     int padding = terminalRows - 7 - sizeMenu - titleMenuSize;
 
+    string lineLastTer = "";
+    for(int j=0; j < terminalColumns; j++) {
+        lineLastTer = lineLastTer + "_";
+    };
+    lineLastTer = lineLastTer + "\n";
+
     for(int i=0; i <= padding; i++) {
         if(i == 3) {
             text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, *chooseMenu);
         } else if (i == padding - 1) {
-            for(int j=0; j < terminalColumns; j++) {
-                text = text + "_";
-            };
-            text = text + "\n";
             break;
         } else {
             text = text + "\n";
         }
     }
 
-    color(WHITE);
+    color(settingsData[2]);
     clearTerminal();
     cout << text;
+    color(WHITE);
+    cout << lineLastTer;
     color(GREEN);
     cout << "| 'W' -> UP | 'S' -> DOWN | 'ENTER/SPACE' -> ENTER |";
     return;
@@ -405,27 +410,138 @@ void credit() {
     return;
 }
 
-void settingsMenu() {
-    string menu[2] = {
-        "",
-        "      Back       "
+void brightnessSettings() {
+    //  
+    //  ______________
+    // [=========     ]
+    //  ``````````````
+    //
+    int sizeBar = 15;
+    int max = 3;
+
+    int currentBrightness = max;
+    if (settingsData[2] == WHITE) {
+        currentBrightness = 3;
+    } else if (settingsData[2] == LIGHTGRAY) {
+        currentBrightness = 2;
+    } else if (settingsData[2] == DARKGRAY) {
+        currentBrightness = 1;
+    }
+    
+    int i, j;
+    string text;
+    string lineLastTer = "";
+    for(j=0; j < terminalColumns; j++) {
+        lineLastTer = lineLastTer + "_";
     };
+    lineLastTer = lineLastTer + "\n";
+
+    string lineSpace = "";
+    for(j = 0; j < (terminalColumns - sizeBar) / 2; j++) {
+        lineSpace = lineSpace + " ";
+    };
+    string perProcess = "";
+    for(i = 0; i < (sizeBar / max); i++) {
+        perProcess = perProcess + "=";
+    };
+    string blankPerProcess = "";
+    for(i = 0; i < (sizeBar / max); i++) {
+        blankPerProcess = blankPerProcess + " ";
+    };
+    while(true) {
+        if (currentBrightness == -1) {
+            return;
+        }
+        text = "";
+        for(i = 0; i < terminalRows - 4; i++) {
+            if ((terminalRows / 2) - 2 == i) {
+                text = text + lineSpace + " ";
+                for(j = 0; j < sizeBar; j++) {
+                    text = text + "_";
+                };
+                text = text + "\n" + lineSpace + "[";
+
+                for(j = 0; j < currentBrightness; j++) {
+                    text = text + perProcess;
+                };
+                for(j = 0; j < max - currentBrightness; j++) {
+                    text = text + blankPerProcess;
+                };
+
+                text = text + "]" + "\n" + lineSpace + " ";
+
+                for(j = 0; j < sizeBar; j++) {
+                    text = text + "`";
+                };
+                text = text + "\n";
+            } else {
+                text = text + "\n";
+            };
+        };
+        
+        color(settingsData[2]);
+        clearTerminal();
+        cout << text;
+        color(WHITE);
+        cout << lineLastTer;
+        color(GREEN);
+        cout << "| 'A' -> LOW | 'D' -> HIGH | 'ENTER/SPACE' -> BACK |";
+        inputMenu(&currentBrightness, 2, 2);
+        Sleep(50);
+    };
+    return;
+}
+
+void settingsMenu() {
+    string menu[4] = {
+        "",
+        "",
+        "    Brightness   ",
+        "    Back         "
+    };
+    int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int choose = 0;
     while(true) {
         if (choose == -1) {
             Sleep(25);
             return;
-        } else if (choose == 0) {
-            if (sound_active) {
-                menu[0] =  "    Sound [x]    ";
-            } else {
-                menu[0] =  "    Sound [ ]    ";
-            };
         };
-        showMenu("Settings", menu, sizeof(menu)/sizeof(menu[0]), &choose);
-        inputMenu(&choose, 1, 1);
+
+        if (settingsData[0]) {
+            menu[0] =  "    Music [x]    ";
+        } else {
+            menu[0] =  "    Music [ ]    ";
+        };
+        
+        if (settingsData[1]) {
+            menu[1] =  "    SFX [x]      ";
+        } else {
+            menu[1] =  "    SFX [ ]      ";
+        };
+
+        showMenu("| Settings |", menu, sizeMenu, &choose);
+        inputMenu(&choose, sizeMenu - 1, 1);
         Sleep(100);
     };
+}
+
+void setBrightness(int value) {
+    if (value == 3) {
+        settingsData[2] = WHITE;
+    } else if (value == 2) {
+        settingsData[2] = LIGHTGRAY;
+    } else if (value == 1) {
+        settingsData[2] = DARKGRAY;
+    };
+    return;
+}
+
+void flappyBird() {
+    color(settingsData[2]);
+    clearTerminal();
+    cout << "Game here!";
+    _getch();
+    return;
 }
 
 void inputMenu(int *chooseMenu, int max, int type_menu) {
@@ -439,6 +555,24 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                         *chooseMenu = *chooseMenu - 1;
                     } else {
                         *chooseMenu = max;
+                    };
+                    break;
+            };
+        } else if ((p == 'a') || (p == 'A')) {
+            switch (type_menu) {
+                case 2:
+                    if(*chooseMenu > 1) {
+                        *chooseMenu = *chooseMenu - 1;
+                        setBrightness(*chooseMenu);
+                    };
+                    break;
+            };
+        } else if ((p == 'd') || (p == 'D')) {
+            switch (type_menu) {
+                case 2:
+                    if(*chooseMenu <= max) {
+                        *chooseMenu = *chooseMenu + 1;
+                        setBrightness(*chooseMenu);
                     };
                     break;
             };
@@ -457,9 +591,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             switch(type_menu) {
                 case 0:
                     if(*chooseMenu == 0) {
-                        clearTerminal();
-                        cout << "Start game!";
-                        cin.get();
+                        flappyBird();
                     } else if (*chooseMenu == 1) {
                         settingsMenu();
                     } else if (*chooseMenu == 2) {
@@ -470,16 +602,22 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     break;
                 case 1:
                     if(*chooseMenu == 0) {
-                        sound_active = !sound_active;
-                        if (sound_active) {
+                        settingsData[0] = !settingsData[0];
+                        if (settingsData[0]) {
                             playSound("sound\\mainmenu.wav");
                         } else {
                             stopSound();
                         };
                     } else if (*chooseMenu == 1) {
+                        settingsData[1] = !settingsData[1];
+                    } else if (*chooseMenu == 2) {
+                        brightnessSettings();
+                    } else if (*chooseMenu == 3) {
                         *chooseMenu = -1;
                     };
                     break;
+                case 2:
+                    *chooseMenu = -1;
             };
         };
     };
@@ -493,10 +631,11 @@ void mainMenu() {
         " Credit ",
         "  Exit  "
     };
+    int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int chooseMenu = 0;
     while(true) {
-        showMenu("", menu, sizeof(menu)/sizeof(menu[0]), &chooseMenu);
-        inputMenu(&chooseMenu, 3, 0);
+        showMenu("", menu, sizeMenu, &chooseMenu);
+        inputMenu(&chooseMenu, sizeMenu - 1, 0);
         Sleep(100);
     };
 }
@@ -516,7 +655,7 @@ int main() {
     titleTerminal("Flappy Bird - KhanhNguyen9872 - C++");
 
     clearTerminal();
-    // utf8Output();
+
     Sleep(500);
     banner();
 
@@ -540,17 +679,10 @@ int main() {
     clearTerminal();
     Sleep(500);
     
-    if(sound_active) {
+    if(settingsData[0]) {
         playSound("sound\\mainmenu.wav");
     }
     
     mainMenu();
-
-    string p[2] = {
-        "Game paused!",
-        ""
-    };
-    cout << centerText(p, sizeof(p)/sizeof(p[0]));
-    cin.get();
     return 0;
 }
