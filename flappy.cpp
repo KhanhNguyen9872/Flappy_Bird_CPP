@@ -641,6 +641,7 @@ void mainMenu() {
 }
 
 int main() {
+    system("color 07 >NUL 2>&1");
     terminalColumns = 80;
     terminalRows = 20;
 
