@@ -60,6 +60,13 @@ void hideCursor() {
     return;
 }
 
+void utf8Output() {
+    SetConsoleOutputCP(CP_UTF8);
+
+    setvbuf(stdout, nullptr, _IOFBF, 1000);
+    return;
+}
+
 void getTerminalSize(int& columns, int& rows) {
     columns = bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1;
     rows = bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1;
@@ -84,7 +91,8 @@ string centerText(string text[], int size) {
     return finalText;
 }
 
-void banner() {
+
+void showLogoFullTerminal(string logo[], int sizeLogo) {
     //
     //   _|  |                                   |     _)           | 
     //  |    |   _` |  __ \   __ \   |   |       __ \   |   __|  _` | 
@@ -93,17 +101,10 @@ void banner() {
     //                _|     _|     ____/                             
     //                                            By KhanhNguyen9872  
 
-    string logo[6] = { \
-        "   _|  |                                   |     _)           | ", \
-        "  |    |   _` |  __ \\   __ \\   |   |       __ \\   |   __|  _` | ", \
-        "  __|  |  (   |  |   |  |   |  |   |       |   |  |  |    (   | ", \
-        " _|   _| \\__,_|  .__/   .__/  \\__, |      _.__/  _| _|   \\__,_| ", \
-        "                _|     _|     ____/                             ", \
-        "                                             By KhanhNguyen9872  "};
     string text = "";
     for(int i=0; i<=terminalRows; i++) {
-        if(i == (terminalRows/2) - ((sizeof(logo) / sizeof(logo[0])) / 2)) {
-            text = text + centerText(logo, sizeof(logo) / sizeof(logo[0]));
+        if(i == (terminalRows/2) - ((sizeLogo) / 2)) {
+            text = text + centerText(logo, sizeLogo);
             break;
         } else {
             text = text + "\n";
@@ -136,6 +137,37 @@ void banner() {
     clearTerminal();
     return;
 }
+
+void banner() {
+    string logo[6] = { \
+        "   _|  |                                   |     _)           | ", \
+        "  |    |   _` |  __ \\   __ \\   |   |       __ \\   |   __|  _` | ", \
+        "  __|  |  (   |  |   |  |   |  |   |       |   |  |  |    (   | ", \
+        " _|   _| \\__,_|  .__/   .__/  \\__, |      _.__/  _| _|   \\__,_| ", \
+        "                _|     _|     ____/                             ", \
+        "                                             By KhanhNguyen9872  "};
+    showLogoFullTerminal(logo, sizeof(logo)/sizeof(logo[0]));
+
+    string logo2[15] = { \
+        "                 ;                   ", \
+        "                 ;;                  ", \
+        "                 ;';.                ", \
+        "                 ;  ;;               ", \
+        "                 ;   ;;              ", \
+        "                 ;    ;;             ", \
+        "                 ;    ;;             ", \
+        "                 ;   ;'              ", \
+        "                 ;  '                ", \
+        "             ,;;;,;                  ", \
+        "             ;;;;;;                  ", \
+        "             `;;;;'                  ", \
+        "", \
+        "", \
+        "Use headphones for better experience." \
+    };
+    showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]));
+}
+
 
 void resizeTerminal(int column, int row) {
     string cmd = "MODE " + to_string(column) + "," + to_string(row);
@@ -477,6 +509,7 @@ int main() {
     titleTerminal("Flappy Bird - KhanhNguyen9872 - C++");
 
     clearTerminal();
+    // utf8Output();
     Sleep(500);
     banner();
 
