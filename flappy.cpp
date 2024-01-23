@@ -59,9 +59,7 @@ void clearTerminal() {
 
     GetConsoleScreenBufferInfo(hConsole, &bufferInfo);
 
-    short size = (bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1) * (bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1);
-
-    FillConsoleOutputCharacter(hConsole, ' ', size, newPos, &written);
+    FillConsoleOutputCharacter(hConsole, ' ', (bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1) * (bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1), newPos, &written);
 
     cursorPos_up();
     return;
@@ -74,13 +72,6 @@ void hideCursor() {
     cursorInfo.bVisible = FALSE;
 
     SetConsoleCursorInfo(hConsole, &cursorInfo);
-    return;
-}
-
-void utf8Output() {
-    SetConsoleOutputCP(CP_UTF8);
-
-    setvbuf(stdout, nullptr, _IOFBF, 1000);
     return;
 }
 
@@ -142,24 +133,6 @@ string readFile(string fileName) {
     return text;
 }
 
-int readConfig(string key) {
-    string fileData = readFile(configFileName);
-    string line;
-    string key_;
-    string value_ = "0";
-    istringstream file(fileData);
-    while (getline(file, line)) {
-        if (line.empty() || line[0] == '#') {
-            continue;
-        };
-        istringstream iss(line);
-        if (getline(iss, key_, '=') && getline(iss, value_) && (key_ == key)) {
-            return stoi(value_);
-        };
-    };
-    return stoi(value_);
-}
-
 void writeConfig(string key, string value) {
     string fileData = readFile(configFileName);
     istringstream file(fileData);
@@ -174,15 +147,44 @@ void writeConfig(string key, string value) {
                 continue;
             };
             istringstream iss(line);
-            if (getline(iss, key_, '=') && getline(iss, value_) && (key_ == key)) {
+            if (getline(iss, key_, '=') && (key_ == key)) {
                 continue;
             } else {
+                getline(iss, value_);
                 f << key_ << "=" << value_ << "\n";
             };
         };
         f.close();
     };
     return;
+}
+
+int readConfig(string key) {
+    string fileData = readFile(configFileName);
+    string line;
+    string key_;
+    string value_ = "0";
+    istringstream file(fileData);
+    try {
+        while (getline(file, line)) {
+            if (line.empty() || line[0] == '#') {
+                continue;
+            };
+            istringstream iss(line);
+            if (getline(iss, key_, '=') && (key_ == key)) {
+                if (getline(iss, value_)) {
+                    return stoi(value_);
+                } else {
+                    writeConfig(key, "-1");
+                    return -1;
+                };
+            };
+        };
+        return stoi(value_);
+    } catch (...) {
+        writeConfig(key, "-1");
+        return -1;
+    }
 }
 
 void errorBox(string output) {
@@ -722,6 +724,9 @@ void setBrightness(int value) {
         settingsData[2] = LIGHTGRAY;
     } else if (value == 1) {
         settingsData[2] = DARKGRAY;
+    } else {
+        value = 3;
+        settingsData[2] = WHITE;
     };
     writeConfig("brightness", to_string(value));
     return;
@@ -872,7 +877,7 @@ void resolutionSettings() {
         };
         titleMenu = "| Current resolution: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " |";
         showMenu(titleMenu, menu, sizeMenu, &choose);
-        inputMenu(&choose, sizeMenu, 3);
+        inputMenu(&choose, sizeMenu - 1, 3);
         Sleep(100);
     };
     return;
