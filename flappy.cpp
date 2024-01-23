@@ -59,9 +59,9 @@ void clearTerminal() {
 
     GetConsoleScreenBufferInfo(hConsole, &bufferInfo);
 
-    COORD size = {bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1, bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1};
+    short size = (bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1) * (bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1);
 
-    FillConsoleOutputCharacter(hConsole, ' ', size.X * size.Y, newPos, &written);
+    FillConsoleOutputCharacter(hConsole, ' ', size, newPos, &written);
 
     cursorPos_up();
     return;
@@ -359,12 +359,14 @@ void banner() {
         "Use headphones for better experience." \
     };
     showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]));
+    return;
 }
 
 
 void resizeTerminal(int column, int row) {
     string cmd = "MODE " + to_string(column) + "," + to_string(row);
     system(cmd.c_str());
+    clearTerminal();
     return;
 }
 
@@ -825,6 +827,10 @@ void setResolution(int value) {
     } else if (value == 4) {
         terminalColumns = 160;
         terminalRows = 40;
+    } else {
+        terminalColumns = 80;
+        terminalRows = 20;
+        value = 0;
     };
     smallLogo = "";
     writeConfig("resolution", to_string(value));
@@ -993,7 +999,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 2:
                     *chooseMenu = -1;
                 case 3:
-                    setResolution(*chooseMenu);
+                    if(*chooseMenu > -1) {
+                        setResolution(*chooseMenu);
+                    };
             };
         } else if (p == 27) /* ESC */ {
             switch(type_menu) {
