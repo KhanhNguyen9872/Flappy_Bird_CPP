@@ -334,15 +334,18 @@ void showTip(string tip) {
         tip = listTip[p];
     };
     int i;
+    string text = "";
+    for(i = 0; i < terminalColumns - 16; i++) {
+        text = text + " ";
+    };
+
     cursorPos_up();
     color(YELLOW);
     int sizeRow = 0;
     for(i = 0; i < terminalRows; i++) {
         if (i == terminalRows - 3) {
             cursorPos_move(0, sizeRow);
-            for(i = 0; i < terminalColumns - 16; i++) {
-                cout << " ";
-            }
+            cout << text;
             cursorPos_move(3, sizeRow);
             cout << "Tip: " << tip;
             break;
