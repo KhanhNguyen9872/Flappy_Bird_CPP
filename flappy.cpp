@@ -4,6 +4,8 @@
 #include <conio.h>
 #include <thread>
 #include <time.h>
+#include <fstream>
+#include <sstream>
 
 #pragma comment(lib, "winmm.lib")
 
@@ -31,6 +33,7 @@ int terminalColumns, terminalRows;
 int tmp_int[2] = {0, 0};
 bool tmp_bool[1] = {false};
 string smallLogo = "";
+string configFileName = "flappy.conf";
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
@@ -97,6 +100,13 @@ void playSound_thread(string file) {
     return;
 }
 
+void flushStdin() {
+    while (_kbhit()) {
+        _getch();
+    };
+    return;
+}
+
 // void playSound_SFX(string file) {
 //     if(settingsData[1]) {
         
@@ -113,6 +123,65 @@ void playSound_main(string file) {
 
 void stopSound() {
     PlaySound(NULL, 0, 0);
+    return;
+}
+
+string readFile(string fileName) {
+    ifstream f(fileName);
+    string text = "";
+    string line;
+    if (f.is_open()) {
+        while (getline(f, line)) {
+            if (line.empty() || line[0] == '#') {
+                continue;
+            };
+            text = text + line + "\n";
+        };
+        f.close();
+    };
+    return text;
+}
+
+int readConfig(string key) {
+    string fileData = readFile(configFileName);
+    string line;
+    string key_;
+    string value_ = "0";
+    istringstream file(fileData);
+    while (getline(file, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        };
+        istringstream iss(line);
+        if (getline(iss, key_, '=') && getline(iss, value_) && (key_ == key)) {
+            return stoi(value_);
+        };
+    };
+    return stoi(value_);
+}
+
+void writeConfig(string key, string value) {
+    string fileData = readFile(configFileName);
+    istringstream file(fileData);
+    string line;
+    string key_;
+    string value_;
+    ofstream f(configFileName);
+    if (f.is_open()) {
+        f << key << "=" << value << "\n";
+        while (getline(file, line)) {
+            if (line.empty() || line[0] == '#') {
+                continue;
+            };
+            istringstream iss(line);
+            if (getline(iss, key_, '=') && getline(iss, value_) && (key_ == key)) {
+                continue;
+            } else {
+                f << key_ << "=" << value_ << "\n";
+            };
+        };
+        f.close();
+    };
     return;
 }
 
@@ -160,9 +229,9 @@ void errorBox(string output) {
             text = "";
             cursorPos_move(sizeColumn, sizeRow + 2);
             text = text + "|";
-            for(j = 0; j < boxSize - 2 - (output.length() - 1); j++) {
+            for(j = 0; j < boxSize - 2 - (output.length() - 1) - 1; j++) {
                 if (j == ((boxSize - 2) - output.length() - 1) / 2) {
-                    text = text + output;
+                    text = text + " " + output;
                 } else {
                     text = text + " ";
                 };
@@ -644,18 +713,6 @@ void credit() {
     return;
 }
 
-int getBrightness() {
-    int currentBrightness = 0;
-    if (settingsData[2] == WHITE) {
-        currentBrightness = 3;
-    } else if (settingsData[2] == LIGHTGRAY) {
-        currentBrightness = 2;
-    } else if (settingsData[2] == DARKGRAY) {
-        currentBrightness = 1;
-    }
-    return currentBrightness;
-}
-
 void setBrightness(int value) {
     if (value == 3) {
         settingsData[2] = WHITE;
@@ -664,7 +721,21 @@ void setBrightness(int value) {
     } else if (value == 1) {
         settingsData[2] = DARKGRAY;
     };
+    writeConfig("brightness", to_string(value));
     return;
+}
+
+int getBrightness() {
+    if (settingsData[2] == WHITE) {
+        return 3;
+    } else if (settingsData[2] == LIGHTGRAY) {
+        return 2;
+    } else if (settingsData[2] == DARKGRAY) {
+        return 1;
+    } else {
+        setBrightness(3);
+        return 3;
+    };
 }
 
 void kepmappingSettings() {
@@ -756,7 +827,25 @@ void setResolution(int value) {
         terminalRows = 40;
     };
     smallLogo = "";
+    writeConfig("resolution", to_string(value));
     return;
+}
+
+int getResolutionValue() {
+    if ((terminalColumns == 80) && (terminalRows == 20)) {
+        return 0;
+    } else if ((terminalColumns == 100) && (terminalRows == 26)) {
+        return 1;
+    } else if ((terminalColumns == 120) && (terminalRows == 30)) {
+        return 2;
+    } else if ((terminalColumns == 140) && (terminalRows == 36)) {
+        return 3;
+    } else if ((terminalColumns == 160) && (terminalRows == 40)) {
+        return 4;
+    } else {
+        setResolution(0);
+        return 0;
+    };
 }
 
 void resolutionSettings() {
@@ -768,11 +857,11 @@ void resolutionSettings() {
         "160 x 40"
     };
     int sizeMenu = sizeof(menu) / sizeof(menu[0]);
-    int choose = 0;
+    int choose = getResolutionValue();
     string titleMenu;
     while(true) {
         if (choose == -1) {
-            Sleep(25);
+            flushStdin();
             return;
         };
         titleMenu = "| Current resolution: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " |";
@@ -796,7 +885,7 @@ void settingsMenu() {
     int choose = 0;
     while(true) {
         if (choose == -1) {
-            Sleep(25);
+            flushStdin();
             return;
         };
 
@@ -816,13 +905,6 @@ void settingsMenu() {
         inputMenu(&choose, sizeMenu - 1, 1);
         Sleep(100);
     };
-}
-
-void flushInput() {
-    while (_kbhit()) {
-        _getch();
-    };
-    return;
 }
 
 void inputMenu(int *chooseMenu, int max, int type_menu) {
@@ -894,8 +976,10 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                         if (!settingsData[0]) {
                             stopSound();
                         };
+                        writeConfig("music", to_string(settingsData[0]));
                     } else if (*chooseMenu == 1) {
                         settingsData[1] = !settingsData[1];
+                        writeConfig("sfx", to_string(settingsData[1]));
                     } else if (*chooseMenu == 2) {
                         brightnessSettings();
                     } else if (*chooseMenu == 3) {
@@ -943,20 +1027,23 @@ void mainMenu() {
     };
 }
 
+void loadConfig() {
+    setResolution(readConfig("resolution"));
+    settingsData[0] = readConfig("music");
+    settingsData[1] = readConfig("sfx");
+    setBrightness(readConfig("brightness"));
+    return;
+}
+
 void flappyBird() {
-    color(settingsData[2]);
-    clearTerminal();
-    cout << "Game here!";
-    _getch();
+    errorBox("Game not found!");
     return;
 }
 
 int main() {
     system("color 07 >NUL 2>&1");
+    loadConfig();
     srand(time(NULL));
-
-    terminalColumns = 80;
-    terminalRows = 20;
 
     if((terminalColumns % 2 != 0) || (terminalRows % 2 != 0)) {
         cout << "ERROR: Columns and rows must be divisible by 2.\n";
@@ -978,7 +1065,7 @@ int main() {
     // Loading time... [cho đẹp thôi chứ k có load gì đâu =)))]
     showTip("");
     tmp_int[1] = 1;
-    flushInput();
+    flushStdin();
     for(int i = 0; i <= 100; i = i + 2) {
         loadingFrame(i);
         inputMenu(&tmp_int[0], 0, -1);
@@ -999,7 +1086,7 @@ int main() {
     
     playSound_main("sound\\mainmenu.wav");
     
-    flushInput();
+    flushStdin();
     mainMenu();
     return 0;
 }
