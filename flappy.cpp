@@ -27,7 +27,6 @@ using namespace std;
 
 int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
-string smallLogo = "";
 int tmp_count = 0;
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -116,25 +115,22 @@ void stopSound() {
 void errorBox(string output) {
     //
     //  ________________________ 
-    // |                        |
+    // |/                      \|
     // |     Not available      |
-    // |                        |
+    // |\                      /|
     //  ````````````````````````
     //
 
     int i, j;
     int boxSize = 26;
-    // string lineSpace = "";
     int sizeColumn = 0, sizeRow = 0;
     for(i = 0; i < (terminalColumns - boxSize) / 2; i++) {
         sizeColumn = sizeColumn + 1;
     };
 
     color(RED);
-    // playSound_SFX("sound\\error.wav");
     for(i = 0; i < terminalRows - 5; i++) {
         if (i == (terminalRows / 2) - 3) {
-            // move cursor;
             cursorPos_move(sizeColumn, sizeRow);
 
             cout << " ";
@@ -144,16 +140,14 @@ void errorBox(string output) {
             
             cout << " ";
 
-            // move cursor;
             cursorPos_move(sizeColumn, sizeRow + 1);
 
-            cout << "|";
-            for(j = 0; j < boxSize - 2; j++) {
+            cout << "|/";
+            for(j = 0; j < boxSize - 4; j++) {
                 cout << " ";
             }; 
-            cout << "|";
+            cout << "\\|";
 
-            // move cursor;
             cursorPos_move(sizeColumn, sizeRow + 2);
             cout << "|";
             for(j = 0; j < boxSize - 2 - (output.length() - 1); j++) {
@@ -165,15 +159,13 @@ void errorBox(string output) {
             };
             cout << "|";
 
-            // move cursor;
             cursorPos_move(sizeColumn, sizeRow + 3);
-            cout << "|";
-            for(j = 0; j < boxSize - 2; j++) {
+            cout << "|\\";
+            for(j = 0; j < boxSize - 4; j++) {
                 cout << " ";
             }; 
-            cout << "|";
+            cout << "/|";
 
-            // move cursor;
             cursorPos_move(sizeColumn, sizeRow + 4);
 
             cout << " ";
@@ -297,6 +289,19 @@ void titleTerminal(string name) {
     return;
 }
 
+void bottomKeymap(string text) {
+    string lineLastTer = "";
+    for(int j=0; j < terminalColumns; j++) {
+        lineLastTer = lineLastTer + "_";
+    };
+    lineLastTer = lineLastTer + "\n";
+    color(WHITE);
+    cout << lineLastTer;
+    color(GREEN);
+    cout << text;
+    return;
+}
+
 void loadingFrame(int progress) {
     //
     //   __________
@@ -382,7 +387,7 @@ void lockSizeTerminal() {
         if ((columns != terminalColumns) || (rows != terminalRows)) {
             resizeTerminal(terminalColumns, terminalRows);
         }
-        Sleep(1000);
+        Sleep(500);
     }
     return;
 }
@@ -395,18 +400,16 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     //             |_|  |_|   |__/                  
     //
 
-    if(smallLogo == "") {
-        string logo[6] = {
-            " ___ _                       ___ _        _ ", \
-            "| __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |", \
-            "| _|| / _` | '_ \\ '_ \\ || | | _ \\ | '_/ _` |", \
-            "|_| |_\\__,_| .__/ .__/\\_, | |___/_|_| \\__,_|", \
-            "           |_|  |_|   |__/                  ", \
-            "" \
-        };
+    string logo[6] = {
+        " ___ _                       ___ _        _ ", \
+        "| __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |", \
+        "| _|| / _` | '_ \\ '_ \\ || | | _ \\ | '_/ _` |", \
+        "|_| |_\\__,_| .__/ .__/\\_, | |___/_|_| \\__,_|", \
+        "           |_|  |_|   |__/                  ", \
+        "" \
+    };
 
-        smallLogo = centerText(logo, sizeof(logo)/sizeof(logo[0]));
-    }
+    string smallLogo = centerText(logo, sizeof(logo)/sizeof(logo[0]));
     
     string text = "";
     int titleMenuSize = 0;
@@ -421,12 +424,6 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
 
     int padding = terminalRows - 7 - sizeMenu - titleMenuSize;
 
-    string lineLastTer = "";
-    for(int j=0; j < terminalColumns; j++) {
-        lineLastTer = lineLastTer + "_";
-    };
-    lineLastTer = lineLastTer + "\n";
-
     for(int i=0; i <= padding; i++) {
         if(i == 3) {
             text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, *chooseMenu);
@@ -436,14 +433,11 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
             text = text + "\n";
         }
     }
-
+    
     color(settingsData[2]);
     clearTerminal();
     cout << text;
-    color(WHITE);
-    cout << lineLastTer;
-    color(GREEN);
-    cout << "| 'W' -> UP | 'S' -> DOWN | 'ENTER/SPACE' -> ENTER |";
+    bottomKeymap("| 'W' -> UP | 'S' -> DOWN | 'ENTER/SPACE' -> ENTER | 'ESC' -> BACK |");
     return;
 }
 
@@ -551,12 +545,6 @@ void brightnessSettings() {
     
     int i, j;
     string text;
-    string lineLastTer = "";
-    for(j=0; j < terminalColumns; j++) {
-        lineLastTer = lineLastTer + "_";
-    };
-    lineLastTer = lineLastTer + "\n";
-
     string lineSpace = "";
     for(j = 0; j < (terminalColumns - sizeBar) / 2; j++) {
         lineSpace = lineSpace + " ";
@@ -603,22 +591,56 @@ void brightnessSettings() {
         color(settingsData[2]);
         clearTerminal();
         cout << text;
-        color(WHITE);
-        cout << lineLastTer;
-        color(GREEN);
-        cout << "| 'A' -> LOW | 'D' -> HIGH | 'ENTER/SPACE' -> BACK |";
+        bottomKeymap("| 'A' -> LOW | 'D' -> HIGH | 'ENTER/SPACE/ESC' -> BACK |");
         inputMenu(&currentBrightness, 2, 2);
         Sleep(50);
     };
     return;
 }
 
+void setResolution(int value) {
+    if(value == 0) {
+        terminalColumns = 80;
+        terminalRows = 20;
+    } else if (value == 1) {
+        terminalColumns = 120;
+        terminalRows = 30;
+    } else if (value == 2) {
+        terminalColumns = 160;
+        terminalRows = 40;
+    };
+    return;
+}
+
+void resolutionSettings() {
+    string menu[3] = {
+        " 80 x 20",
+        "120 x 30",
+        "160 x 40"
+    };
+    int sizeMenu = sizeof(menu) / sizeof(menu[0]);
+    int choose = 0;
+    string titleMenu;
+    while(true) {
+        if (choose == -1) {
+            Sleep(25);
+            return;
+        };
+        titleMenu = "| Current resolution: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " |";
+        showMenu(titleMenu, menu, sizeMenu, &choose);
+        inputMenu(&choose, sizeMenu, 3);
+        Sleep(100);
+    };
+    return;
+}
+
 void settingsMenu() {
-    string menu[5] = {
+    string menu[6] = {
         "",
         "",
         "    Brightness   ",
         "    Keymapping   ",
+        "    Resolution   ",
         "    Back         "
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
@@ -658,10 +680,11 @@ void flappyBird() {
 void inputMenu(int *chooseMenu, int max, int type_menu) {
     if (_kbhit()) {
         char p = _getch();
-        if ((p == 'w') || (p == 'W')) {
+        if ((p == 'w') || (p == 'W')) /* W */ {
             switch (type_menu) {
                 case 0:
                 case 1:
+                case 3:
                     if(*chooseMenu > 0) {
                         *chooseMenu = *chooseMenu - 1;
                     } else {
@@ -669,7 +692,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if ((p == 'a') || (p == 'A')) {
+        } else if ((p == 'a') || (p == 'A')) /* A */ {
             switch (type_menu) {
                 case 2:
                     if(*chooseMenu > 1) {
@@ -678,7 +701,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if ((p == 'd') || (p == 'D')) {
+        } else if ((p == 'd') || (p == 'D')) /* D */ {
             switch (type_menu) {
                 case 2:
                     if(*chooseMenu <= max) {
@@ -687,10 +710,11 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if ((p == 's') || (p == 'S')) {
+        } else if ((p == 's') || (p == 'S')) /* S */ {
             switch (type_menu) {
                 case 0:
                 case 1:
+                case 3:
                     if(*chooseMenu < max) {
                         *chooseMenu = *chooseMenu + 1;
                     } else {
@@ -698,7 +722,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if ((p == '\r') || (p == ' ')) {
+        } else if ((p == '\r') || (p == ' ')) /* ENTER/SPACE */ {
             switch(type_menu) {
                 case 0:
                     if(*chooseMenu == 0) {
@@ -725,12 +749,25 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     } else if (*chooseMenu == 3) {
                         kepmappingSettings();
                     } else if (*chooseMenu == 4) {
+                        resolutionSettings();
+                    } else if (*chooseMenu == 5) {
                         *chooseMenu = -1;
                     };
                     break;
                 case 2:
                     *chooseMenu = -1;
+                case 3:
+                    setResolution(*chooseMenu);
             };
+        } else if (p == 27) /* ESC */ {
+            switch(type_menu) {
+                case 1:
+                    *chooseMenu = -1;
+                case 2:
+                    *chooseMenu = -1;
+                case 3:
+                    *chooseMenu = -1;
+            }
         };
     };
     return;
