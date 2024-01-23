@@ -28,7 +28,7 @@ using namespace std;
 
 int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
-int tmp_count = 0;
+int tmp_int[2] = {0, 0};
 string smallLogo = "";
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -199,6 +199,7 @@ void errorBox(string output) {
     return;
 }
 
+
 string centerText(string text[], int size) {
     string finalText = "";
     string lineSpace = "";
@@ -356,6 +357,31 @@ void showTip(string tip) {
     return;
 }
 
+void showAnimation(string animation[], int sizeAnimation) {
+    string text = "[";
+    int i, j;
+    for(j = 0; j < terminalColumns - 2; j++) {
+        text = text + "/";
+    };
+    text = text + "]";
+    
+    int sizeRow = 0;
+    for(i = 0; i < terminalRows - 3; i++) {
+        if (i == (int)(terminalRows / 4)) {
+            for(j = 0; j < sizeAnimation; j++) {
+                cursorPos_move(3, sizeRow + j);
+                cout << animation[j];
+            };
+        } else if (i == terminalRows - 6) {
+            cursorPos_move(0, sizeRow);
+            cout << text;
+        } else {
+            sizeRow = sizeRow + 1;
+        };
+    };
+    return;
+}
+
 void loadingFrame(int progress) {
     //
     //   __________
@@ -364,14 +390,44 @@ void loadingFrame(int progress) {
     //   LOADING...
     //
 
+    // 
+    // 
+    //   ( O>   |    \ 
+    //  / @ @\  |   >@@( O>
+    //   ^ ^    |    /
+    //
+    //
+    //
+    // [/////////////////////////////////////////]
+    string allAnimation[3][3] = {
+        {
+            "  /",
+            ">@@( O>",
+            "  \\"
+        },
+        {
+            "  |",
+            ">@@( O>",
+            "  |"
+        },
+        {
+            "  \\",
+            ">@@( O>",
+            "  /"
+        }
+    };
+
+    int sizeAnimation = sizeof(allAnimation) / sizeof(allAnimation[0]);
+    int i, j, k;
+
     string text = "";
     int sizeRow = 0;
     int sizeColumn = 0;
 
     color(LIGHTCYAN);
-    for(int i=0; i<terminalRows-4; i++) {
+    for(i=0; i<terminalRows-4; i++) {
         if(i == terminalRows-5) {
-            for(int j=0; j<terminalColumns; j++) {
+            for(j=0; j<terminalColumns; j++) {
                 if(j == terminalColumns-15) {
 
                     cursorPos_move(sizeColumn, sizeRow);
@@ -400,21 +456,27 @@ void loadingFrame(int progress) {
             cout << " LOADING";
 
             text = "";
-            for(int k=0; k<tmp_count; k++) {
+            for(k=0; k < tmp_int[0]; k++) {
                 text = text + ".";
             };
-            for(int k=0; k< 4 - tmp_count; k++) {
+            for(k=0; k < 4 - tmp_int[0]; k++) {
                 text = text + " ";
             };
             cout << text + "\n";
 
-            tmp_count = tmp_count + 1;
-            if(tmp_count > 4) {
-                tmp_count = 0;
+            tmp_int[0] = tmp_int[0] + 1;
+            if(tmp_int[0] > 4) {
+                tmp_int[0] = 0;
             };
         } else {
             sizeRow = sizeRow + 1;
         };
+    };
+    color(CYAN);
+    showAnimation(allAnimation[tmp_int[1]], sizeof(allAnimation[tmp_int[1]]) / sizeof(allAnimation[tmp_int[1]][0]));
+    tmp_int[1] = tmp_int[1] + 1;
+    if(tmp_int[1] > 2) {
+        tmp_int[1] = 0;
     };
     return;
 }
@@ -886,6 +948,7 @@ int main() {
 
     if((terminalColumns % 2 != 0) || (terminalRows % 2 != 0)) {
         cout << "ERROR: Columns and rows must be divisible by 2.\n";
+        _getch();
         return 1;
     }
 
@@ -903,17 +966,17 @@ int main() {
     // Loading time... [cho đẹp thôi chứ k có load gì đâu =)))]
     showTip("");
     flushInput();
-    for(int i=0; i<=100; i++) {
+    for(int i = 0; i <= 100; i = i + 2) {
         loadingFrame(i);
-        inputMenu(&tmp_count, 0, -1);
-        if(i<20) {
-            Sleep(100);
-        } else if(i<70) {
-            Sleep(20);
-        } else if (i<90) {
-            Sleep(30);
-        } else {
+        inputMenu(&tmp_int[0], 0, -1);
+        if(i < 20) {
+            Sleep(200);
+        } else if(i < 70) {
+            Sleep(40);
+        } else if (i < 90) {
             Sleep(60);
+        } else {
+            Sleep(120);
         };
     };
 
