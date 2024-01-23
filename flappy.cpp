@@ -89,7 +89,31 @@ void color(int index) {
     return;
 }
 
-void warningBox(string output) {
+void playSound_thread(string file) {
+    PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME);
+    return;
+}
+
+// void playSound_SFX(string file) {
+//     if(settingsData[1]) {
+        
+//     };
+//     return;
+// }
+
+void playSound_main(string file) {
+    if(settingsData[0]) {
+        PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
+    }
+    return;
+}
+
+void stopSound() {
+    PlaySound(NULL, 0, 0);
+    return;
+}
+
+void errorBox(string output) {
     //
     //  ________________________ 
     // |                        |
@@ -107,6 +131,7 @@ void warningBox(string output) {
     };
 
     color(RED);
+    // playSound_SFX("sound\\error.wav");
     for(i = 0; i < terminalRows - 5; i++) {
         if (i == (terminalRows / 2) - 3) {
             // move cursor;
@@ -350,18 +375,6 @@ string menuText(string text[], int size, int choose) {
     return finalString;
 }
 
-void playSound(string file) {
-    if (settingsData[0]) {
-        PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
-    }
-    return;
-}
-
-void stopSound() {
-    PlaySound(NULL, 0, 0);
-    return;
-}
-
 void lockSizeTerminal() {
     int columns = terminalColumns, rows = terminalRows;
     while(true) {
@@ -521,7 +534,7 @@ void setBrightness(int value) {
 }
 
 void kepmappingSettings() {
-    warningBox("Not available");
+    errorBox("Not available");
     return;
 }
 
@@ -701,9 +714,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 1:
                     if(*chooseMenu == 0) {
                         settingsData[0] = !settingsData[0];
-                        if (settingsData[0]) {
-                            playSound("sound\\mainmenu.wav");
-                        } else {
+                        playSound_main("sound\\mainmenu.wav");
+                        if (!settingsData[0]) {
                             stopSound();
                         };
                     } else if (*chooseMenu == 1) {
@@ -780,9 +792,7 @@ int main() {
     clearTerminal();
     Sleep(500);
     
-    if(settingsData[0]) {
-        playSound("sound\\mainmenu.wav");
-    }
+    playSound_main("sound\\mainmenu.wav");
     
     mainMenu();
     return 0;
