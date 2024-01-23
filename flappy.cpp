@@ -29,6 +29,7 @@ using namespace std;
 int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
 int tmp_int[2] = {0, 0};
+bool tmp_bool[1] = {false};
 string smallLogo = "";
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -399,7 +400,7 @@ void loadingFrame(int progress) {
     //
     //
     // [/////////////////////////////////////////]
-    string allAnimation[3][3] = {
+    string allAnimation[4][3] = {
         {
             "  /",
             ">@@( O>",
@@ -414,6 +415,11 @@ void loadingFrame(int progress) {
             "  \\",
             ">@@( O>",
             "  /"
+        },
+        {
+            " __",
+            ">@@( O>",
+            " ``"
         }
     };
 
@@ -474,10 +480,16 @@ void loadingFrame(int progress) {
     };
     color(CYAN);
     showAnimation(allAnimation[tmp_int[1]], sizeof(allAnimation[tmp_int[1]]) / sizeof(allAnimation[tmp_int[1]][0]));
-    tmp_int[1] = tmp_int[1] + 1;
-    if(tmp_int[1] > 2) {
-        tmp_int[1] = 0;
+    if ((tmp_int[1] >= 3) || (tmp_int[1] <= 0) ) {
+        tmp_bool[0] = !tmp_bool[0];
     };
+
+    if(!tmp_bool[0]) {
+        tmp_int[1] = tmp_int[1] + 1;
+    } else {
+        tmp_int[1] = tmp_int[1] - 1;
+    }
+    
     return;
 }
 
@@ -965,6 +977,7 @@ int main() {
 
     // Loading time... [cho đẹp thôi chứ k có load gì đâu =)))]
     showTip("");
+    tmp_int[1] = 1;
     flushInput();
     for(int i = 0; i <= 100; i = i + 2) {
         loadingFrame(i);
