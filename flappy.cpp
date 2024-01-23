@@ -3,6 +3,7 @@
 #include <string>
 #include <conio.h>
 #include <thread>
+#include <time.h>
 
 #pragma comment(lib, "winmm.lib")
 
@@ -28,6 +29,7 @@ using namespace std;
 int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
 int tmp_count = 0;
+string smallLogo = "";
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
@@ -35,6 +37,7 @@ COORD newPos = {0, 0};
 DWORD written;
 
 void inputMenu(int *chooseMenu, int max, int type_menu);
+void flappyBird();
 
 void cursorPos_move(int column, int row) {
     COORD tmpPos;
@@ -127,53 +130,64 @@ void errorBox(string output) {
     for(i = 0; i < (terminalColumns - boxSize) / 2; i++) {
         sizeColumn = sizeColumn + 1;
     };
+    string text;
 
     color(RED);
     for(i = 0; i < terminalRows - 5; i++) {
         if (i == (terminalRows / 2) - 3) {
+            text = "";
             cursorPos_move(sizeColumn, sizeRow);
 
-            cout << " ";
+            text = text + " ";
             for(j = 0; j < boxSize - 2; j++) {
-                cout << "_";
+                text = text + "_";
             };
             
-            cout << " ";
+            text = text + " ";
+            cout << text;
 
+            text = "";
             cursorPos_move(sizeColumn, sizeRow + 1);
 
-            cout << "|/";
+            text = text + "|/";
             for(j = 0; j < boxSize - 4; j++) {
-                cout << " ";
+                text = text + " ";
             }; 
-            cout << "\\|";
+            text = text + "\\|";
+            cout << text;
 
+            text = "";
             cursorPos_move(sizeColumn, sizeRow + 2);
-            cout << "|";
+            text = text + "|";
             for(j = 0; j < boxSize - 2 - (output.length() - 1); j++) {
                 if (j == ((boxSize - 2) - output.length() - 1) / 2) {
-                    cout << output;
+                    text = text + output;
                 } else {
-                    cout << " ";
+                    text = text + " ";
                 };
             };
-            cout << "|";
+            text = text + "|";
+            cout << text;
 
+            text = "";
             cursorPos_move(sizeColumn, sizeRow + 3);
-            cout << "|\\";
+            text = text + "|\\";
             for(j = 0; j < boxSize - 4; j++) {
-                cout << " ";
+                text = text + " ";
             }; 
-            cout << "/|";
+            text = text + "/|";
+            cout << text;
 
+            text = "";
             cursorPos_move(sizeColumn, sizeRow + 4);
 
-            cout << " ";
+            text = text + " ";
             for(j = 0; j < boxSize - 2; j++) {
-                cout << "`";
+                text = text + "`";
             };
             
-            cout << " ";
+            text = text + " ";
+            cout << text;
             break;
         } else {
             sizeRow = sizeRow + 1;
@@ -302,6 +316,43 @@ void bottomKeymap(string text) {
     return;
 }
 
+void showTip(string tip) {
+    if (tip.length() >= terminalColumns - 18) {
+        return;
+    };
+    if (tip == "") {
+        string listTip[6] = {
+            "The person who doesn't play is the winner!",
+            "You can change the brightness to be more suitable!",
+            "The game was developed by KhanhNguyen9872!",
+            "Good luck for you!",
+            "How about your day?",
+            "Do what you want!"
+        };
+        
+        int p = rand() % (sizeof(listTip) / sizeof(listTip[0]));
+        tip = listTip[p];
+    };
+    int i;
+    cursorPos_up();
+    color(YELLOW);
+    int sizeRow = 0;
+    for(i = 0; i < terminalRows; i++) {
+        if (i == terminalRows - 3) {
+            cursorPos_move(0, sizeRow);
+            for(i = 0; i < terminalColumns - 16; i++) {
+                cout << " ";
+            }
+            cursorPos_move(3, sizeRow);
+            cout << "Tip: " << tip;
+            break;
+        } else {
+            sizeRow = sizeRow + 1;
+        };
+    };
+    return;
+}
+
 void loadingFrame(int progress) {
     //
     //   __________
@@ -311,47 +362,57 @@ void loadingFrame(int progress) {
     //
 
     string text = "";
-    string lineSpace = "";
-    string tmp = "";
+    int sizeRow = 0;
+    int sizeColumn = 0;
 
+    color(LIGHTCYAN);
     for(int i=0; i<terminalRows-4; i++) {
         if(i == terminalRows-5) {
             for(int j=0; j<terminalColumns; j++) {
                 if(j == terminalColumns-15) {
-                    tmp = tmp + lineSpace + " __________ \n";
-                    tmp = tmp + lineSpace + "|";
+
+                    cursorPos_move(sizeColumn, sizeRow);
+                    cout << " __________ ";
+
+                    cursorPos_move(sizeColumn, sizeRow + 1);
+                    text = "|";
                     for(int k=10; k<=100; k=k+10) {
                         if(progress >= k) {
-                            tmp = tmp + "=";
+                            text = text + "=";
                         } else {
-                            tmp = tmp + " ";
+                            text = text + " ";
                         }
                     }
-                    tmp = tmp + "|\n";
-                    tmp = tmp + lineSpace + " `````````` \n";
+                    text = text + "|";
+                    cout << text;
+
+                    cursorPos_move(sizeColumn, sizeRow + 2);
+                    cout << " `````````` ";
                     break;
                 } else {
-                    lineSpace = lineSpace + " ";
+                    sizeColumn = sizeColumn + 1;
                 }
             }
-            text = text + tmp + lineSpace + " LOADING";
+            cursorPos_move(sizeColumn, sizeRow + 3);
+            cout << " LOADING";
+
+            text = "";
             for(int k=0; k<tmp_count; k++) {
                 text = text + ".";
             };
             for(int k=0; k< 4 - tmp_count; k++) {
                 text = text + " ";
-            }
-            text = text + "\n";
+            };
+            cout << text + "\n";
+
             tmp_count = tmp_count + 1;
             if(tmp_count > 4) {
                 tmp_count = 0;
-            }
+            };
         } else {
-            text = text + "\n";
-        }
-    }
-    cursorPos_up();
-    cout << text;
+            sizeRow = sizeRow + 1;
+        };
+    };
     return;
 }
 
@@ -400,16 +461,18 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     //             |_|  |_|   |__/                  
     //
 
-    string logo[6] = {
-        " ___ _                       ___ _        _ ", \
-        "| __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |", \
-        "| _|| / _` | '_ \\ '_ \\ || | | _ \\ | '_/ _` |", \
-        "|_| |_\\__,_| .__/ .__/\\_, | |___/_|_| \\__,_|", \
-        "           |_|  |_|   |__/                  ", \
-        "" \
-    };
+    if(smallLogo == "") {
+        string logo[6] = {
+            " ___ _                       ___ _        _ ", \
+            "| __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |", \
+            "| _|| / _` | '_ \\ '_ \\ || | | _ \\ | '_/ _` |", \
+            "|_| |_\\__,_| .__/ .__/\\_, | |___/_|_| \\__,_|", \
+            "           |_|  |_|   |__/                  ", \
+            "" \
+        };
 
-    string smallLogo = centerText(logo, sizeof(logo)/sizeof(logo[0]));
+        smallLogo = centerText(logo, sizeof(logo)/sizeof(logo[0]));
+    };
     
     string text = "";
     int titleMenuSize = 0;
@@ -603,19 +666,28 @@ void setResolution(int value) {
         terminalColumns = 80;
         terminalRows = 20;
     } else if (value == 1) {
+        terminalColumns = 100;
+        terminalRows = 26;
+    } else if (value == 2) {
         terminalColumns = 120;
         terminalRows = 30;
-    } else if (value == 2) {
+    } else if (value == 3) {
+        terminalColumns = 140;
+        terminalRows = 36;
+    } else if (value == 4) {
         terminalColumns = 160;
         terminalRows = 40;
     };
+    smallLogo = "";
     return;
 }
 
 void resolutionSettings() {
-    string menu[3] = {
+    string menu[5] = {
         " 80 x 20",
+        "100 x 26",
         "120 x 30",
+        "140 x 36",
         "160 x 40"
     };
     int sizeMenu = sizeof(menu) / sizeof(menu[0]);
@@ -669,17 +741,17 @@ void settingsMenu() {
     };
 }
 
-void flappyBird() {
-    color(settingsData[2]);
-    clearTerminal();
-    cout << "Game here!";
-    _getch();
+void flushInput() {
+    while (_kbhit()) {
+        _getch();
+    };
     return;
 }
 
 void inputMenu(int *chooseMenu, int max, int type_menu) {
     if (_kbhit()) {
         char p = _getch();
+
         if ((p == 'w') || (p == 'W')) /* W */ {
             switch (type_menu) {
                 case 0:
@@ -724,6 +796,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if ((p == '\r') || (p == ' ')) /* ENTER/SPACE */ {
             switch(type_menu) {
+                case -1:
+                    showTip("");
+                    break;
                 case 0:
                     if(*chooseMenu == 0) {
                         flappyBird();
@@ -768,6 +843,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 3:
                     *chooseMenu = -1;
             }
+        } else {
+            return;
         };
     };
     return;
@@ -789,8 +866,18 @@ void mainMenu() {
     };
 }
 
+void flappyBird() {
+    color(settingsData[2]);
+    clearTerminal();
+    cout << "Game here!";
+    _getch();
+    return;
+}
+
 int main() {
     system("color 07 >NUL 2>&1");
+    srand(time(NULL));
+
     terminalColumns = 80;
     terminalRows = 20;
 
@@ -811,9 +898,11 @@ int main() {
     Sleep(1000);
 
     // Loading time... [cho đẹp thôi chứ k có load gì đâu =)))]
-    color(LIGHTCYAN);
+    showTip("");
+    flushInput();
     for(int i=0; i<=100; i++) {
         loadingFrame(i);
+        inputMenu(&tmp_count, 0, -1);
         if(i<20) {
             Sleep(100);
         } else if(i<70) {
@@ -822,7 +911,7 @@ int main() {
             Sleep(30);
         } else {
             Sleep(60);
-        }        
+        };
     };
 
     Sleep(500);
@@ -831,6 +920,7 @@ int main() {
     
     playSound_main("sound\\mainmenu.wav");
     
+    flushInput();
     mainMenu();
     return 0;
 }
