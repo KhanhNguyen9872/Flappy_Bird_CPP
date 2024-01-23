@@ -37,6 +37,13 @@ DWORD written;
 
 void inputMenu(int *chooseMenu, int max, int type_menu);
 
+void cursorPos_move(int column, int row) {
+    COORD tmpPos;
+    tmpPos.X = column;
+    tmpPos.Y = row;
+    SetConsoleCursorPosition(hConsole, tmpPos);
+}
+
 void cursorPos_up() {
     SetConsoleCursorPosition(hConsole, newPos);
 }
@@ -71,13 +78,93 @@ void utf8Output() {
     return;
 }
 
-void getTerminalSize(int& columns, int& rows) {
-    columns = bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1;
-    rows = bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1;
+void getTerminalSize(int *columns, int *rows) {
+    *columns = bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1;
+    *rows = bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1;
+    return;
 }
 
 void color(int index) {
     SetConsoleTextAttribute(hConsole, index);
+    return;
+}
+
+void warningBox(string output) {
+    //
+    //  ________________________ 
+    // |                        |
+    // |     Not available      |
+    // |                        |
+    //  ````````````````````````
+    //
+
+    int i, j;
+    int boxSize = 26;
+    // string lineSpace = "";
+    int sizeColumn = 0, sizeRow = 0;
+    for(i = 0; i < (terminalColumns - boxSize) / 2; i++) {
+        sizeColumn = sizeColumn + 1;
+    };
+
+    color(RED);
+    for(i = 0; i < terminalRows - 5; i++) {
+        if (i == (terminalRows / 2) - 3) {
+            // move cursor;
+            cursorPos_move(sizeColumn, sizeRow);
+
+            cout << " ";
+            for(j = 0; j < boxSize - 2; j++) {
+                cout << "_";
+            };
+            
+            cout << " ";
+
+            // move cursor;
+            cursorPos_move(sizeColumn, sizeRow + 1);
+
+            cout << "|";
+            for(j = 0; j < boxSize - 2; j++) {
+                cout << " ";
+            }; 
+            cout << "|";
+
+            // move cursor;
+            cursorPos_move(sizeColumn, sizeRow + 2);
+            cout << "|";
+            for(j = 0; j < boxSize - 2 - (output.length() - 1); j++) {
+                if (j == ((boxSize - 2) - output.length() - 1) / 2) {
+                    cout << output;
+                } else {
+                    cout << " ";
+                };
+            };
+            cout << "|";
+
+            // move cursor;
+            cursorPos_move(sizeColumn, sizeRow + 3);
+            cout << "|";
+            for(j = 0; j < boxSize - 2; j++) {
+                cout << " ";
+            }; 
+            cout << "|";
+
+            // move cursor;
+            cursorPos_move(sizeColumn, sizeRow + 4);
+
+            cout << " ";
+            for(j = 0; j < boxSize - 2; j++) {
+                cout << "`";
+            };
+            
+            cout << " ";
+            break;
+        } else {
+            sizeRow = sizeRow + 1;
+        }
+    };
+
+    color(settingsData[2]);
+    _getch();
     return;
 }
 
@@ -276,9 +363,9 @@ void stopSound() {
 }
 
 void lockSizeTerminal() {
-    int columns, rows;
+    int columns = terminalColumns, rows = terminalRows;
     while(true) {
-        getTerminalSize(columns, rows);
+        getTerminalSize(&columns, &rows);
         if ((columns != terminalColumns) || (rows != terminalRows)) {
             resizeTerminal(terminalColumns, terminalRows);
         }
@@ -410,6 +497,34 @@ void credit() {
     return;
 }
 
+int getBrightness() {
+    int currentBrightness = 0;
+    if (settingsData[2] == WHITE) {
+        currentBrightness = 3;
+    } else if (settingsData[2] == LIGHTGRAY) {
+        currentBrightness = 2;
+    } else if (settingsData[2] == DARKGRAY) {
+        currentBrightness = 1;
+    }
+    return currentBrightness;
+}
+
+void setBrightness(int value) {
+    if (value == 3) {
+        settingsData[2] = WHITE;
+    } else if (value == 2) {
+        settingsData[2] = LIGHTGRAY;
+    } else if (value == 1) {
+        settingsData[2] = DARKGRAY;
+    };
+    return;
+}
+
+void kepmappingSettings() {
+    warningBox("Not available");
+    return;
+}
+
 void brightnessSettings() {
     //  
     //  ______________
@@ -419,14 +534,7 @@ void brightnessSettings() {
     int sizeBar = 15;
     int max = 3;
 
-    int currentBrightness = max;
-    if (settingsData[2] == WHITE) {
-        currentBrightness = 3;
-    } else if (settingsData[2] == LIGHTGRAY) {
-        currentBrightness = 2;
-    } else if (settingsData[2] == DARKGRAY) {
-        currentBrightness = 1;
-    }
+    int currentBrightness = getBrightness();
     
     int i, j;
     string text;
@@ -493,10 +601,11 @@ void brightnessSettings() {
 }
 
 void settingsMenu() {
-    string menu[4] = {
+    string menu[5] = {
         "",
         "",
         "    Brightness   ",
+        "    Keymapping   ",
         "    Back         "
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
@@ -523,17 +632,6 @@ void settingsMenu() {
         inputMenu(&choose, sizeMenu - 1, 1);
         Sleep(100);
     };
-}
-
-void setBrightness(int value) {
-    if (value == 3) {
-        settingsData[2] = WHITE;
-    } else if (value == 2) {
-        settingsData[2] = LIGHTGRAY;
-    } else if (value == 1) {
-        settingsData[2] = DARKGRAY;
-    };
-    return;
 }
 
 void flappyBird() {
@@ -613,6 +711,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     } else if (*chooseMenu == 2) {
                         brightnessSettings();
                     } else if (*chooseMenu == 3) {
+                        kepmappingSettings();
+                    } else if (*chooseMenu == 4) {
                         *chooseMenu = -1;
                     };
                     break;
@@ -657,10 +757,10 @@ int main() {
 
     clearTerminal();
 
-    Sleep(500);
+    Sleep(1000);
     banner();
+    Sleep(1000);
 
-    Sleep(500);
     // Loading time... [cho đẹp thôi chứ k có load gì đâu =)))]
     color(LIGHTCYAN);
     for(int i=0; i<=100; i++) {
