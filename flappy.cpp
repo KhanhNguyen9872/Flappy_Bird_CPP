@@ -349,6 +349,7 @@ void errorBox(string output, bool isBlur) {
     int i, j;
     int boxSize = 26;
     int sizeColumn = 0, sizeRow = 0;
+    
     for(i = 0; i < (terminalColumns - boxSize) / 2; i++) {
         sizeColumn = sizeColumn + 1;
     };
@@ -435,16 +436,17 @@ void errorBox(string output, bool isBlur) {
     return;
 }
 
-
 string centerText(string text[], int size) {
     string finalText = "";
     string lineSpace = "";
+    int Tmp, i;
 
-    for(int i=0; i < (terminalColumns - text[0].length()) / 2; i++) {
+    Tmp = (terminalColumns - text[0].length()) / 2;
+    for(i=0; i < Tmp; i++) {
         lineSpace = lineSpace + " ";
     }
 
-    for(int i=0; i < size; i++) {
+    for(i=0; i < size; i++) {
         finalText = finalText + lineSpace + text[i] + "\n";  
     }
     return finalText;
@@ -459,9 +461,10 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isShowUser) {
     // _|   _| \__,_|  .__/   .__/  \__, |      _.__/  _| _|   \__,_| 
     //                _|     _|     ____/                             
     //                                            By KhanhNguyen9872  
-
+    int i;
     string text = "";
-    for(int i=0; i<=terminalRows; i++) {
+
+    for(i=0; i <= terminalRows; i++) {
         if(i == (terminalRows/2) - ((sizeLogo) / 2)) {
             text = text + centerText(logo, sizeLogo);
             break;
@@ -476,7 +479,7 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isShowUser) {
         color(WHITE);
         showUser(getenv("username"));
     };
-    for(int i=0;i<40; i++) {
+    for(i=0;i < 40; i++) {
         if (i<5) {
             color(BLACK);
         } else if(i<8) {
@@ -589,7 +592,8 @@ void resizeTerminal(int column, int row) {
 
 void bottomKeymap(string text) {
     string lineLastTer = "";
-    for(int j=0; j < terminalColumns; j++) {
+    int j;
+    for(j=0; j < terminalColumns; j++) {
         lineLastTer = lineLastTer + "_";
     };
     lineLastTer = lineLastTer + "\n";
@@ -759,7 +763,7 @@ void loadingFrame(int progress, bool showBird) {
 
                     cursorPos_move(sizeColumn, sizeRow + 1);
                     text = "|";
-                    for(int k=10; k<=100; k=k+10) {
+                    for(k=10; k<=100; k=k+10) {
                         if(progress >= k) {
                             text = text + "=";
                         } else {
@@ -828,12 +832,13 @@ string menuText(string text[], int size, int choose) {
 
     string finalString = "";
     string lineSpace = "";
+    int i;
 
-    for(int i=0; i < ((terminalColumns - text[0].length()) / 2) - 6; i++) {
+    for(i = 0; i < ((terminalColumns - text[0].length()) / 2) - 6; i++) {
         lineSpace = lineSpace + " ";
     }
     
-    for(int i=0; i<size; i++) {
+    for(i = 0; i < size; i++) {
         if(i == choose) {
             finalString = finalString + lineSpace + "==> | " + text[i] + " | <==" + "\n";
         } else {
@@ -880,6 +885,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     //             |_|  |_|   |__/                  
     //
     string text = "";
+    int i;
 
     if(smallLogo == "") {
         string logo[6] = {
@@ -890,7 +896,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
             "           |_|  |_|   |__/                  ", \
             "" \
         };
-        for(int i = 0; i < (logo[4].length() - version_code.length() - 1) - 2; i++) {
+        for(i = 0; i < (logo[4].length() - version_code.length() - 1) - 2; i++) {
             text = text + logo[4][i];
         };
         logo[4] = text + "v" + version_code;
@@ -910,7 +916,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
 
     int padding = terminalRows - 7 - sizeMenu - titleMenuSize;
 
-    for(int i=0; i <= padding; i++) {
+    for(i=0; i <= padding; i++) {
         if(i == 3) {
             text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, *chooseMenu);
         } else if (i == padding - 1) {
@@ -944,6 +950,7 @@ void credit() {
     };
 
     int count = 0;
+    int i, j, k;
     int line = sizeof(credit_info) / sizeof(credit_info[0]);
     string text, tmp;
 
@@ -953,12 +960,12 @@ void credit() {
     
     while(true) {
         text = "";
-        for(int i=0; i<terminalRows - count; i++) {
+        for(i=0; i<terminalRows - count; i++) {
                 if (i == terminalRows - 1 - count) {
                     if (count - 1 < line) {
                         tmp = "";
-                        for(int k=0; k<count; k++) {
-                            for(int j=0; j < (terminalColumns - credit_info[k].length()) / 2; j++) {
+                        for(k=0; k<count; k++) {
+                            for(j=0; j < (terminalColumns - credit_info[k].length()) / 2; j++) {
                                 tmp = tmp + " ";
                             }
                             tmp = tmp + credit_info[k] + "\n";
@@ -976,7 +983,7 @@ void credit() {
             color(MAGENTA);
             cout << "\n\n";
             tmp = ">> Press any key to exit <<";
-            for(int i=0; i < (terminalColumns - tmp.length()) / 2; i++) {
+            for(i=0; i < (terminalColumns - tmp.length()) / 2; i++) {
                 cout << " ";
             }
             cout << tmp;
