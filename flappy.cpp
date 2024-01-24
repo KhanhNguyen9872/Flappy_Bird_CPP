@@ -844,7 +844,7 @@ string menuText(string text[], int size, int choose) {
 }
 
 void lockSizeTerminal() {
-    int columns = terminalColumns, rows = terminalRows;
+    int columns = 0, rows = 0;
     while(true) {
         getTerminalSize(&columns, &rows);
         if ((columns != terminalColumns) || (rows != terminalRows)) {
@@ -1437,21 +1437,14 @@ void flappyBird() {
 int main() {
     system("color 07 >NUL 2>&1");
     loadConfig();
-    srand(time(NULL));
-
-    if((terminalColumns % 2 != 0) || (terminalRows % 2 != 0)) {
-        cout << "ERROR: Columns and rows must be divisible by 2.\n";
-        _getch();
-        return 1;
-    };
-
+    resizeTerminal(terminalColumns, terminalRows);
     thread lockSizeTer(lockSizeTerminal);
 
+    srand(time(NULL));
     hideCursor();
 
-    clearTerminal();
-
     Sleep(1000);
+    clearTerminal();
     banner();
     Sleep(1000);
 
