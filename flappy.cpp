@@ -269,21 +269,26 @@ void showUser(string username) {
     // +-----------------------+
     //
     int i;
-    int j = 4 * getResolutionValue();
+    int j = 5 * getResolutionValue();
     int sizeColumn = 0;
     int sizeRow = 0;
 
     string text;
 
-    if (username.length() > 8 + j) {
+    if (username.length() > 6 + j) {
         text = "";
-        for(i = 0; i < 8 + j; i++) {
+        for(i = 0; i < 6 + j; i++) {
             if (i >= username.length()) {
                 break;
             };
             text = text + username[i];
         };
-        username = text;
+
+        if (i >= username.length()) {
+            username = text;
+        } else {
+            username = text + "...";
+        };
     };
 
     username = "User: " + username;
@@ -322,13 +327,13 @@ void showUser(string username) {
     return;
 };
 
-void errorBox(string output) {
+void errorBox(string output, bool isBlur) {
     //
-    //  ________________________ 
-    // |/                      \|
-    // |     Not available      |
-    // |\                      /|
-    //  ````````````````````````
+    //     ________________________   .
+    //    /                        \ /
+    //   /      Not available       /
+    //  / \                        /
+    // `   ````````````````````````
     //
 
     int i, j;
@@ -338,6 +343,19 @@ void errorBox(string output) {
         sizeColumn = sizeColumn + 1;
     };
     string text;
+
+    if (isBlur) {
+        do {
+            i = rand() % 15;
+        } while ((i == BLACK) || (i == RED));
+        color(i);
+        for(i = 0; i < terminalRows; i++) {
+            for(j = 0; j < terminalColumns; j = j + 5) {
+                cursorPos_move(j, i);
+                cout << "-";
+            };
+        };
+    };
 
     color(RED);
     for(i = 0; i < terminalRows - 5; i++) {
@@ -350,45 +368,45 @@ void errorBox(string output) {
                 text = text + "_";
             };
             
-            text = text + " ";
+            text = text + "   .";
             cout << text;
 
             text = "";
             cursorPos_move(sizeColumn, sizeRow + 1);
 
-            text = text + "|/";
+            text = text + "/ ";
             for(j = 0; j < boxSize - 4; j++) {
                 text = text + " ";
             }; 
-            text = text + "\\|";
+            text = text + " \\ /";
             cout << text;
 
             text = "";
-            cursorPos_move(sizeColumn, sizeRow + 2);
-            text = text + "|";
-            for(j = 0; j < boxSize - 2 - (output.length() - 1) - 1; j++) {
-                if (j == ((boxSize - 2) - output.length() - 1) / 2) {
+            cursorPos_move(sizeColumn - 1, sizeRow + 2);
+            text = text + "/ ";
+            for(j = 0; j < boxSize - 2 - (output.length() ); j++) {
+                if (j == ((boxSize - 2) - output.length() ) / 2) {
                     text = text + " " + output;
                 } else {
                     text = text + " ";
                 };
             };
-            text = text + "|";
+            text = text + " /";
             cout << text;
 
             text = "";
-            cursorPos_move(sizeColumn, sizeRow + 3);
-            text = text + "|\\";
+            cursorPos_move(sizeColumn - 2, sizeRow + 3);
+            text = text + "/ \\ ";
             for(j = 0; j < boxSize - 4; j++) {
                 text = text + " ";
             }; 
-            text = text + "/|";
+            text = text + " /";
             cout << text;
 
             text = "";
-            cursorPos_move(sizeColumn, sizeRow + 4);
+            cursorPos_move(sizeColumn - 3, sizeRow + 4);
 
-            text = text + " ";
+            text = text + "`   ";
             for(j = 0; j < boxSize - 2; j++) {
                 text = text + "`";
             };
@@ -495,8 +513,8 @@ void banner() {
         "             ,;;;,;                  ", \
         "             ;;;;;;                  ", \
         "             `;;;;'                  ", \
-        "", \
-        "", \
+        "               ``                    ", \
+        "                                     ", \
         "Use headphones for better experience." \
     };
     showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]), true);
@@ -509,11 +527,35 @@ void titleTerminal(string name) {
     return;
 }
 
+void showOverlay() {
+    color(settingsData[2]);
+    string text = "";
+    int i;
+    for(i = 0; i < terminalColumns; i++) {
+        text = text + "=";
+    };
+    for(i = 0; i < terminalRows; i++) {
+        if (i == 0) {
+            cursorPos_move(0, i);
+            cout << text;
+        } else if (i == terminalRows - 1) {
+            cursorPos_move(0, i);
+            cout << text;
+        } else {
+            cursorPos_move(0, i);
+            cout << "|";
+            cursorPos_move(terminalColumns - 1, i);
+            cout << "|";
+        };
+    };
+    return;
+};
+
 void resizeTerminal(int column, int row) {
     string cmd = "MODE " + to_string(column) + "," + to_string(row);
     system(cmd.c_str());
-    clearTerminal();
     titleTerminal("Flappy Bird - KhanhNguyen9872 - (C++) - [ " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " ]");
+    showOverlay();
     return;
 }
 
@@ -680,6 +722,45 @@ void loadingFrame(int progress, bool showBird) {
             tmp_int[1] = tmp_int[1] + 1;
         } else {
             tmp_int[1] = tmp_int[1] - 1;
+        };
+    };
+
+    if (progress >= 100) {
+        string listText[10] = {
+            "=",
+            "/",
+            "-",
+            "@",
+            "+",
+            "\\",
+            "|",
+            "#",
+            "%",
+            "*"
+        };
+        string p = listText[rand() % (sizeof(listText) / sizeof(listText[0]))];
+        text = "";
+        for(i = 0; i < terminalColumns; i++) {
+            text = text + p;
+        };
+        Sleep(350);
+
+        cursorPos_up();
+        for(i = 0; i < terminalRows; i++) {
+            cout << text;
+            Sleep(5);
+        };
+
+        text = "";
+        for(i = 0; i < terminalColumns; i++) {
+            text = text + " ";
+        };
+        Sleep(150);
+
+        cursorPos_up();
+        for(i = 0; i < terminalRows; i++) {
+            cout << text;
+            Sleep(5);
         };
     };
     
@@ -870,7 +951,7 @@ int getBrightness() {
 }
 
 void kepmappingSettings() {
-    errorBox("Not available");
+    errorBox("Not available", true);
     return;
 }
 
@@ -1135,6 +1216,7 @@ void mainMenu() {
         inputMenu(&chooseMenu, sizeMenu - 1, 0);
         Sleep(100);
     };
+    return;
 }
 
 void loadConfig() {
@@ -1146,7 +1228,7 @@ void loadConfig() {
 }
 
 void flappyBird() {
-    errorBox("Game not found!");
+    errorBox("Game not found!", true);
     return;
 }
 
@@ -1159,7 +1241,7 @@ int main() {
         cout << "ERROR: Columns and rows must be divisible by 2.\n";
         _getch();
         return 1;
-    }
+    };
 
     thread lockSizeTer(lockSizeTerminal);
 
@@ -1191,7 +1273,6 @@ int main() {
 
     Sleep(500);
     clearTerminal();
-    Sleep(500);
     
     playSound_main("sound\\mainmenu.wav");
     
