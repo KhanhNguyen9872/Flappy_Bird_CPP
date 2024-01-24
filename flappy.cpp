@@ -30,8 +30,9 @@ using namespace std;
 
 int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
-int tmp_int[2] = {0, 0};
-bool tmp_bool[1] = {false};
+int tmp_int[3] = {0, 0, 0};
+
+string version_code = "1.0.0";
 string smallLogo = "";
 string configFileName = "flappy.conf";
 
@@ -39,6 +40,37 @@ HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
 COORD newPos = {0, 0};
 DWORD written;
+
+string flyAnimation[4][3] = {
+    {
+        "  /",
+        ">@@( O>",
+        "  \\"
+    },
+    {
+        "  |",
+        ">@@( O>",
+        "  |"
+    },
+    {
+        "  \\",
+        ">@@( O>",
+        "  /"
+    },
+    {
+        " __",
+        ">@@( O>",
+        " ``"
+    }
+};
+
+string deadAnimation[1][3] = {
+    {
+        " __",
+        ">@@( *>",
+        " ``"
+    }
+};
 
 void inputMenu(int *chooseMenu, int max, int type_menu);
 void flappyBird();
@@ -187,6 +219,55 @@ int readConfig(string key) {
     }
 }
 
+void showUser(string username) {
+    int i;
+    int sizeColumn = 0;
+    int sizeRow = 0;
+
+    if (username.length() > 8) {
+        string tmp = "";
+        for(i = 0; i < 8; i++) {
+            tmp = tmp + username[i];
+        };
+        username = tmp;
+    };
+
+    username = "User: " + username;
+
+    string text = "+-";
+    for(i = 0; i < username.length(); i++) {
+        text = text + "-";
+    };
+    text = text + "-+";
+
+    for(i = 0; i < terminalColumns; i++) {
+        if (i == terminalColumns - 7 - username.length()) {
+            break;
+        } else {
+            sizeColumn = sizeColumn + 1;
+        };
+    };
+
+    for(i = 0; i < terminalRows; i++) {
+        if (i == 1) {
+            cursorPos_move(sizeColumn, sizeRow);
+            cout << text;
+
+            cursorPos_move(sizeColumn, sizeRow + 1);
+            cout << "| " << username << " |";
+
+            cursorPos_move(sizeColumn, sizeRow + 2);
+            cout << text;
+
+            break;
+        } else {
+            sizeRow = sizeRow + 1;
+        };
+    };
+
+    return;
+};
+
 void errorBox(string output) {
     //
     //  ________________________ 
@@ -287,7 +368,7 @@ string centerText(string text[], int size) {
 }
 
 
-void showLogoFullTerminal(string logo[], int sizeLogo) {
+void showLogoFullTerminal(string logo[], int sizeLogo, bool isShowUser) {
     //
     //   _|  |                                   |     _)           | 
     //  |    |   _` |  __ \   __ \   |   |       __ \   |   __|  _` | 
@@ -308,6 +389,10 @@ void showLogoFullTerminal(string logo[], int sizeLogo) {
 
     bool _i = false;
     clearTerminal();
+    if(isShowUser) {
+        color(WHITE);
+        showUser(getenv("username"));
+    };
     for(int i=0;i<40; i++) {
         if (i<5) {
             color(BLACK);
@@ -341,7 +426,7 @@ void banner() {
         " _|   _| \\__,_|  .__/   .__/  \\__, |      _.__/  _| _|   \\__,_| ", \
         "                _|     _|     ____/                             ", \
         "                                             By KhanhNguyen9872  "};
-    showLogoFullTerminal(logo, sizeof(logo)/sizeof(logo[0]));
+    showLogoFullTerminal(logo, sizeof(logo)/sizeof(logo[0]), false);
 
     string logo2[15] = { \
         "                 ;                   ", \
@@ -360,7 +445,7 @@ void banner() {
         "", \
         "Use headphones for better experience." \
     };
-    showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]));
+    showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]), true);
     return;
 }
 
@@ -456,7 +541,7 @@ void showAnimation(string animation[], int sizeAnimation) {
     return;
 }
 
-void loadingFrame(int progress) {
+void loadingFrame(int progress, bool showBird) {
     //
     //   __________
     //  |==        |
@@ -473,30 +558,8 @@ void loadingFrame(int progress) {
     //
     //
     // [/////////////////////////////////////////]
-    string allAnimation[4][3] = {
-        {
-            "  /",
-            ">@@( O>",
-            "  \\"
-        },
-        {
-            "  |",
-            ">@@( O>",
-            "  |"
-        },
-        {
-            "  \\",
-            ">@@( O>",
-            "  /"
-        },
-        {
-            " __",
-            ">@@( O>",
-            " ``"
-        }
-    };
 
-    int sizeAnimation = sizeof(allAnimation) / sizeof(allAnimation[0]);
+    int sizeAnimation = sizeof(flyAnimation) / sizeof(flyAnimation[0]);
     int i, j, k;
 
     string text = "";
@@ -551,17 +614,20 @@ void loadingFrame(int progress) {
             sizeRow = sizeRow + 1;
         };
     };
-    color(CYAN);
-    showAnimation(allAnimation[tmp_int[1]], sizeof(allAnimation[tmp_int[1]]) / sizeof(allAnimation[tmp_int[1]][0]));
-    if ((tmp_int[1] >= 3) || (tmp_int[1] <= 0) ) {
-        tmp_bool[0] = !tmp_bool[0];
-    };
 
-    if(!tmp_bool[0]) {
-        tmp_int[1] = tmp_int[1] + 1;
-    } else {
-        tmp_int[1] = tmp_int[1] - 1;
-    }
+    if(showBird) {
+        color(CYAN);
+        showAnimation(flyAnimation[tmp_int[1]], sizeof(flyAnimation[tmp_int[1]]) / sizeof(flyAnimation[tmp_int[1]][0]));
+        if ((tmp_int[1] >= 3) || (tmp_int[1] <= 0) ) {
+            tmp_int[2] = !tmp_int[2];
+        };
+
+        if(!tmp_int[2]) {
+            tmp_int[1] = tmp_int[1] + 1;
+        } else {
+            tmp_int[1] = tmp_int[1] - 1;
+        };
+    };
     
     return;
 }
@@ -610,6 +676,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     //  |_| |_\__,_| .__/ .__/\_, | |___/_|_| \__,_|
     //             |_|  |_|   |__/                  
     //
+    string text = "";
 
     if(smallLogo == "") {
         string logo[6] = {
@@ -620,11 +687,14 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
             "           |_|  |_|   |__/                  ", \
             "" \
         };
-
+        for(int i = 0; i < (logo[4].length() - version_code.length() - 1) - 2; i++) {
+            text = text + logo[4][i];
+        };
+        logo[4] = text + "v" + version_code;
         smallLogo = centerText(logo, sizeof(logo)/sizeof(logo[0]));
     };
-    
-    string text = "";
+
+    text = "";
     int titleMenuSize = 0;
 
     if(titleMenu != "") {
@@ -1080,7 +1150,7 @@ int main() {
     tmp_int[1] = 1;
     flushStdin();
     for(int i = 0; i <= 100; i = i + 2) {
-        loadingFrame(i);
+        loadingFrame(i, true);
         inputMenu(&tmp_int[0], 0, -1);
         if(i < 20) {
             Sleep(200);
