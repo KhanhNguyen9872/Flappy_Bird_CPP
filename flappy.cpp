@@ -378,7 +378,7 @@ void errorBox(string output, bool isBlur) {
                 text = text + "_";
             };
             
-            text = text + "   .";
+            text = text + "   /";
             cout << text;
 
             text = "";
@@ -416,7 +416,7 @@ void errorBox(string output, bool isBlur) {
             text = "";
             cursorPos_move(sizeColumn - 3, sizeRow + 4);
 
-            text = text + "`   ";
+            text = text + "/   ";
             for(j = 0; j < boxSize - 2; j++) {
                 text = text + "`";
             };
