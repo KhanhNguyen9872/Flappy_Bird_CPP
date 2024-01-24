@@ -28,6 +28,16 @@
 
 using namespace std;
 
+char keymapData[7] = {
+    119,    // UP       'w'
+    115,    // DOWN     's'
+    97,    // LEFT      'a'
+    100,    // RIGHT    'd'
+    27,     // ESC      
+    32,   // SPACE      ' '
+    13     // ENTER     '\r'
+};
+
 int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
 int tmp_int[3] = {0, 0, 0};
@@ -420,6 +430,7 @@ void errorBox(string output, bool isBlur) {
     };
 
     color(settingsData[2]);
+    flushStdin();
     _getch();
     return;
 }
@@ -527,13 +538,27 @@ void titleTerminal(string name) {
     return;
 }
 
-void showOverlay() {
+void showOverlayResolution() {
     color(settingsData[2]);
+    string resolutionString = to_string(terminalColumns) + " x " + to_string(terminalRows);
     string text = "";
-    int i;
+    string text2 = "";
+    int i, j;
     for(i = 0; i < terminalColumns; i++) {
         text = text + "=";
     };
+
+    text2 = text2 + "| +-";
+    for(i = 0; i < resolutionString.length(); i++) {
+        text2 = text2 + "-";
+    };
+    text2 = text2 + "-+\n| | " + resolutionString + " |\n| +-";
+    for(i = 0; i < resolutionString.length(); i++) {
+        text2 = text2 + "-";
+    };
+    text2 = text2 + "-+";
+
+    color(settingsData[2]);
     for(i = 0; i < terminalRows; i++) {
         if (i == 0) {
             cursorPos_move(0, i);
@@ -542,6 +567,9 @@ void showOverlay() {
             cursorPos_move(0, i);
             cout << text;
         } else {
+            if (i == 1) {
+                cout << text2;
+            };
             cursorPos_move(0, i);
             cout << "|";
             cursorPos_move(terminalColumns - 1, i);
@@ -555,7 +583,7 @@ void resizeTerminal(int column, int row) {
     string cmd = "MODE " + to_string(column) + "," + to_string(row);
     system(cmd.c_str());
     titleTerminal("Flappy Bird - KhanhNguyen9872 - (C++) - [ " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " ]");
-    showOverlay();
+    showOverlayResolution();
     return;
 }
 
@@ -634,6 +662,64 @@ void showAnimation(string animation[], int sizeAnimation) {
             sizeRow = sizeRow + 1;
         };
     };
+    return;
+}
+
+void showChangeScene() {
+    int i;
+    string text = "";
+    string text2 = "";
+    string listText[10] = {
+        "=",
+        "/",
+        "-",
+        "@",
+        "+",
+        "\\",
+        "|",
+        "#",
+        "%",
+        "*"
+    };
+    string p = listText[rand() % (sizeof(listText) / sizeof(listText[0]))];
+
+    for(i = 0; i < terminalColumns; i++) {
+        text = text + p;
+        text2 = text2 + " ";
+    };
+
+    bool randomVar = rand() % 1;
+    
+    color(settingsData[2]);
+    Sleep(350);
+    if (randomVar) {
+        cursorPos_up();
+        for(i = 0; i < terminalRows; i++) {
+            cout << text;
+            Sleep(5);
+        };
+
+        Sleep(150);
+        cursorPos_up();
+        for(i = 0; i < terminalRows; i++) {
+            cout << text2;
+            Sleep(5);
+        };
+    } else {
+        for(i = terminalRows - 1; i >= 0; i--) {
+            cursorPos_move(0, i);
+            cout << text;
+            Sleep(5);
+        };
+
+        Sleep(150);
+        for(i = terminalRows - 1; i >= 0; i--) {
+            cursorPos_move(0, i);
+            cout << text2;
+            Sleep(5);
+        };
+    };
+
     return;
 }
 
@@ -726,42 +812,7 @@ void loadingFrame(int progress, bool showBird) {
     };
 
     if (progress >= 100) {
-        string listText[10] = {
-            "=",
-            "/",
-            "-",
-            "@",
-            "+",
-            "\\",
-            "|",
-            "#",
-            "%",
-            "*"
-        };
-        string p = listText[rand() % (sizeof(listText) / sizeof(listText[0]))];
-        text = "";
-        for(i = 0; i < terminalColumns; i++) {
-            text = text + p;
-        };
-        Sleep(350);
-
-        cursorPos_up();
-        for(i = 0; i < terminalRows; i++) {
-            cout << text;
-            Sleep(5);
-        };
-
-        text = "";
-        for(i = 0; i < terminalColumns; i++) {
-            text = text + " ";
-        };
-        Sleep(150);
-
-        cursorPos_up();
-        for(i = 0; i < terminalRows; i++) {
-            cout << text;
-            Sleep(5);
-        };
+        showChangeScene();
     };
     
     return;
@@ -802,6 +853,23 @@ void lockSizeTerminal() {
         Sleep(500);
     }
     return;
+}
+
+string getNameKey(int value) {
+    switch(value) {
+        case 8:
+            return "BACKS";
+        case 9:
+            return "TAB";
+        case 13:
+            return "ENTER";
+        case 27:
+            return "ESC";
+        case 32:
+            return "SPACE";
+        default:
+            return string(1, value);
+    };
 }
 
 void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
@@ -855,7 +923,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     color(settingsData[2]);
     clearTerminal();
     cout << text;
-    bottomKeymap("| [W] -> UP | [S] -> DOWN | [ENTER][SPACE] -> ENTER | [ESC] -> BACK |");
+    bottomKeymap("| [" + getNameKey(keymapData[0]) + "] -> UP | [" + getNameKey(keymapData[1]) + "] -> DOWN | [" + getNameKey(keymapData[6]) + "] -> ENTER | [" + getNameKey(keymapData[4]) + "] -> BACK |");
     return;
 }
 
@@ -912,6 +980,7 @@ void credit() {
                 cout << " ";
             }
             cout << tmp;
+            flushStdin();
             _getch();
             return;
         }
@@ -950,8 +1019,129 @@ int getBrightness() {
     };
 }
 
-void kepmappingSettings() {
-    errorBox("Not available", true);
+void changeKeymapping(int value) {
+    //
+    //  _______________
+    // |               |
+    // | INPUT NEW KEY |
+    // |               |
+    //  ```````````````
+    //
+    
+    string ask = "INPUT NEW KEY";
+    string text;
+    string lineSpace = "";
+    char p;
+    int sizeColumn = 0;
+    int sizeRow = 0;
+    int i, j;
+    for(i = 0; i < terminalColumns; i++) {
+        if (i == (terminalColumns - ask.length() - 2) / 2) {
+            break;
+        } else {
+            sizeColumn = sizeColumn + 1;
+        };
+    };
+
+    for(j = 0; j < ask.length(); j++) {
+        lineSpace = lineSpace + " ";
+    };
+
+    color(LIGHTRED);
+    for(i = 0; i < terminalRows; i++) {
+        if (i == (terminalRows / 2) - 2) {
+            cursorPos_move(sizeColumn, sizeRow);
+            text = " ";
+            for(j = 0; j < ask.length() + 2; j++) {
+                text = text + "_";
+            };
+            cout << text << " ";
+
+            cursorPos_move(sizeColumn, sizeRow + 1);
+            cout << "| " + lineSpace + " |";
+
+            cursorPos_move(sizeColumn, sizeRow + 2);
+            cout << "| " << ask << " |";
+
+            cursorPos_move(sizeColumn, sizeRow + 3);
+            cout << "| " + lineSpace + " |";
+
+            cursorPos_move(sizeColumn, sizeRow + 4);
+            text = " ";
+            for(j = 0; j < ask.length() + 2; j++) {
+                text = text + "`";
+            };
+            cout << text << " ";
+
+            break;
+        } else {
+            sizeRow = sizeRow + 1;
+        };
+    };
+    j = 1;
+    p = _getch();
+    for(i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); i++) {
+        if(p == keymapData[i]) {
+            j = 0;
+            break;
+        };
+    };
+    if(j) {
+        if((p > 0) && (p < 1000)) {
+            keymapData[value] = p;
+            writeConfig("key" + to_string(value), to_string(p));
+        } else {
+            errorBox("Key unavailable!", true);
+        };
+    } else {
+        if(p == keymapData[value]) {
+            return;
+        } else {
+            errorBox("Key already set!", true);
+        };
+    };
+    return;
+}
+
+void keymappingSettings() {
+    int i, j, k;
+    int choose = 0;
+    string text;
+    string template_menu[7] = {
+        "UP       ",
+        "DOWN     ",
+        "LEFT     ",
+        "RIGHT    ",
+        "EXIT/BACK",
+        "JUMP     ",
+        "ENTER    "
+    };
+    int sizeMenu = sizeof(template_menu) / sizeof(template_menu[0]);
+    string *menu = new string[sizeMenu];
+    clearTerminal();
+    while(true) {
+        if(choose == -1) {
+            return;
+        };
+        
+        for(i = 0; i < sizeMenu; i++) {
+            text = "(" + to_string(keymapData[i]) + ")";
+            k = text.length();
+            for(j = 0; j < 5 - k; k++) {
+                text = text + " ";
+            };
+            text = text + " '" + getNameKey(keymapData[i]) + "'";
+            k = text.length();
+            for(j = 0; j < 13 - k; j++) {
+                text = text + " ";
+            };
+            
+            menu[i] = text + "  -->  " + template_menu[i];
+        };
+        showMenu("| Keymapping Settings |", menu, sizeMenu, &choose);
+        inputMenu(&choose, sizeMenu - 1, -2);
+        Sleep(100);
+    };
     return;
 }
 
@@ -1030,7 +1220,7 @@ void brightnessSettings() {
         color(settingsData[2]);
         clearTerminal();
         cout << text;
-        bottomKeymap("| [A] -> LOW | [D] -> HIGH | [ENTER][SPACE][ESC] -> BACK |");
+        bottomKeymap("| [" + getNameKey(keymapData[2]) + "] -> LOW | [" + getNameKey(keymapData[3]) + "] -> HIGH | [" + getNameKey(keymapData[4]) + "] -> BACK |");
         inputMenu(&currentBrightness, 2, 2);
         Sleep(50);
     };
@@ -1098,13 +1288,13 @@ void settingsMenu() {
 
 void inputMenu(int *chooseMenu, int max, int type_menu) {
     if (_kbhit()) {
-        char p = _getch();
-
-        if ((p == 'w') || (p == 'W')) /* W */ {
+        int p = _getch();
+        if (p == keymapData[0]) /* UP */ {
             switch (type_menu) {
-                case 0:
-                case 1:
-                case 3:
+                case -2: // keymappingSettings
+                case 0:  // mainMenu
+                case 1:  // settingsMenu 
+                case 3:  // resolutionSettings
                     if(*chooseMenu > 0) {
                         *chooseMenu = *chooseMenu - 1;
                     } else {
@@ -1112,16 +1302,16 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if ((p == 'a') || (p == 'A')) /* A */ {
+        } else if (p == keymapData[2]) /* LEFT */ {
             switch (type_menu) {
-                case 2:
+                case 2: // brightnessSettings
                     if(*chooseMenu > 1) {
                         *chooseMenu = *chooseMenu - 1;
                         setBrightness(*chooseMenu);
                     };
                     break;
             };
-        } else if ((p == 'd') || (p == 'D')) /* D */ {
+        } else if (p == keymapData[3]) /* RIGHT */ {
             switch (type_menu) {
                 case 2:
                     if(*chooseMenu <= max) {
@@ -1130,8 +1320,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if ((p == 's') || (p == 'S')) /* S */ {
+        } else if (p == keymapData[1]) /* DOWN */ {
             switch (type_menu) {
+                case -2:
                 case 0:
                 case 1:
                 case 3:
@@ -1142,9 +1333,12 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if ((p == '\r') || (p == ' ')) /* ENTER/SPACE */ {
+        } else if (p == keymapData[6]) /* ENTER */ {
             switch(type_menu) {
-                case -1:
+                case -2:
+                    changeKeymapping(*chooseMenu);
+                    break;
+                case -1: // loadingFrame
                     showTip("");
                     break;
                 case 0:
@@ -1172,29 +1366,30 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     } else if (*chooseMenu == 2) {
                         brightnessSettings();
                     } else if (*chooseMenu == 3) {
-                        kepmappingSettings();
+                        keymappingSettings();
                     } else if (*chooseMenu == 4) {
                         resolutionSettings();
                     } else if (*chooseMenu == 5) {
                         *chooseMenu = -1;
                     };
                     break;
-                case 2:
-                    *chooseMenu = -1;
                 case 3:
                     if(*chooseMenu > -1) {
                         setResolution(*chooseMenu);
                     };
+                    break;
             };
-        } else if (p == 27) /* ESC */ {
+        } else if (p == keymapData[4]) /* ESC */ {
             switch(type_menu) {
+                case -2:
                 case 1:
-                    *chooseMenu = -1;
                 case 2:
-                    *chooseMenu = -1;
                 case 3:
                     *chooseMenu = -1;
+                    break;
             }
+        } else if (p == keymapData[5] /* SPACE */) {
+            return;
         } else {
             return;
         };
@@ -1220,10 +1415,17 @@ void mainMenu() {
 }
 
 void loadConfig() {
+    int i, j;
     setResolution(readConfig("resolution"));
     settingsData[0] = readConfig("music");
     settingsData[1] = readConfig("sfx");
     setBrightness(readConfig("brightness"));
+    for(i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); i++) {
+        j = readConfig("key" + to_string(i));
+        if (j > 0) {
+            keymapData[i] = j;
+        };
+    };
     return;
 }
 
