@@ -191,6 +191,49 @@ void writeConfig(string key, string value) {
     return;
 }
 
+void setResolution(int value) {
+    if(value == 0) {
+        terminalColumns = 80;
+        terminalRows = 20;
+    } else if (value == 1) {
+        terminalColumns = 100;
+        terminalRows = 26;
+    } else if (value == 2) {
+        terminalColumns = 120;
+        terminalRows = 30;
+    } else if (value == 3) {
+        terminalColumns = 140;
+        terminalRows = 36;
+    } else if (value == 4) {
+        terminalColumns = 160;
+        terminalRows = 40;
+    } else {
+        terminalColumns = 80;
+        terminalRows = 20;
+        value = 0;
+    };
+    smallLogo = "";
+    writeConfig("resolution", to_string(value));
+    return;
+}
+
+int getResolutionValue() {
+    if ((terminalColumns == 80) && (terminalRows == 20)) {
+        return 0;
+    } else if ((terminalColumns == 100) && (terminalRows == 26)) {
+        return 1;
+    } else if ((terminalColumns == 120) && (terminalRows == 30)) {
+        return 2;
+    } else if ((terminalColumns == 140) && (terminalRows == 36)) {
+        return 3;
+    } else if ((terminalColumns == 160) && (terminalRows == 40)) {
+        return 4;
+    } else {
+        setResolution(0);
+        return 0;
+    };
+}
+
 int readConfig(string key) {
     string fileData = readFile(configFileName);
     string line;
@@ -220,21 +263,32 @@ int readConfig(string key) {
 }
 
 void showUser(string username) {
+    // 
+    // +-----------------------+
+    // | User: KhanhNguyen9872 |
+    // +-----------------------+
+    //
     int i;
+    int j = 4 * getResolutionValue();
     int sizeColumn = 0;
     int sizeRow = 0;
 
-    if (username.length() > 8) {
-        string tmp = "";
-        for(i = 0; i < 8; i++) {
-            tmp = tmp + username[i];
+    string text;
+
+    if (username.length() > 8 + j) {
+        text = "";
+        for(i = 0; i < 8 + j; i++) {
+            if (i >= username.length()) {
+                break;
+            };
+            text = text + username[i];
         };
-        username = tmp;
+        username = text;
     };
 
     username = "User: " + username;
 
-    string text = "+-";
+    text = "+-";
     for(i = 0; i < username.length(); i++) {
         text = text + "-";
     };
@@ -449,17 +503,17 @@ void banner() {
     return;
 }
 
+void titleTerminal(string name) {
+    string title = "title " + name;
+    system(title.c_str());
+    return;
+}
 
 void resizeTerminal(int column, int row) {
     string cmd = "MODE " + to_string(column) + "," + to_string(row);
     system(cmd.c_str());
     clearTerminal();
-    return;
-}
-
-void titleTerminal(string name) {
-    string title = "title " + name;
-    system(title.c_str());
+    titleTerminal("Flappy Bird - KhanhNguyen9872 - (C++) - [ " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " ]");
     return;
 }
 
@@ -720,7 +774,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     color(settingsData[2]);
     clearTerminal();
     cout << text;
-    bottomKeymap("| 'W' -> UP | 'S' -> DOWN | 'ENTER/SPACE' -> ENTER | 'ESC' -> BACK |");
+    bottomKeymap("| [W] -> UP | [S] -> DOWN | [ENTER][SPACE] -> ENTER | [ESC] -> BACK |");
     return;
 }
 
@@ -833,6 +887,7 @@ void brightnessSettings() {
     
     int i, j;
     string text;
+    string tmp;
     string lineSpace = "";
     for(j = 0; j < (terminalColumns - sizeBar) / 2; j++) {
         lineSpace = lineSpace + " ";
@@ -856,7 +911,17 @@ void brightnessSettings() {
                 for(j = 0; j < sizeBar; j++) {
                     text = text + "_";
                 };
-                text = text + "\n" + lineSpace + "[";
+                text = text + "\n";
+
+                if(currentBrightness > 1) {
+                    tmp = string(lineSpace);
+                    tmp.resize(lineSpace.length() - 5);
+                    text = text + tmp + "<--  ";
+                } else {
+                    text = text + lineSpace;
+                }
+
+                text = text + "[";
 
                 for(j = 0; j < currentBrightness; j++) {
                     text = text + perProcess;
@@ -865,7 +930,12 @@ void brightnessSettings() {
                     text = text + blankPerProcess;
                 };
 
-                text = text + "]" + "\n" + lineSpace + " ";
+                text = text + "]";
+                if(currentBrightness < max) {
+                    text = text + "  -->";
+                };
+
+                text = text + "\n" + lineSpace + " ";
 
                 for(j = 0; j < sizeBar; j++) {
                     text = text + "`";
@@ -879,54 +949,11 @@ void brightnessSettings() {
         color(settingsData[2]);
         clearTerminal();
         cout << text;
-        bottomKeymap("| 'A' -> LOW | 'D' -> HIGH | 'ENTER/SPACE/ESC' -> BACK |");
+        bottomKeymap("| [A] -> LOW | [D] -> HIGH | [ENTER][SPACE][ESC] -> BACK |");
         inputMenu(&currentBrightness, 2, 2);
         Sleep(50);
     };
     return;
-}
-
-void setResolution(int value) {
-    if(value == 0) {
-        terminalColumns = 80;
-        terminalRows = 20;
-    } else if (value == 1) {
-        terminalColumns = 100;
-        terminalRows = 26;
-    } else if (value == 2) {
-        terminalColumns = 120;
-        terminalRows = 30;
-    } else if (value == 3) {
-        terminalColumns = 140;
-        terminalRows = 36;
-    } else if (value == 4) {
-        terminalColumns = 160;
-        terminalRows = 40;
-    } else {
-        terminalColumns = 80;
-        terminalRows = 20;
-        value = 0;
-    };
-    smallLogo = "";
-    writeConfig("resolution", to_string(value));
-    return;
-}
-
-int getResolutionValue() {
-    if ((terminalColumns == 80) && (terminalRows == 20)) {
-        return 0;
-    } else if ((terminalColumns == 100) && (terminalRows == 26)) {
-        return 1;
-    } else if ((terminalColumns == 120) && (terminalRows == 30)) {
-        return 2;
-    } else if ((terminalColumns == 140) && (terminalRows == 36)) {
-        return 3;
-    } else if ((terminalColumns == 160) && (terminalRows == 40)) {
-        return 4;
-    } else {
-        setResolution(0);
-        return 0;
-    };
 }
 
 void resolutionSettings() {
@@ -1137,7 +1164,6 @@ int main() {
     thread lockSizeTer(lockSizeTerminal);
 
     hideCursor();
-    titleTerminal("Flappy Bird - KhanhNguyen9872 - C++");
 
     clearTerminal();
 
