@@ -135,6 +135,17 @@ void playSound_thread(string file) {
     return;
 }
 
+void disableTouch() {
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD dwConsoleMode;
+    GetConsoleMode(h, &dwConsoleMode);
+
+    dwConsoleMode &= ~ENABLE_QUICK_EDIT_MODE;
+
+    SetConsoleMode(h, dwConsoleMode);
+    return;
+}
+
 void flushStdin() {
     while (_kbhit()) {
         _getch();
@@ -1644,6 +1655,7 @@ void flappyBird() { // Not done yet
 }
 
 int main() {
+    disableTouch();
     system("color 07 >NUL 2>&1"); // default color CMD
     loadConfig();
     resizeTerminal(terminalColumns, terminalRows);
