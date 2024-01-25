@@ -363,7 +363,7 @@ void showBlur() {
     return;
 }
 
-void errorBox(string output, bool isBlur) {
+void errorBox(string output, bool isBlur, bool isPause) {
     //
     //     ________________________   .
     //    /                        \ /
@@ -449,7 +449,9 @@ void errorBox(string output, bool isBlur) {
 
     color(settingsData[2]);
     flushStdin();
-    _getch();
+    if(isPause) {
+        _getch();
+    };
     return;
 }
 
@@ -1173,13 +1175,13 @@ void changeKeymapping(int value) {
         if (setKeymap(value, p)) {
             writeConfig("key" + to_string(value), to_string(p));
         } else {
-            errorBox("Key unavailable", true);
+            errorBox("Key unavailable", true, true);
         };
     } else {
         if(p == keymapData[value]) {
             return;
         } else {
-            errorBox("Key already set", true);
+            errorBox("Key already set", true, true);
         };
     };
     return;
@@ -1334,7 +1336,7 @@ void resolutionSettings() {
 }
 
 void highScore() { // Not done yet
-    errorBox("Unavailable", true);
+    errorBox("Unavailable", true, true);
     return;
 }
 
@@ -1553,10 +1555,16 @@ void loadConfig() {
                 if(j == newKeymapData[k]) {
                     resizeTerminal(terminalColumns, terminalRows);
                     hideCursor();
+                    for(j = 0; j < size; j++) {
+                        writeConfig("key" + to_string(j), "-1");
+                    };
                     clearTerminal();
-                    writeFile(configFileName, "");
-                    errorBox("Keymap Error", false);
-                    exit(1);
+                    errorBox("Keymap Error [key" + to_string(i) + "]", false, false);
+                    bottomKeymap("Keymap configuration has been reset! You can restart the game now!");
+                    while(true) {
+                        _getch();
+                    };
+                    exit(-1);
                 };
             };
         };
