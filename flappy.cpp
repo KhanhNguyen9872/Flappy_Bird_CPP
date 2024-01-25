@@ -175,6 +175,14 @@ string readFile(string fileName) {
     return text;
 }
 
+void writeFile(string fileName, string data) {
+    ofstream f(configFileName);
+    if (f.is_open()) {
+        f << data;
+        f.close();
+    };
+}
+
 void writeConfig(string key, string value) {
     string fileData = readFile(configFileName);
     istringstream file(fileData);
@@ -877,6 +885,26 @@ string getNameKey(int value) {
     };
 }
 
+bool setKeymap(int value, int key) {
+    int keyAllow[5] = {
+        8, 9, 13, 27, 32
+    };
+    int i;
+    if (key > 7) {
+        for(i = 0; i < sizeof(keyAllow) / sizeof(keyAllow[0]); i++) {
+            if (key == keyAllow[i]) {
+                keymapData[value] = key;
+                return 1;
+            };
+        };
+        if ((key >= ' ') && (key <= '~') ) {
+            keymapData[value] = key;
+            return 1;
+        };
+    };
+    return 0;
+};
+
 void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     //   ___ _                       ___ _        _ 
     //  | __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |
@@ -1086,6 +1114,7 @@ void changeKeymapping(int value) {
         };
     };
     j = 1;
+    flushStdin();
     p = _getch();
     for(i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); i++) {
         if(p == keymapData[i]) {
@@ -1094,17 +1123,16 @@ void changeKeymapping(int value) {
         };
     };
     if(j) {
-        if((p > 0) && (p < 1000)) {
-            keymapData[value] = p;
+        if (setKeymap(value, p)) {
             writeConfig("key" + to_string(value), to_string(p));
         } else {
-            errorBox("Key unavailable!", true);
+            errorBox("Key unavailable", true);
         };
     } else {
         if(p == keymapData[value]) {
             return;
         } else {
-            errorBox("Key already set!", true);
+            errorBox("Key already set", true);
         };
     };
     return;
@@ -1345,9 +1373,6 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case -2:
                     changeKeymapping(*chooseMenu);
                     break;
-                case -1: // loadingFrame
-                    showTip("");
-                    break;
                 case 0:
                     if(*chooseMenu == 0) {
                         flappyBird();
@@ -1394,9 +1419,13 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 3:
                     *chooseMenu = -1;
                     break;
-            }
+            };
         } else if (p == keymapData[5] /* SPACE */) {
-            return;
+            switch(type_menu) {
+                case -1: // loadingFrame
+                    showTip("");
+                    break;
+            };
         } else {
             return;
         };
@@ -1422,22 +1451,38 @@ void mainMenu() {
 }
 
 void loadConfig() {
-    int i, j;
+    int i, j, k;
+    int size = sizeof(keymapData) / sizeof(keymapData[0]);
+    int newKeymapData[size] = {-1};
     setResolution(readConfig("resolution"));
     settingsData[0] = readConfig("music");
     settingsData[1] = readConfig("sfx");
     setBrightness(readConfig("brightness"));
-    for(i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); i++) {
+    for(i = 0; i < size; i++) {
         j = readConfig("key" + to_string(i));
-        if (j > 0) {
-            keymapData[i] = j;
+        if(j > 7) {
+            for(k = 0; k < size; k++) {
+                if(j == newKeymapData[k]) {
+                    resizeTerminal(terminalColumns, terminalRows);
+                    hideCursor();
+                    clearTerminal();
+                    writeFile(configFileName, "");
+                    errorBox("Keymap Error", false);
+                    exit(1);
+                };
+            };
+        };
+        if (setKeymap(i, j)) {
+            newKeymapData[i] = j;
+        } else {
+            writeConfig("key" + to_string(i), "-1");
         };
     };
     return;
 }
 
 void flappyBird() {
-    errorBox("Game not found!", true);
+    errorBox("Game not found", true);
     return;
 }
 
