@@ -347,6 +347,22 @@ void showUser(string username) {
     return;
 };
 
+void showBlur() {
+    int i, j;
+    do {
+        i = rand() % 15;
+    } while ((i == BLACK) || (i == RED));
+    color(i);
+    for(i = 0; i < terminalRows; i++) {
+        for(j = 0; j < terminalColumns; j = j + 5) {
+            cursorPos_move(j, i);
+            cout << "-";
+        };
+    };
+    color(settingsData[2]);
+    return;
+}
+
 void errorBox(string output, bool isBlur) {
     //
     //     ________________________   .
@@ -366,16 +382,7 @@ void errorBox(string output, bool isBlur) {
     string text;
 
     if (isBlur) {
-        do {
-            i = rand() % 15;
-        } while ((i == BLACK) || (i == RED));
-        color(i);
-        for(i = 0; i < terminalRows; i++) {
-            for(j = 0; j < terminalColumns; j = j + 5) {
-                cursorPos_move(j, i);
-                cout << "-";
-            };
-        };
+        showBlur();
     };
 
     color(RED);
@@ -514,6 +521,61 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isShowUser) {
     return;
 }
 
+void showBoxText(string text, bool isBlur) {
+    int sizeColumn = 0;
+    int sizeRow = 0;
+    int i, j;
+    string tmp;
+    for(i = 0; i < (terminalColumns - text.length()) / 2; i++) {
+        sizeColumn = sizeColumn + 1;
+    };
+    sizeColumn = sizeColumn - 1;
+
+    if (isBlur) {
+        showBlur();
+    };
+
+    for(i = 0; i < terminalRows; i++) {
+        if (i == (terminalRows / 2) - 3) {
+            color(YELLOW);
+            cursorPos_move(sizeColumn, sizeRow);
+            tmp = "  ";
+            for(j = 0; j < text.length() + 2; j++) {
+                tmp = tmp + "_";
+            };
+            cout << tmp;
+
+            cursorPos_move(sizeColumn, sizeRow + 1);
+            tmp = " | ";
+            for(j = 0; j < text.length(); j++) {
+                tmp = tmp + " ";
+            }
+            cout << tmp << " |";
+
+            cursorPos_move(sizeColumn, sizeRow + 2);
+            cout << " | " << text << " |";
+
+            cursorPos_move(sizeColumn, sizeRow + 3);
+            tmp = " | ";
+            for(j = 0; j < text.length(); j++) {
+                tmp = tmp + " ";
+            }
+            cout << tmp << " |";
+
+            cursorPos_move(sizeColumn, sizeRow + 4);
+            tmp = "  ";
+            for(j = 0; j < text.length() + 2; j++) {
+                tmp = tmp + "`";
+            };
+            cout << tmp;
+            return;
+        } else {
+            sizeRow = sizeRow + 1;
+        };
+    };
+    return;
+}
+
 bool showYesorNo(string text) {
     //
     //   ____________________
@@ -522,64 +584,17 @@ bool showYesorNo(string text) {
     //  |                    |
     //   ````````````````````
     //
-    int sizeColumn = 0;
-    int sizeRow = 0;
-    int i, j;
     int p;
-    string tmp;
-    for(i = 0; i < (terminalColumns - text.length()) / 2; i++) {
-        sizeColumn = sizeColumn + 1;
+
+    showBoxText(text, true);
+    bottomKeymap("| [y] -> YES | [n] -> NO |");
+    p = _getch();
+    if ((p == 'y') || (p == 'Y')) {
+        return 1;
+    } else if ((p == 'n') || (p == 'N')) {
+        return 0;
     };
-    sizeColumn = sizeColumn - 1;
-
-    for(i = 0; i < terminalRows; i++) {
-        if (i == (terminalRows / 2) - 3) {
-            while (true) {
-                color(YELLOW);
-                cursorPos_move(sizeColumn, sizeRow);
-                tmp = "  ";
-                for(j = 0; j < text.length() + 2; j++) {
-                    tmp = tmp + "_";
-                };
-                cout << tmp;
-
-                cursorPos_move(sizeColumn, sizeRow + 1);
-                tmp = " | ";
-                for(j = 0; j < text.length(); j++) {
-                    tmp = tmp + " ";
-                }
-                cout << tmp << " |";
-
-                cursorPos_move(sizeColumn, sizeRow + 2);
-                cout << " | " << text << " |";
-
-                cursorPos_move(sizeColumn, sizeRow + 3);
-                tmp = " | ";
-                for(j = 0; j < text.length(); j++) {
-                    tmp = tmp + " ";
-                }
-                cout << tmp << " |";
-
-                cursorPos_move(sizeColumn, sizeRow + 4);
-                tmp = "  ";
-                for(j = 0; j < text.length() + 2; j++) {
-                    tmp = tmp + "`";
-                };
-                cout << tmp;
-                bottomKeymap("| [y] -> YES | [n] -> NO |");
-                
-                flushStdin();
-                p = _getch();
-                if ((p == 'y') || (p == 'Y')) {
-                    return 1;
-                } else if ((p == 'n') || (p == 'N')) {
-                    return 0;
-                };
-            }
-        } else {
-            sizeRow = sizeRow + 1;
-        };
-    };
+    
     return 0;
 }
 
@@ -1138,58 +1153,12 @@ void changeKeymapping(int value) {
     // |               |
     //  ```````````````
     //
-    
-    string ask = "INPUT NEW KEY";
+    int i, j = 1;
     string text;
     string lineSpace = "";
     char p;
-    int sizeColumn = 0;
-    int sizeRow = 0;
-    int i, j;
-    for(i = 0; i < terminalColumns; i++) {
-        if (i == (terminalColumns - ask.length() - 2) / 2) {
-            break;
-        } else {
-            sizeColumn = sizeColumn + 1;
-        };
-    };
-
-    for(j = 0; j < ask.length(); j++) {
-        lineSpace = lineSpace + " ";
-    };
-
-    color(LIGHTRED);
-    for(i = 0; i < terminalRows; i++) {
-        if (i == (terminalRows / 2) - 2) {
-            cursorPos_move(sizeColumn, sizeRow);
-            text = " ";
-            for(j = 0; j < ask.length() + 2; j++) {
-                text = text + "_";
-            };
-            cout << text << " ";
-
-            cursorPos_move(sizeColumn, sizeRow + 1);
-            cout << "| " + lineSpace + " |";
-
-            cursorPos_move(sizeColumn, sizeRow + 2);
-            cout << "| " << ask << " |";
-
-            cursorPos_move(sizeColumn, sizeRow + 3);
-            cout << "| " + lineSpace + " |";
-
-            cursorPos_move(sizeColumn, sizeRow + 4);
-            text = " ";
-            for(j = 0; j < ask.length() + 2; j++) {
-                text = text + "`";
-            };
-            cout << text << " ";
-
-            break;
-        } else {
-            sizeRow = sizeRow + 1;
-        };
-    };
-    j = 1;
+    showBoxText("INPUT NEW KEY", false);
+    bottomKeymap("");
     flushStdin();
     p = _getch();
     for(i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); i++) {
@@ -1453,6 +1422,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if (p == keymapData[6]) /* ENTER */ {
             switch(type_menu) {
+                case -5:
+                    *chooseMenu = -2;
+                    break;
                 case -4:
                     if(*chooseMenu == 0) {
                         *chooseMenu = -1;
@@ -1475,7 +1447,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     } else if (*chooseMenu == 3) {
                         credit();
                     } else if (*chooseMenu == 4) {
-                        exit(0);
+                        if (showYesorNo("Do you want to exit?")) {
+                            exit(0);
+                        };
                     };
                     break;
                 case 1:
@@ -1507,6 +1481,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if (p == keymapData[4]) /* ESC */ {
             switch(type_menu) {
+                case -5:
                 case -4:
                 case -2:
                 case 1:
@@ -1592,6 +1567,25 @@ void loadConfig() {
 
 bool pausedMenu() {
     int choose = 0;
+
+    // paused 1
+    flushStdin();
+    while(true) {
+        if (choose == -1) {
+            color(settingsData[2]);
+            return 0;
+        };
+        if (choose == -2) {
+            break;
+        };
+        showBoxText("PAUSED", false);
+        bottomKeymap("| [" + getNameKey(keymapData[4]) + "] -> RESUME | [" + getNameKey(keymapData[6]) + "] -> PAUSED MENU |");
+        inputMenu(&choose, 0, -5);
+        Sleep(100);
+    };
+
+    // paused menu
+    choose = 0;
     string menu[3] = {
         "  Resume    ",
         "  Settings  ",
