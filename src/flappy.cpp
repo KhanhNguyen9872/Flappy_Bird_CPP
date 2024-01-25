@@ -46,8 +46,10 @@ int tmp_int[3] = {0, 0, 0};
 
 string smallLogo = "";
 
-HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
 CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
+DWORD dwConsoleMode;
 COORD newPos = {0, 0};
 DWORD written;
 
@@ -91,19 +93,19 @@ void cursorPos_move(int column, int row) {
     COORD tmpPos;
     tmpPos.X = column;
     tmpPos.Y = row;
-    SetConsoleCursorPosition(hConsole, tmpPos);
+    SetConsoleCursorPosition(hOutput, tmpPos);
 }
 
 void cursorPos_up() {
-    SetConsoleCursorPosition(hConsole, newPos);
+    SetConsoleCursorPosition(hOutput, newPos);
 }
 
 void clearTerminal() {
     cursorPos_up();
 
-    GetConsoleScreenBufferInfo(hConsole, &bufferInfo);
+    GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
 
-    FillConsoleOutputCharacter(hConsole, ' ', (bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1) * (bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1), newPos, &written);
+    FillConsoleOutputCharacter(hOutput, ' ', (bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1) * (bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1), newPos, &written);
 
     cursorPos_up();
     return;
@@ -115,7 +117,7 @@ void hideCursor() {
     cursorInfo.dwSize = 1;
     cursorInfo.bVisible = FALSE;
 
-    SetConsoleCursorInfo(hConsole, &cursorInfo);
+    SetConsoleCursorInfo(hOutput, &cursorInfo);
     return;
 }
 
@@ -126,7 +128,7 @@ void getTerminalSize(int *columns, int *rows) {
 }
 
 void color(int index) {
-    SetConsoleTextAttribute(hConsole, index);
+    SetConsoleTextAttribute(hOutput, index);
     return;
 }
 
@@ -136,14 +138,9 @@ void playSound_thread(string file) {
 }
 
 void disableTouch() {
-    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
-    DWORD dwConsoleMode;
-    GetConsoleMode(h, &dwConsoleMode);
-
+    GetConsoleMode(hInput, &dwConsoleMode);
     dwConsoleMode &= ~ENABLE_QUICK_EDIT_MODE;
-    dwConsoleMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-
-    SetConsoleMode(h, dwConsoleMode);
+    SetConsoleMode(hInput, dwConsoleMode);
     return;
 }
 
@@ -484,7 +481,7 @@ string centerText(string text[], int size) {
 }
 
 
-void showLogoFullTerminal(string logo[], int sizeLogo, bool isShowUser) {
+void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShowUser) {
     //
     //   _|  |                                   |     _)           | 
     //  |    |   _` |  __ \   __ \   |   |       __ \   |   __|  _` | 
@@ -527,7 +524,11 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isShowUser) {
                 _i = true;
             }
         }
-        cursorPos_up();
+        if (isClear) {
+            clearTerminal();
+        } else {
+            cursorPos_up();
+        };
         cout << text;
         Sleep(100);
     }
@@ -620,7 +621,7 @@ void banner() {
         " _|   _| \\__,_|  .__/   .__/  \\__, |      _.__/  _| _|   \\__,_| ", \
         "                _|     _|     ____/                             ", \
         "                                             By KhanhNguyen9872  "};
-    showLogoFullTerminal(logo, sizeof(logo)/sizeof(logo[0]), false);
+    showLogoFullTerminal(logo, sizeof(logo)/sizeof(logo[0]), true, false);
 
     string logo2[15] = { \
         "                 ;                   ", \
@@ -639,7 +640,7 @@ void banner() {
         "                                     ", \
         "Use headphones for better experience." \
     };
-    showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]), true);
+    showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]), false, true);
     return;
 }
 
@@ -1655,7 +1656,7 @@ void flappyBird() { // Not done yet
     return;
 }
 
-int main() {
+int main(int argc, char const *argv[]) {
     disableTouch();
     system("color 07 >NUL 2>&1"); // default color CMD
     loadConfig();
