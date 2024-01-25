@@ -84,6 +84,8 @@ string deadAnimation[1][3] = {
 
 void inputMenu(int *chooseMenu, int max, int type_menu);
 void flappyBird();
+bool pausedMenu();
+void bottomKeymap(string text);
 
 void cursorPos_move(int column, int row) {
     COORD tmpPos;
@@ -512,6 +514,75 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isShowUser) {
     return;
 }
 
+bool showYesorNo(string text) {
+    //
+    //   ____________________
+    //  |                    |
+    //  | Exit to main menu? |
+    //  |                    |
+    //   ````````````````````
+    //
+    int sizeColumn = 0;
+    int sizeRow = 0;
+    int i, j;
+    int p;
+    string tmp;
+    for(i = 0; i < (terminalColumns - text.length()) / 2; i++) {
+        sizeColumn = sizeColumn + 1;
+    };
+    sizeColumn = sizeColumn - 1;
+
+    for(i = 0; i < terminalRows; i++) {
+        if (i == (terminalRows / 2) - 3) {
+            while (true) {
+                color(YELLOW);
+                cursorPos_move(sizeColumn, sizeRow);
+                tmp = "  ";
+                for(j = 0; j < text.length() + 2; j++) {
+                    tmp = tmp + "_";
+                };
+                cout << tmp;
+
+                cursorPos_move(sizeColumn, sizeRow + 1);
+                tmp = " | ";
+                for(j = 0; j < text.length(); j++) {
+                    tmp = tmp + " ";
+                }
+                cout << tmp << " |";
+
+                cursorPos_move(sizeColumn, sizeRow + 2);
+                cout << " | " << text << " |";
+
+                cursorPos_move(sizeColumn, sizeRow + 3);
+                tmp = " | ";
+                for(j = 0; j < text.length(); j++) {
+                    tmp = tmp + " ";
+                }
+                cout << tmp << " |";
+
+                cursorPos_move(sizeColumn, sizeRow + 4);
+                tmp = "  ";
+                for(j = 0; j < text.length() + 2; j++) {
+                    tmp = tmp + "`";
+                };
+                cout << tmp;
+                bottomKeymap("| [y] -> YES | [n] -> NO |");
+                
+                flushStdin();
+                p = _getch();
+                if ((p == 'y') || (p == 'Y')) {
+                    return 1;
+                } else if ((p == 'n') || (p == 'N')) {
+                    return 0;
+                };
+            }
+        } else {
+            sizeRow = sizeRow + 1;
+        };
+    };
+    return 0;
+}
+
 void banner() {
     string logo[6] = { \
         "   _|  |                                   |     _)           | ", \
@@ -600,11 +671,16 @@ void resizeTerminal(int column, int row) {
 
 void bottomKeymap(string text) {
     string lineLastTer = "";
-    int j;
+    int i, j;
     for(j=0; j < terminalColumns; j++) {
         lineLastTer = lineLastTer + "_";
     };
     lineLastTer = lineLastTer + "\n";
+    i = text.length();
+    for(j = 0; j < terminalColumns - i; j++) {
+        text = text + " ";
+    };
+    cursorPos_move(0, terminalRows - 2);
     color(WHITE);
     cout << lineLastTer;
     color(GREEN);
@@ -1286,6 +1362,11 @@ void resolutionSettings() {
     return;
 }
 
+void highScore() { // Not done yet
+    errorBox("Unavailable", true);
+    return;
+}
+
 void settingsMenu() {
     string menu[6] = {
         "",
@@ -1326,6 +1407,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
         int p = _getch();
         if (p == keymapData[0]) /* UP */ {
             switch (type_menu) {
+                case -4: // pausedMenu
                 case -2: // keymappingSettings
                 case 0:  // mainMenu
                 case 1:  // settingsMenu 
@@ -1357,6 +1439,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if (p == keymapData[1]) /* DOWN */ {
             switch (type_menu) {
+                case -4:
                 case -2:
                 case 0:
                 case 1:
@@ -1370,6 +1453,15 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if (p == keymapData[6]) /* ENTER */ {
             switch(type_menu) {
+                case -4:
+                    if(*chooseMenu == 0) {
+                        *chooseMenu = -1;
+                    } else if (*chooseMenu == 1) {
+                        settingsMenu();
+                    } else if (*chooseMenu == 2) {
+                        *chooseMenu = -2;
+                    };
+                    break;
                 case -2:
                     changeKeymapping(*chooseMenu);
                     break;
@@ -1377,10 +1469,12 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     if(*chooseMenu == 0) {
                         flappyBird();
                     } else if (*chooseMenu == 1) {
-                        settingsMenu();
+                        highScore();
                     } else if (*chooseMenu == 2) {
-                        credit();
+                        settingsMenu();
                     } else if (*chooseMenu == 3) {
+                        credit();
+                    } else if (*chooseMenu == 4) {
                         exit(0);
                     };
                     break;
@@ -1413,11 +1507,25 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if (p == keymapData[4]) /* ESC */ {
             switch(type_menu) {
+                case -4:
                 case -2:
                 case 1:
                 case 2:
                 case 3:
                     *chooseMenu = -1;
+                    break;
+                case -3:
+                    while (true) {
+                        flushStdin();
+                        if (pausedMenu()) {
+                            if (showYesorNo("Exit to main menu?")) {
+                                *chooseMenu = -1;
+                                break;
+                            };
+                        } else {
+                            break;
+                        };
+                    };
                     break;
             };
         } else if (p == keymapData[5] /* SPACE */) {
@@ -1434,11 +1542,12 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
 }
 
 void mainMenu() {
-    string menu[4] = {
-        "New game",
-        "Settings",
-        " Credit ",
-        "  Exit  "
+    string menu[5] = {
+        " New game ",
+        "High score",
+        " Settings ",
+        "  Credit  ",
+        "   Exit   "
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int chooseMenu = 0;
@@ -1481,8 +1590,43 @@ void loadConfig() {
     return;
 }
 
-void flappyBird() {
-    errorBox("Game not found", true);
+bool pausedMenu() {
+    int choose = 0;
+    string menu[3] = {
+        "  Resume    ",
+        "  Settings  ",
+        "  Main menu "
+    };
+
+    int sizeMenu = sizeof(menu) / sizeof(menu[0]);
+
+    clearTerminal();
+    while(true) {
+        if (choose == -1) {
+            return 0;
+        };
+        if (choose == -2) {
+            return 1;
+        };
+        showMenu("Paused", menu, sizeMenu, &choose);
+        inputMenu(&choose, sizeMenu - 1, -4);
+        Sleep(100);
+    };
+    return 1;
+};
+
+void flappyBird() { // Not done yet
+    int i, j;
+    int choose = 0;
+    while(true) {
+        if (choose == -1) {
+            return;
+        };
+        clearTerminal();
+        cout << "Game here\n";
+        inputMenu(&choose, 0, -3);
+        Sleep(50);
+    };  
     return;
 }
 
@@ -1493,10 +1637,12 @@ int main() {
     thread lockSizeTer(lockSizeTerminal);
 
     srand(time(NULL));
+    
     hideCursor();
 
     Sleep(1000);
     clearTerminal();
+
     banner();
     Sleep(1000);
 
