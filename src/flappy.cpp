@@ -1644,7 +1644,7 @@ void flappyBird() { // Not done yet
 }
 
 int main() {
-    system("color 07 >NUL 2>&1");
+    system("color 07 >NUL 2>&1"); // default color CMD
     loadConfig();
     resizeTerminal(terminalColumns, terminalRows);
     thread lockSizeTer(lockSizeTerminal);

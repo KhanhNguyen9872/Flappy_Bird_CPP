@@ -10,7 +10,7 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_x64.res",
                 "-lwinmm"
             ],
@@ -36,7 +36,7 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_i386.res",
                 "-lwinmm"
             ],
@@ -51,6 +51,93 @@
                 "isDefault": true
             },
             "detail": "Build for 32bit"
+        },
+        // add manifest
+        {
+            "type": "cppbuild",
+            "label": "manifest",
+            "command": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64\\mt.exe",
+            "args": [
+                "-manifest",
+                "..\\${fileBasenameNoExtension}.exe.manifest",
+                "-outputresource:..\\${fileBasenameNoExtension}.exe"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Add manifest"
+        },
+        // sign exe
+        {
+            "type": "cppbuild",
+            "label": "signexe",
+            "command": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64\\signtool.exe",
+            "args": [
+                "sign",
+                "/f",
+                "certificate\\rootCA.pfx",
+                "/p",
+                "12345678",
+                "/t",
+                "http://timestamp.digicert.com",
+                "/fd",
+                "sha1",
+                "/v",
+                "..\\${fileBasenameNoExtension}.exe",
+                "&&",
+                "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64\\signtool.exe",
+                "sign",
+                "/f",
+                "certificate\\rootCA.pfx",
+                "/p",
+                "12345678",
+                "/fd",
+                "sha256",
+                "/v",
+                "/as",
+                "..\\${fileBasenameNoExtension}.exe",
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Sign EXE"
+        },
+         // verify exe
+        {
+            "type": "cppbuild",
+            "label": "verifyexe",
+            "command": "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64\\signtool.exe",
+            "args": [
+                "verify",
+                "/v",
+                "/pa",
+                "..\\flappy.exe"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Sign EXE"
         }
     ],
     "version": "2.0.0"

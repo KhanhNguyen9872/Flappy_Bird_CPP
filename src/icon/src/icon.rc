@@ -1,0 +1,27 @@
+id ICON "icon.ico"
+1 VERSIONINFO
+FILEVERSION 1,0,0,0
+PRODUCTVERSION 1,0,0,0
+FILEOS 0x4
+FILETYPE 0x0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "KhanhNguyen9872, Ltd"
+      VALUE "FileDescription", "FlappyBird"
+      VALUE "FileVersion", "1,0,0,0"
+      VALUE "InternalName", "FlappyBird"
+      VALUE "LegalCopyright", "Copyright 2024"
+      VALUE "OriginalFilename", "flappy.exe"
+      VALUE "ProductName", "FlappyBird"
+      VALUE "ProductVersion", "1,0,0,0"
+    END
+  END 
+  
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+END
