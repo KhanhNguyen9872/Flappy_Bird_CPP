@@ -84,7 +84,7 @@ string deadAnimation[1][3] = {
 
 void inputMenu(int *chooseMenu, int max, int type_menu);
 void flappyBird();
-bool pausedMenu();
+bool pausedMenu(bool isShowPauseInGame);
 void bottomKeymap(string text);
 
 void cursorPos_move(int column, int row) {
@@ -700,6 +700,7 @@ void bottomKeymap(string text) {
     cout << lineLastTer;
     color(GREEN);
     cout << text;
+    color(settingsData[2]);
     return;
 }
 
@@ -794,7 +795,7 @@ void showChangeScene() {
     bool randomVar = rand() % 1;
     
     color(settingsData[2]);
-    Sleep(350);
+    Sleep(400);
     if (randomVar) {
         cursorPos_up();
         for(i = 0; i < terminalRows; i++) {
@@ -823,6 +824,7 @@ void showChangeScene() {
         };
     };
 
+    Sleep(250);
     return;
 }
 
@@ -1489,13 +1491,15 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 3:
                     *chooseMenu = -1;
                     break;
-                case -3:
-                    while (true) {
-                        flushStdin();
-                        if (pausedMenu()) {
+                case -3: // flappyBird
+                    bool tmp = true;
+                    while(true) {
+                        if (pausedMenu(tmp)) {
                             if (showYesorNo("Exit to main menu?")) {
                                 *chooseMenu = -1;
                                 break;
+                            } else {
+                                tmp = false;
                             };
                         } else {
                             break;
@@ -1565,23 +1569,25 @@ void loadConfig() {
     return;
 }
 
-bool pausedMenu() {
+bool pausedMenu(bool isShowPauseInGame) {
     int choose = 0;
 
-    // paused 1
+    // paused ingame
     flushStdin();
-    while(true) {
-        if (choose == -1) {
-            color(settingsData[2]);
-            return 0;
+    if (isShowPauseInGame) {
+        while(true) {
+            if (choose == -1) {
+                color(settingsData[2]);
+                return 0;
+            };
+            if (choose == -2) {
+                break;
+            };
+            showBoxText("PAUSED", false);
+            bottomKeymap("| [" + getNameKey(keymapData[4]) + "] -> RESUME | [" + getNameKey(keymapData[6]) + "] -> PAUSED MENU |");
+            inputMenu(&choose, 0, -5);
+            Sleep(100);
         };
-        if (choose == -2) {
-            break;
-        };
-        showBoxText("PAUSED", false);
-        bottomKeymap("| [" + getNameKey(keymapData[4]) + "] -> RESUME | [" + getNameKey(keymapData[6]) + "] -> PAUSED MENU |");
-        inputMenu(&choose, 0, -5);
-        Sleep(100);
     };
 
     // paused menu
@@ -1602,7 +1608,7 @@ bool pausedMenu() {
         if (choose == -2) {
             return 1;
         };
-        showMenu("Paused", menu, sizeMenu, &choose);
+        showMenu("| Paused |", menu, sizeMenu, &choose);
         inputMenu(&choose, sizeMenu - 1, -4);
         Sleep(100);
     };
@@ -1610,14 +1616,18 @@ bool pausedMenu() {
 };
 
 void flappyBird() { // Not done yet
+    int score = 0;
     int i, j;
     int choose = 0;
+    color(settingsData[2]);
+    showChangeScene();
     while(true) {
         if (choose == -1) {
             return;
         };
         clearTerminal();
         cout << "Game here\n";
+        bottomKeymap("| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | SCORE: " + to_string(score) + " |");
         inputMenu(&choose, 0, -3);
         Sleep(50);
     };  
