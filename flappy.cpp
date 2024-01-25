@@ -9,6 +9,7 @@
 
 #pragma comment(lib, "winmm.lib")
 
+#define configFileName "flappy.conf"
 #define BLACK			0
 #define BLUE			1
 #define GREEN			2
@@ -28,6 +29,7 @@
 
 using namespace std;
 
+string version_code = "1.0.0";
 char keymapData[7] = {
     119,    // UP       'w'
     115,    // DOWN     's'
@@ -42,9 +44,7 @@ int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
 int tmp_int[3] = {0, 0, 0};
 
-string version_code = "1.0.0";
 string smallLogo = "";
-string configFileName = "flappy.conf";
 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
@@ -1631,6 +1631,7 @@ void flappyBird() { // Not done yet
     showChangeScene();
     while(true) {
         if (choose == -1) {
+            showChangeScene();
             return;
         };
         clearTerminal();
