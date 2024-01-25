@@ -141,6 +141,7 @@ void disableTouch() {
     GetConsoleMode(h, &dwConsoleMode);
 
     dwConsoleMode &= ~ENABLE_QUICK_EDIT_MODE;
+    dwConsoleMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
     SetConsoleMode(h, dwConsoleMode);
     return;
