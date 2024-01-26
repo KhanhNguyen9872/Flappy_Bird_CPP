@@ -1713,6 +1713,7 @@ bool gameOver() {
         showBoxText("Game over", false);
         bottomKeymap("| [" + getNameKey(keymapData[5]) + "] -> AGAIN | [" + getNameKey(keymapData[4]) + "] -> MAIN MENU |");
         inputMenu(&choose, 0, -6);
+        Sleep(200);
     };
     return 0;
 }
@@ -1777,7 +1778,7 @@ void flappyBird() { // Not done yet
         bottomKeymap("| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(countGoUp) + " |");
         inputMenu(&choose, 0, -3);
         Sleep(125);
-    };  
+    };
     return;
 }
 
