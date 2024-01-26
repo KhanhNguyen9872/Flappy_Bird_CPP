@@ -1726,8 +1726,7 @@ void flappyBird() { // Not done yet
     int choose = 0;
     int countGoUp = 0;
     int sizeBird = sizeof(flyAnimation) / sizeof(flyAnimation[0]);
-    int maxUp = terminalRows / 4;
-    int gameOverAt = -(terminalRows - sizeBird - maxUp - 2);
+    int maxUp = 0;
     color(settingsData[2]);
     showChangeScene();
     flushStdin();
@@ -1736,14 +1735,14 @@ void flappyBird() { // Not done yet
             showChangeScene();
             return;
         };
-        if (countGoUp == gameOverAt) {
+        if (countGoUp == -(terminalRows - sizeBird - maxUp - 2)) {
             showAnimation(deadAnimation[0], sizeof(deadAnimation[0]) / sizeof(deadAnimation[0][0]), countGoUp);
+            gameStarted = 0;
             if (gameOver()) {
                 choose = -1;
                 continue;
             } else {
                 choose = 0;
-                gameStarted = 0;
                 score = 0;
                 countGoUp = 0;
                 x = 0;
@@ -1754,9 +1753,10 @@ void flappyBird() { // Not done yet
             if(!gameStarted) {
                 gameStarted = 1;
             };
+            maxUp = terminalRows / 4;
             if (countGoUp < maxUp) {
                 countGoUp = countGoUp + 2;
-            } else if (countGoUp == maxUp - 1) {
+            } else if (countGoUp == (maxUp) - 1) {
                 countGoUp = countGoUp + 1;
             };
             
