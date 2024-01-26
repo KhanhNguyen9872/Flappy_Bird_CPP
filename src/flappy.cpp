@@ -10,6 +10,7 @@
 #pragma comment(lib, "winmm.lib")
 
 #define configFileName "flappy.conf"
+#define scoreFileName "score.txt"
 #define BLACK			0
 #define BLUE			1
 #define GREEN			2
@@ -40,10 +41,13 @@ char keymapData[7] = {
     13     // ENTER     '\r'
 };
 
+int listHighScore[8];
+int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
+
 int settingsData[3] = {1, 1, WHITE};
 int terminalColumns, terminalRows;
 int tmp_int[3] = {0, 0, 0};
-int listWall[12][3];
+int listWall[8][3];
 int sizelistWall = sizeof(listWall) / sizeof(listWall[0]);
 bool gameStarted = 0;
 
@@ -191,7 +195,7 @@ string readFile(string fileName) {
 }
 
 void writeFile(string fileName, string data) {
-    ofstream f(configFileName);
+    ofstream f(fileName);
     if (f.is_open()) {
         f << data;
         f.close();
@@ -732,12 +736,12 @@ void showTip(string tip) {
     };
     if (tip == "") {
         string listTip[6] = {
-            "The person who doesn't play is the winner!",
-            "You can change the brightness to be more suitable!",
-            "The game was developed by KhanhNguyen9872!",
-            "Good luck for you!",
-            "How about your day?",
-            "Do what you want!"
+            "Fact: The person who doesn't play is the winner!",
+            "Tip: You can change the brightness to be more suitable!",
+            "Fact: The game was developed by KhanhNguyen9872!",
+            "Tip: Reduce resolution for best performance!",
+            "Tip: You can change the key according to your preference!",
+            "Fact: Cheat mode is always unavailable!"
         };
         
         int p = rand() % (sizeof(listTip) / sizeof(listTip[0]));
@@ -757,7 +761,7 @@ void showTip(string tip) {
             cursorPos_move(0, sizeRow);
             cout << text;
             cursorPos_move(3, sizeRow);
-            cout << "Tip: " << tip;
+            cout << tip;
             break;
         } else {
             sizeRow = sizeRow + 1;
@@ -768,10 +772,11 @@ void showTip(string tip) {
 
 void showAnimation(string animation[], int sizeAnimation, int countUp) {
     int i, j;
-    
+    int k = (terminalRows / 4) - countUp;
+    int l = terminalRows - 3;
     int sizeRow = 0;
-    for(i = 0; i < terminalRows - 3; i++) {
-        if (i == (terminalRows / 4) - countUp) {
+    for(i = 0; i < l; i++) {
+        if (i == k) {
             for(j = 0; j < sizeAnimation; j++) {
                 cursorPos_move(3, sizeRow + j);
                 cout << animation[j];
@@ -1357,8 +1362,25 @@ void resolutionSettings() {
     return;
 }
 
-void highScore() { // Not done yet
-    errorBox("Unavailable", "", true);
+void highScore() {
+    int i;
+    string menu[sizelistHighScore];
+    int sizeMenu = sizeof(menu) / sizeof(menu[0]);
+    for(i = 0; i < sizeMenu; i++) {
+        menu[i] = to_string(listHighScore[i]);
+    };
+    int choose = 0;
+    i = 0;
+    while(true) {
+        if (choose == -1) {
+            flushStdin();
+            return;
+        };
+        showMenu("| High score |", menu, sizeMenu, &i);
+        bottomKeymap("| [" + getNameKey(keymapData[4]) + "][" + getNameKey(keymapData[5]) + "] -> MAIN MENU |");
+        inputMenu(&choose, 0, 4);
+        Sleep(200);
+    };
     return;
 }
 
@@ -1464,8 +1486,10 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     if(*chooseMenu == 0) {
                         *chooseMenu = -1;
                     } else if (*chooseMenu == 1) {
-                        settingsMenu();
+                        highScore();
                     } else if (*chooseMenu == 2) {
+                        settingsMenu();
+                    } else if (*chooseMenu == 3) {
                         *chooseMenu = -2;
                     };
                     break;
@@ -1531,6 +1555,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 1:
                 case 2:
                 case 3:
+                case 4:
                     *chooseMenu = -1;
                     break;
                 case -3: // flappyBird
@@ -1552,6 +1577,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
         } else if (p == keymapData[5] /* SPACE */) {
             switch(type_menu) {
                 case -5:
+                case 4:
                     *chooseMenu = -1;
                     break;
                 case -3:
@@ -1590,7 +1616,10 @@ void mainMenu() {
 void loadConfig() {
     int i, j, k;
     int size = sizeof(keymapData) / sizeof(keymapData[0]);
-    int newKeymapData[size] = {-1};
+    int *newKeymapData = new int[size];
+    for(i = 0; i < sizeof(newKeymapData) / sizeof(newKeymapData[0]); i++) {
+        newKeymapData[i] = -1;
+    };
     setResolution(readConfig("resolution"));
     settingsData[0] = readConfig("music");
     settingsData[1] = readConfig("sfx");
@@ -1646,10 +1675,11 @@ bool pausedMenu(bool isShowPauseInGame) {
 
     // paused menu
     choose = 0;
-    string menu[3] = {
-        "  Resume    ",
+    string menu[4] = {
+        "   Resume   ",
+        " High score ",
         "  Settings  ",
-        "  Main menu "
+        " Main menu  "
     };
 
     int sizeMenu = sizeof(menu) / sizeof(menu[0]);
@@ -1683,12 +1713,79 @@ void showBird(int countAnimation[], int sizeInAnimation, int countGoUp) {
     return;
 }
 
-int getHighScore(int currentScore) {
-    return 999;
+void loadHighScore() {
+    int i;
+    for(i = 0; i < sizelistHighScore; i++) {
+        listHighScore[i] = 0;
+    };
+
+    int countLine = 0;
+    string line;
+    string data = readFile(scoreFileName);
+    if (data == "") {
+        return;
+    };
+    istringstream file(data);
+    while(getline(file, line)) {
+        try {
+            i = stoi(line);
+            countLine = countLine + 1;
+        } catch (...) {
+            continue;
+        };
+    };
+
+    i = 0;
+    int *tmpList = new int[countLine];
+    istringstream f(data);
+    while(getline(f, line)) {
+        tmpList[i] = stoi(line);
+        i = i + 1;
+    };
+
+    int maxIndex;
+    int j;
+    int max;
+    for(i = sizelistHighScore - 1; i >= 0 ; i--) {
+        maxIndex = 0;
+        max = tmpList[maxIndex];
+        for(j = 1; j < countLine; j++) {
+            if (max < tmpList[j]) {
+                max = tmpList[j];
+                maxIndex = j;
+            };
+        };
+
+        if (listHighScore[i] < max) {
+            listHighScore[i] = max;
+        };
+        tmpList[maxIndex] = -1;
+    };
+    return;
 }
 
-void showHighScore(int score) {
-    int highScore = getHighScore(score);
+int getHighScore(int currentScore) {
+    int i;
+    int j, k, l;
+    j = listHighScore[0];
+    for(i = 1; i < sizelistHighScore; i++) {
+        if (j < listHighScore[i]) {
+            j = listHighScore[i];
+            k = listHighScore[i];
+        };
+    };
+    for(i = 0; i < sizelistHighScore; i++) {
+        l = listHighScore[i] - currentScore;
+
+        if (l > 0 && l < k) {
+            j = listHighScore[i];
+            k = l;
+        };
+    };
+    return j;
+}
+
+void showHighScore(int highScore) {
     if (highScore > 0) {
         string text;
         int highScore_length = to_string(highScore).length() + 12; // + "HIGH SCORE: "
@@ -1713,8 +1810,8 @@ void showHighScore(int score) {
     return;
 }
 
-void showScore(int score) {
-    showHighScore(score);
+void showScore(int score, int higherScore) {
+    showHighScore(higherScore);
     string text;
     int score_length = to_string(score).length() + 7; // + "SCORE: "
 
@@ -1740,25 +1837,22 @@ void showScore(int score) {
 void showWall(int column, int up, int down) {
     string text = "";
     int i, j;
-    int sizeC = 2;
 
-    text = text + "|";
-    for(j = 0; j < sizeC; j++) {
-            text = text + "_";
-    };
-    text = text + "|";
+    text = "|__|";
+    j = terminalRows - 3;
 
     for(i = 0; i < up; i++) {
         cursorPos_move(column, i);
         cout << text;
     };
+
     cursorPos_move(column, down);
     cout << " __ ";
-    for(i = down + 1; i < terminalRows - 3; i++) {
+
+    for(i = down + 1; i < j; i++) {
         cursorPos_move(column, i);
         cout << text;
     };
-
     return;
 }
 
@@ -1776,7 +1870,7 @@ void showAllWall(int *nextWall, int *score, int countWall) {
             };
             *nextWall = i + 1;
             *score = *score + 1;
-            if (*nextWall > sizelistWall) {
+            if (*nextWall > sizelistWall - 1) {
                 *nextWall = 0;
             };
         };
@@ -1784,7 +1878,15 @@ void showAllWall(int *nextWall, int *score, int countWall) {
     return;
 }
 
-bool gameOver(int y) {
+bool gameOver(int score, int y) {
+    int i;
+    for(i = sizelistHighScore - 1; i >= 0; i--) {
+        if (score > listHighScore[i]) {
+            writeFile(scoreFileName, readFile(scoreFileName) + to_string(score) + "\n");
+            listHighScore[i] = score;
+            break;
+        };
+    };
     int choose = 0;
     while(true) {
         if (choose == -1) {
@@ -1829,23 +1931,24 @@ void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
             *isOver = 1;
         };
     };
-
     return;
 };
 
-void flappyBird() { // Not done yet
+void flappyBird() { 
     bool isOver = 0;
+    bool highScoreIsScore = 0;
     int nextWall = 0;
     int countWall = 0;
-    int wallCreateDistance = 20;
-    int distance = 0;
+    int wallCreateDistance = 22;
+    int distance = 18;
     int countAnimation[2] = {1, 0};
     int score = 0;
+    int highScore_ = getHighScore(score);
     int i;
     int y = 0;
     int choose = 0;
     int sizeBird = sizeof(flyAnimation) / sizeof(flyAnimation[0]);
-    int maxUp = 0;
+    int maxUp = terminalRows / 4;
     int sizeInAnimation = sizeof(flyAnimation[countAnimation[0]]) / sizeof(flyAnimation[countAnimation[0]][0]);
     string text;
     resetWall();
@@ -1868,18 +1971,22 @@ void flappyBird() { // Not done yet
             if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver)) {
                 showAnimation(deadAnimation[0], sizeof(deadAnimation[0]) / sizeof(deadAnimation[0][0]), y);
                 gameStarted = 0;
-                if (gameOver(y)) {
+                if (gameOver(score, y)) {
                     choose = -1;
                     continue;
                 } else {
                     resetWall();
                     choose = 0;
                     score = 0;
-                    distance = 0;
+                    distance = 18;
                     y = 0;
                     isOver = 0;
                     nextWall = 0;
                     countWall = 0;
+                    highScoreIsScore = 0;
+                    countAnimation[0] = 1;
+                    countAnimation[1] = 0;
+                    highScore_ = getHighScore(score);
                     continue;
                 };
             };
@@ -1888,7 +1995,6 @@ void flappyBird() { // Not done yet
             if(!gameStarted) {
                 gameStarted = 1;
             };
-            maxUp = terminalRows / 4;
             if (y < maxUp) {
                 y = y + 2;
             } else if (y == (maxUp) - 1) {
@@ -1903,7 +2009,7 @@ void flappyBird() { // Not done yet
         };
         if(gameStarted) {
             if (distance >= wallCreateDistance) {
-                if (true) {
+                if(rand() % 4) {
                     addWall(countWall);
                 };
                 countWall = countWall + 1;
@@ -1914,25 +2020,36 @@ void flappyBird() { // Not done yet
                 countWall = 0;
             };
             distance = distance + 1;
+            if (!highScoreIsScore) {
+                if (score > highScore_) {
+                    highScore_ = getHighScore(score);
+                };
+                if (score > highScore_) {
+                    highScoreIsScore = 1;
+                };
+            } else {
+                highScore_ = score;
+            };
         };
         text = "| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | Y: " + to_string(y) + " |";
         clearTerminal();
         bottomKeymap(text);
         showBird(countAnimation, sizeInAnimation, y);
         showAllWall(&nextWall, &score, countWall);
-        showScore(score);
+        showScore(score, highScore_);
         // show Line in Game
         cursorPos_move(0, terminalRows - 3);
         cout << lineMap;
 
         inputMenu(&choose, 0, -3);
-        Sleep(125);
+        Sleep(150);
     };
     return;
 }
 
 int main(int argc, char const *argv[]) {
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
+    ios_base::sync_with_stdio(1); // Enable synchronization
 
     disableTouch();
     system("color 07 >NUL 2>&1"); // default color CMD
@@ -1943,6 +2060,7 @@ int main(int argc, char const *argv[]) {
     srand(time(NULL));
     
     hideCursor();
+    loadHighScore();
 
     Sleep(1000);
     clearTerminal();
