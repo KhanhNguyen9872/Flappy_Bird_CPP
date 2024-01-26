@@ -76,11 +76,10 @@ string flyAnimation[4][3] = {
     }
 };
 
-string deadAnimation[1][3] = {
+string deadAnimation[1][2] = {
     {
         " __",
-        ">@@( *>",
-        " ``"
+        ">@@( *>"
     }
 };
 
@@ -139,6 +138,7 @@ void playSound_thread(string file) {
 
 void disableTouch() {
     GetConsoleMode(hInput, &dwConsoleMode);
+    dwConsoleMode &= ~ENABLE_PROCESSED_INPUT;
     dwConsoleMode &= ~ENABLE_QUICK_EDIT_MODE;
     SetConsoleMode(hInput, dwConsoleMode);
     return;
@@ -1701,7 +1701,7 @@ void showMap(int countUpLine) {
     return;
 }
 
-bool gameOver() {
+bool gameOver(int x, int y) {
     int choose = 0;
     while(true) {
         if (choose == -1) {
@@ -1711,7 +1711,7 @@ bool gameOver() {
             return 0;
         };
         showBoxText("Game over", false);
-        bottomKeymap("| [" + getNameKey(keymapData[5]) + "] -> AGAIN | [" + getNameKey(keymapData[4]) + "] -> MAIN MENU |");
+        bottomKeymap("| [" + getNameKey(keymapData[5]) + "] -> AGAIN | [" + getNameKey(keymapData[4]) + "] -> MAIN MENU | X: " + to_string(x) + " | Y: " + to_string(y) + " |");
         inputMenu(&choose, 0, -6);
         Sleep(200);
     };
@@ -1725,7 +1725,7 @@ void flappyBird() { // Not done yet
     int i, j;
     int x = 0;
     int choose = 0;
-    int countGoUp = 0;
+    int y = 0;
     int sizeBird = sizeof(flyAnimation) / sizeof(flyAnimation[0]);
     int maxUp = 0;
     color(settingsData[2]);
@@ -1736,16 +1736,16 @@ void flappyBird() { // Not done yet
             showChangeScene();
             return;
         };
-        if (countGoUp == -(terminalRows - sizeBird - maxUp - 2)) {
-            showAnimation(deadAnimation[0], sizeof(deadAnimation[0]) / sizeof(deadAnimation[0][0]), countGoUp);
+        if (y == -(terminalRows - sizeBird - maxUp - 1)) {
+            showAnimation(deadAnimation[0], sizeof(deadAnimation[0]) / sizeof(deadAnimation[0][0]), y);
             gameStarted = 0;
-            if (gameOver()) {
+            if (gameOver(x, y)) {
                 choose = -1;
                 continue;
             } else {
                 choose = 0;
                 score = 0;
-                countGoUp = 0;
+                y = 0;
                 x = 0;
                 continue;
             };
@@ -1755,27 +1755,27 @@ void flappyBird() { // Not done yet
                 gameStarted = 1;
             };
             maxUp = terminalRows / 4;
-            if (countGoUp < maxUp) {
-                countGoUp = countGoUp + 2;
-            } else if (countGoUp == (maxUp) - 1) {
-                countGoUp = countGoUp + 1;
+            if (y < maxUp) {
+                y = y + 2;
+            } else if (y == (maxUp) - 1) {
+                y = y + 1;
             };
             
             choose = 0;
         } else {
             // logic here
             if (gameStarted) {
-                countGoUp = countGoUp - 1;
+                y = y - 1;
             };
         };
         if(gameStarted) {
             x = x + 1;
         };
         clearTerminal();
-        showBird(countAnimation, countGoUp);
+        showBird(countAnimation, y);
         showMap(3);
         showScore(score);
-        bottomKeymap("| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(countGoUp) + " |");
+        bottomKeymap("| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " |");
         inputMenu(&choose, 0, -3);
         Sleep(125);
     };
