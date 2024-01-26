@@ -6,6 +6,7 @@
             "command": "g++.exe",
             "args": [
                 "-m64",
+                "-O3",
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
@@ -32,6 +33,7 @@
             "command": "g++.exe",
             "args": [
                 "-m32",
+                "-O3",
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",

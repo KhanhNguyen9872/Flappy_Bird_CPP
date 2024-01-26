@@ -1783,6 +1783,8 @@ void flappyBird() { // Not done yet
 }
 
 int main(int argc, char const *argv[]) {
+    SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
+
     disableTouch();
     system("color 07 >NUL 2>&1"); // default color CMD
     loadConfig();
