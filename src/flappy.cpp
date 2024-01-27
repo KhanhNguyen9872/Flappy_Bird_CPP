@@ -813,6 +813,8 @@ void showChangeScene() {
     };
 
     bool randomVar = rand() % 1;
+
+    int k = 5 - getResolutionValue();
     
     color(settingsData[2]);
     Sleep(400);
@@ -820,27 +822,27 @@ void showChangeScene() {
         cursorPos_up();
         for(i = 0; i < terminalRows; i++) {
             cout << text;
-            Sleep(5);
+            Sleep(k);
         };
 
         Sleep(150);
         cursorPos_up();
         for(i = 0; i < terminalRows; i++) {
             cout << text2;
-            Sleep(5);
+            Sleep(k);
         };
     } else {
         for(i = terminalRows - 1; i >= 0; i--) {
             cursorPos_move(0, i);
             cout << text;
-            Sleep(5);
+            Sleep(k);
         };
 
         Sleep(150);
         for(i = terminalRows - 1; i >= 0; i--) {
             cursorPos_move(0, i);
             cout << text2;
-            Sleep(5);
+            Sleep(k);
         };
     };
 
@@ -1788,12 +1790,13 @@ int getHighScore(int currentScore) {
     return j;
 }
 
-void showHighScore(int highScore, bool isHigher) {
+void showHighScore(string output[], int highScore, bool isHigher) {
     if (highScore > 0) {
         string text;
-        int highScore_length = to_string(highScore).length() + 12; // + "HIGH SCORE: "
+        string highScore_str = "| HIGH SCORE: " + to_string(highScore) + " |";
+        int highScore_length = highScore_str.length() - 4;
 
-        int i;
+        int i, k;
         int j = terminalColumns - highScore_length - 6;
         
         text = "+-";
@@ -1806,26 +1809,31 @@ void showHighScore(int highScore, bool isHigher) {
             i = 2;
         } else {
             i = 0;
-        }
-        cursorPos_move(j, 3 - i);
-        cout << text;
+        };
 
-        cursorPos_move(j, 4 - i);
-        cout << "| HIGH SCORE: " << highScore << " |";
+        for(k = 0; k < text.length(); k++) {
+            output[3 - i][j + k] = text[k];
+        };
+        
+        for(k = 0; k < highScore_str.length(); k++) {
+            output[4 - i][j + k] = highScore_str[k];
+        };
 
-        cursorPos_move(j, 5 - i);
-        cout << text;
+        for(k = 0; k < text.length(); k++) {
+            output[5 - i][j + k] = text[k];
+        };
     };
     return;
 }
 
-void showScore(int score, int higherScore, bool isHigher) {
-    showHighScore(higherScore, isHigher);
+void showScore(string output[], int score, int higherScore, bool isHigher) {
+    showHighScore(output, higherScore, isHigher);
     if (!isHigher) {
         string text;
-        int score_length = to_string(score).length() + 7; // + "SCORE: "
+        string score_str = "| SCORE: " + to_string(score) + " |";
+        int score_length = score_str.length() - 4;
 
-        int i;
+        int i, k;
         int j = terminalColumns - score_length - 6;
         
         text = "+-";
@@ -1833,14 +1841,18 @@ void showScore(int score, int higherScore, bool isHigher) {
             text = text + "-";
         };
         text = text + "-+";
-        cursorPos_move(j,1);
-        cout << text;
 
-        cursorPos_move(j,2);
-        cout << "| SCORE: " << score << " |";
+        for(k = 0; k < text.length(); k++) {
+            output[1][j + k] = text[k];
+        };
 
-        cursorPos_move(j,3);
-        cout << text;
+        for(k = 0; k < score_str.length(); k++) {
+            output[2][j + k] = score_str[k];
+        };
+
+        for(k = 0; k < text.length(); k++) {
+            output[3][j + k] = text[k];
+        };
     };
     return;
 }
@@ -1871,7 +1883,7 @@ void showWall(string output[], int column, int up, int down) {
     return;
 }
 
-string showAllWall(int *nextWall, int *score, int countWall) {
+string showAllWall(int *nextWall, int *score, int countWall, int highScore_, bool highScoreIsScore) { // why showScore here? for best optimized!
     int k = terminalRows - 3;
     string output[k];
     string lineBlank = "";
@@ -1900,6 +1912,8 @@ string showAllWall(int *nextWall, int *score, int countWall) {
             };
         };
     };
+
+    showScore(output, *score, highScore_, highScoreIsScore);
 
     string fullOutput = "";
     for(i = 0; i < k; i++) {
@@ -1968,16 +1982,19 @@ void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
 };
 
 void flappyBird() { 
+    int i;
     bool isOver = 0;
     bool highScoreIsScore = 0;
     int nextWall = 0;
     int countWall = 0;
     int wallCreateDistance = 20;
-    int distance = 18;
+    for(i = 0; i < getResolutionValue(); i++) {
+        wallCreateDistance = wallCreateDistance + 5;
+    };
+    int distance = wallCreateDistance - 4;
     int countAnimation[2] = {1, 0};
     int score = 0;
     int highScore_ = getHighScore(score);
-    int i;
     int y = 0;
     int choose = 0;
     int sizeBird = sizeof(flyAnimation) / sizeof(flyAnimation[0]);
@@ -2068,17 +2085,16 @@ void flappyBird() {
             };
         };
         text = "| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | Y: " + to_string(y) + " |";
-        outputWall = showAllWall(&nextWall, &score, countWall);
+        outputWall = showAllWall(&nextWall, &score, countWall, highScore_, highScoreIsScore);
 
         clearTerminal();
 
-        // show Wall + lineMap
+        // show Wall + Score/HighScore + lineMap
         cursorPos_up();
         cout << outputWall << lineMap;
 
         bottomKeymap(text);
         showBird(countAnimation, sizeInAnimation, y);
-        showScore(score, highScore_, highScoreIsScore);
         inputMenu(&choose, 0, -3);
         Sleep(150);
     };
