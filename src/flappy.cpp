@@ -101,7 +101,6 @@ string deadAnimation[1][3] = {
 
 void inputMenu(int *chooseMenu, int max, int type_menu);
 void flappyBird();
-bool pausedMenu(bool isShowPauseInGame);
 void bottomKeymap(string text);
 
 void cursorPos_move(int column, int row) {
@@ -749,7 +748,7 @@ void showTip(string tip) {
             "Fact: The game was developed by KhanhNguyen9872!",
             "Tip: Reduce resolution for best performance!",
             "Tip: You can change the key according to your preference!",
-            "Fact: Cheat mode is always unavailable!"
+            "Tip: Try Cheat mode for fun!"
         };
         
         int p = rand() % (sizeof(listTip) / sizeof(listTip[0]));
@@ -1440,6 +1439,57 @@ void settingsMenu() {
     };
 }
 
+int pausedMenu(bool isShowPauseInGame) {
+    int choose = 0;
+
+    // paused ingame
+    flushStdin();
+    if (isShowPauseInGame) {
+        while(true) {
+            if (choose == -1) {
+                color(settingsData[2]);
+                return 0;
+            };
+            if (choose == -2) {
+                break;
+            };
+            showBoxText("PAUSED", false);
+            bottomKeymap("| [" + getNameKey(keymapData[4]) + "][" + getNameKey(keymapData[5]) + "] -> RESUME | [" + getNameKey(keymapData[6]) + "] -> PAUSED MENU |");
+            inputMenu(&choose, 0, -5);
+            Sleep(100);
+        };
+    };
+
+    // paused menu
+    choose = 0;
+    string menu[5] = {
+        "  Continue  ",
+        "  New game  ",
+        " High score ",
+        "  Settings  ",
+        " Main menu  "
+    };
+
+    int sizeMenu = sizeof(menu) / sizeof(menu[0]);
+
+    clearTerminal();
+    while(true) {
+        if (choose == -1) {
+            return 0;
+        };
+        if (choose == -2) {
+            return 1;
+        };
+        if (choose == -3) {
+            return 2;
+        };
+        showMenu("| Paused |", menu, sizeMenu, &choose);
+        inputMenu(&choose, sizeMenu - 1, -4);
+        Sleep(100);
+    };
+    return 1;
+};
+
 void inputMenu(int *chooseMenu, int max, int type_menu) {
     if (_kbhit()) {
         int p = _getch();
@@ -1503,10 +1553,12 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     if(*chooseMenu == 0) {
                         *chooseMenu = -1;
                     } else if (*chooseMenu == 1) {
-                        highScore();
+                        *chooseMenu = -3;
                     } else if (*chooseMenu == 2) {
-                        settingsMenu();
+                        highScore();
                     } else if (*chooseMenu == 3) {
+                        settingsMenu();
+                    } else if (*chooseMenu == 4) {
                         *chooseMenu = -2;
                     };
                     break;
@@ -1584,15 +1636,25 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     break;
                 case -3: // flappyBird
                     bool tmp = true;
+                    int tmp2 = 0;
                     while(true) {
-                        if (pausedMenu(tmp)) {
+                        tmp2 = pausedMenu(tmp);
+                        if (tmp2 == 1) {
                             if (showYesorNo("Exit to main menu?")) {
                                 *chooseMenu = -1;
                                 break;
                             } else {
                                 tmp = false;
                             };
+                        } else if (tmp2 == 2) {
+                            if (showYesorNo("New game?")) {
+                                *chooseMenu = -2;
+                                break;
+                            } else {
+                                tmp = false;
+                            };
                         } else {
+                            *chooseMenu = -3;
                             break;
                         };
                     };
@@ -1676,63 +1738,18 @@ void loadConfig() {
     return;
 }
 
-bool pausedMenu(bool isShowPauseInGame) {
-    int choose = 0;
-
-    // paused ingame
-    flushStdin();
-    if (isShowPauseInGame) {
-        while(true) {
-            if (choose == -1) {
-                color(settingsData[2]);
-                return 0;
-            };
-            if (choose == -2) {
-                break;
-            };
-            showBoxText("PAUSED", false);
-            bottomKeymap("| [" + getNameKey(keymapData[4]) + "][" + getNameKey(keymapData[5]) + "] -> RESUME | [" + getNameKey(keymapData[6]) + "] -> PAUSED MENU |");
-            inputMenu(&choose, 0, -5);
-            Sleep(100);
-        };
-    };
-
-    // paused menu
-    choose = 0;
-    string menu[4] = {
-        "   Resume   ",
-        " High score ",
-        "  Settings  ",
-        " Main menu  "
-    };
-
-    int sizeMenu = sizeof(menu) / sizeof(menu[0]);
-
-    clearTerminal();
-    while(true) {
-        if (choose == -1) {
-            return 0;
-        };
-        if (choose == -2) {
-            return 1;
-        };
-        showMenu("| Paused |", menu, sizeMenu, &choose);
-        inputMenu(&choose, sizeMenu - 1, -4);
-        Sleep(100);
-    };
-    return 1;
-};
-
-void showBird(string output[], int countAnimation[], int sizeInAnimation, int countGoUp) { // output has not been optimized
+void showBird(string output[], int countAnimation[], int sizeInAnimation, int countGoUp, bool gameStarted) { // output has not been optimized
     showAnimation(flyAnimation[countAnimation[0]], sizeInAnimation, countGoUp);
-    if ((countAnimation[0] >= 3) || (countAnimation[0] <= 0) ) {
-        countAnimation[1] = !countAnimation[1];
-    };
+    if (gameStarted) {
+        if ((countAnimation[0] >= 3) || (countAnimation[0] <= 0) ) {
+            countAnimation[1] = !countAnimation[1];
+        };
 
-    if(!countAnimation[1]) {
-        countAnimation[0] = countAnimation[0] + 1;
-    } else {
-        countAnimation[0] = countAnimation[0] - 1;
+        if(!countAnimation[1]) {
+            countAnimation[0] = countAnimation[0] + 1;
+        } else {
+            countAnimation[0] = countAnimation[0] - 1;
+        };
     };
     return;
 }
@@ -1927,15 +1944,17 @@ void showWall(string output[], int column, int up, int down) {
     return;
 }
 
-void showAllWall(string output[], int *nextWall, int *score, int countWall) {
+void showAllWall(string output[], int *nextWall, int *score, int countWall, bool gameStarted) {
     int i, j;
 
     for(i = 0; i < sizelistWall; i++) {
         if ((listWall[i][0] > -1) && (listWall[i][0] < terminalColumns - 3)) {
             // display Wall
             showWall(output, listWall[i][0], listWall[i][1], listWall[i][2]);
-            listWall[i][0] = listWall[i][0] - 1; // decrease terminalColumn
-        } else if (listWall[i][1] > 0) {
+            if(gameStarted) {
+                listWall[i][0] = listWall[i][0] - 1; // decrease terminalColumn
+            };
+        } else if ((listWall[i][1] > -1) && (gameStarted)) {
             // remove Wall cannot display
             for(j = 0; j < 3; j++) {
                 listWall[i][j] = -1;
@@ -1950,7 +1969,7 @@ void showAllWall(string output[], int *nextWall, int *score, int countWall) {
     return;
 }
 
-bool gameOver(int score, int y, int nextWall, int maxUp) {
+bool gameOver(int score, int y, int minY, int maxY) {
     if(!settingsData[3]) {
         int i;
         for(i = sizelistHighScore - 1; i >= 0; i--) {
@@ -1970,7 +1989,7 @@ bool gameOver(int score, int y, int nextWall, int maxUp) {
             return 0;
         };
         showBoxText("Game over", false);
-        bottomKeymap("| [" + getNameKey(keymapData[6]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4]) + "] -> MAIN MENU | Y: " + to_string(y) + " | mUP: " + to_string(maxUp + 1 - listWall[nextWall][1]) + " | mDOWN: " + to_string(maxUp + 1 - listWall[nextWall][2]) + " |");
+        bottomKeymap("| [" + getNameKey(keymapData[6]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4]) + "] -> MAIN MENU | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |");
         inputMenu(&choose, 0, -6);
         Sleep(200);
     };
@@ -1994,7 +2013,10 @@ void addWall(int countWall) {
     return;
 }
 
-void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
+void checkWall(int nextWall, int y, int maxUp, bool *isOver, bool gameStarted) {
+    if(!gameStarted) {
+        return;
+    };
     int i;
     if (listWall[nextWall][0] == -2) {
         return;
@@ -2030,6 +2052,8 @@ void showBackground(string output[], int countStart) {
 void flappyBird() { 
     isInGame = 1;
     int i;
+    int minY = 0;
+    int maxY = 0;
     string output[terminalRows - 3];
     bool isOver = 0;
     bool gameStarted = 0;
@@ -2071,44 +2095,65 @@ void flappyBird() {
             showChangeScene();
             return;
         };
+        if (choose == -3) { // continue option in pausedMenu
+            gameStarted = 0;
+            choose = 0;
+            continue;
+        };
         if(gameStarted) {
+            maxY = maxUp + 1 - listWall[nextWall][1];
+            minY = maxUp + 1 - listWall[nextWall][2];
             if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver)) {
                 showAnimation(deadAnimation[0], sizeof(deadAnimation[0]) / sizeof(deadAnimation[0][0]), y);
                 gameStarted = 0;
-                if (gameOver(score, y, nextWall, maxUp)) {
+                if (gameOver(score, y, minY, maxY)) {
                     choose = -1;
                     continue;
                 } else {
-                    resetWall();
-                    choose = 0;
-                    score = 0;
-                    distance = wallCreateDistance - 4;
-                    x = 0;
-                    y = 0;
-                    isOver = 0;
-                    nextWall = 0;
-                    countWall = 0;
-                    highScoreIsScore = 0;
-                    countAnimation[0] = 1;
-                    countAnimation[1] = 0;
-                    highScore_ = getHighScore(score);
-                    countStart = rand() % sizeBackground;
-                    oldX = 0;
-                    continue;
+                    choose = -2;
                 };
             };
         };
-        if (settingsData[3]) { // cheat mode activated
-
+        if (choose == -2) { // new Game
+            resetWall();
+            choose = 0;
+            score = 0;
+            distance = wallCreateDistance - 4;
+            x = 0;
+            y = 0;
+            isOver = 0;
+            nextWall = 0;
+            countWall = 0;
+            highScoreIsScore = 0;
+            countAnimation[0] = 1;
+            countAnimation[1] = 0;
+            highScore_ = getHighScore(score);
+            countStart = rand() % sizeBackground;
+            oldX = 0;
+            gameStarted = 0;
+            continue;
+        };
+        if ((settingsData[3]) && (gameStarted)) { // cheat mode activated
+            if ((minY == maxUp + 3) && (maxY == maxUp + 3)) { // maxUp + 1 - (-2)
+                // skip due to noWall
+            } else {
+                if (y <= minY + 2) {
+                    y = y + 2;
+                } else {
+                    y = y - 1;
+                };
+            };
             choose = 0;
         } else if (choose == -9) { // received by SPACE button
             if(!gameStarted) {
                 gameStarted = 1;
             };
-            if (y < maxUp) {
-                y = y + 2;
-            } else if (y == (maxUp) - 1) {
-                y = y + 1;
+            if (!settingsData[3]) {
+                if (y < maxUp) {
+                    y = y + 2;
+                } else if (y == (maxUp) - 1) {
+                    y = y + 1;
+                };
             };
             choose = 0;
         } else {
@@ -2146,10 +2191,19 @@ void flappyBird() {
                 highScore_ = score;
             };
         };
-        text = "| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " | mUP: " + to_string(maxUp + 1 - listWall[nextWall][1]) + " | mDOWN: " + to_string(maxUp + 1 - listWall[nextWall][2]) + " |";
+        if (gameStarted) {
+            if (settingsData[3]) {
+                text = "| CHEAT MODE";
+            } else {
+                text = "| [" + getNameKey(keymapData[5]) + "] -> GO UP";
+            };
+        } else {
+            text = "| [" + getNameKey(keymapData[5]) + "] -> PLAY";
+        };
+        text = text + " | [" + getNameKey(keymapData[4]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";
         wipeOutput(output);
         showBackground(output, countStart);
-        showAllWall(output, &nextWall, &score, countWall);
+        showAllWall(output, &nextWall, &score, countWall, gameStarted);
         showScore(output, score, highScore_, highScoreIsScore);
         outputGame = getOutput(output);
 
@@ -2157,10 +2211,10 @@ void flappyBird() {
         clearTerminal();
         cout << outputGame << lineMap;
 
-        showBird(output, countAnimation, sizeInAnimation, y); // not optimized
+        showBird(output, countAnimation, sizeInAnimation, y, gameStarted); // not optimized
         bottomKeymap(text);
         inputMenu(&choose, 0, -3);
-        checkWall(nextWall, y, maxUp, &isOver);
+        checkWall(nextWall, y, maxUp, &isOver, gameStarted);
         Sleep(150);
     };
     return;

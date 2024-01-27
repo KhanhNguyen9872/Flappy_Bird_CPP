@@ -1,2 +1,2 @@
 @echo off
-upx\upx.exe -9 ..\flappy.exe
+upx\upx.exe -9 --ultra-brute ..\flappy.exe
