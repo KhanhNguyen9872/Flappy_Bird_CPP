@@ -850,7 +850,7 @@ void showChangeScene() {
     return;
 }
 
-void loadingFrame(int progress, bool showBird) {
+void loadingFrame(int progress, bool isShowBird) {
     //
     //   __________
     //  |==        |
@@ -924,7 +924,7 @@ void loadingFrame(int progress, bool showBird) {
         };
     };
 
-    if(showBird) {
+    if(isShowBird) {
         color(CYAN);
         showAnimation(flyAnimation[tmp_int[1]], sizeof(flyAnimation[tmp_int[1]]) / sizeof(flyAnimation[tmp_int[1]][0]), 0);
     
@@ -1704,7 +1704,7 @@ bool pausedMenu(bool isShowPauseInGame) {
     return 1;
 };
 
-void showBird(int countAnimation[], int sizeInAnimation, int countGoUp) {
+void showBird(string output[], int countAnimation[], int sizeInAnimation, int countGoUp) { // output has not been optimized
     showAnimation(flyAnimation[countAnimation[0]], sizeInAnimation, countGoUp);
     if ((countAnimation[0] >= 3) || (countAnimation[0] <= 0) ) {
         countAnimation[1] = !countAnimation[1];
@@ -1788,6 +1788,29 @@ int getHighScore(int currentScore) {
         };
     };
     return j;
+}
+
+void wipeOutput(string output[]) {
+    string lineBlank = "";
+    int i;
+    int k = terminalRows - 3;
+    for(i = 0; i < terminalColumns; i++) {
+        lineBlank = lineBlank + " ";
+    };
+    for(i = 0; i < k; i++) {
+        output[i] = lineBlank;
+    };
+    return;
+}
+
+string getOutput(string output[]) {
+    int i;
+    int k = terminalRows - 3;
+    string fullOutput = "";
+    for(i = 0; i < k; i++) {
+        fullOutput = fullOutput + output[i];
+    }
+    return fullOutput;
 }
 
 void showHighScore(string output[], int highScore, bool isHigher) {
@@ -1883,17 +1906,8 @@ void showWall(string output[], int column, int up, int down) {
     return;
 }
 
-string showAllWall(int *nextWall, int *score, int countWall, int highScore_, bool highScoreIsScore) { // why showScore here? for best optimized!
-    int k = terminalRows - 3;
-    string output[k];
-    string lineBlank = "";
+void showAllWall(string output[], int *nextWall, int *score, int countWall) {
     int i, j;
-    for(i = 0; i < terminalColumns; i++) {
-        lineBlank = lineBlank + " ";
-    };
-    for(i = 0; i < k; i++) {
-        output[i] = lineBlank;
-    };
 
     for(i = 0; i < sizelistWall; i++) {
         if ((listWall[i][0] > -1) && (listWall[i][0] < terminalColumns - 3)) {
@@ -1912,14 +1926,7 @@ string showAllWall(int *nextWall, int *score, int countWall, int highScore_, boo
             };
         };
     };
-
-    showScore(output, *score, highScore_, highScoreIsScore);
-
-    string fullOutput = "";
-    for(i = 0; i < k; i++) {
-        fullOutput = fullOutput + output[i];
-    }
-    return fullOutput;
+    return;
 }
 
 bool gameOver(int score, int y) {
@@ -1983,6 +1990,7 @@ void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
 
 void flappyBird() { 
     int i;
+    string output[terminalRows - 3];
     bool isOver = 0;
     bool highScoreIsScore = 0;
     int nextWall = 0;
@@ -2001,7 +2009,7 @@ void flappyBird() {
     int maxUp = terminalRows / 4;
     int sizeInAnimation = sizeof(flyAnimation[countAnimation[0]]) / sizeof(flyAnimation[countAnimation[0]][0]);
     string text;
-    string outputWall;
+    string outputGame;
     resetWall();
     string lineMap = "\n[";
     for(i = 0; i < terminalColumns - 2; i++) {
@@ -2085,16 +2093,17 @@ void flappyBird() {
             };
         };
         text = "| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | Y: " + to_string(y) + " |";
-        outputWall = showAllWall(&nextWall, &score, countWall, highScore_, highScoreIsScore);
+        wipeOutput(output);
+        showAllWall(output, &nextWall, &score, countWall);
+        showScore(output, score, highScore_, highScoreIsScore);
+        outputGame = getOutput(output);
 
+        // output
         clearTerminal();
+        cout << outputGame << lineMap;
 
-        // show Wall + Score/HighScore + lineMap
-        cursorPos_up();
-        cout << outputWall << lineMap;
-
+        showBird(output, countAnimation, sizeInAnimation, y); // not optimized
         bottomKeymap(text);
-        showBird(countAnimation, sizeInAnimation, y);
         inputMenu(&choose, 0, -3);
         Sleep(150);
     };
