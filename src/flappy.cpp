@@ -2070,9 +2070,7 @@ void flappyBird() {
         };
         if(gameStarted) {
             if (distance >= wallCreateDistance) {
-                if(rand() % 5) {
-                    addWall(countWall);
-                };
+                addWall(countWall);
                 countWall = countWall + 1;
                 distance = 0;
             };
@@ -2093,6 +2091,7 @@ void flappyBird() {
             };
         };
         text = "| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | Y: " + to_string(y) + " |";
+        //Debug // text = text + " NEXT: " + to_string(nextWall) + " | UP: " + to_string(listWall[nextWall][1]) + " | DOWN: " + to_string(listWall[nextWall][2]) + " |";
         wipeOutput(output);
         showAllWall(output, &nextWall, &score, countWall);
         showScore(output, score, highScore_, highScoreIsScore);
