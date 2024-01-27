@@ -1845,34 +1845,48 @@ void showScore(int score, int higherScore, bool isHigher) {
     return;
 }
 
-void showWall(int column, int up, int down) {
+void showWall(string output[], int column, int up, int down) {
     string text = "";
-    int i, j;
+    string text2 = " __ ";
+    int i, j, k;
 
     text = "|__|";
     j = terminalRows - 3;
 
     for(i = 0; i < up; i++) {
-        cursorPos_move(column, i);
-        cout << text;
+        for(k = 0; k < text.length(); k++) {
+            output[i][column + k] = text[k]; 
+        };
     };
 
-    cursorPos_move(column, down);
-    cout << " __ ";
+    for(k = 0; k < text2.length(); k++) {
+        output[down][column + k] = text2[k]; 
+    };
 
     for(i = down + 1; i < j; i++) {
-        cursorPos_move(column, i);
-        cout << text;
+        for(k = 0; k < text.length(); k++) {
+            output[i][column + k] = text[k]; 
+        };
     };
     return;
 }
 
-void showAllWall(int *nextWall, int *score, int countWall) {
+string showAllWall(int *nextWall, int *score, int countWall) {
+    int k = terminalRows - 3;
+    string output[k];
+    string lineBlank = "";
     int i, j;
+    for(i = 0; i < terminalColumns; i++) {
+        lineBlank = lineBlank + " ";
+    };
+    for(i = 0; i < k; i++) {
+        output[i] = lineBlank;
+    };
+
     for(i = 0; i < sizelistWall; i++) {
         if ((listWall[i][0] > -1) && (listWall[i][0] < terminalColumns - 3)) {
             // display Wall
-            showWall(listWall[i][0], listWall[i][1], listWall[i][2]);
+            showWall(output, listWall[i][0], listWall[i][1], listWall[i][2]);
             listWall[i][0] = listWall[i][0] - 1; // decrease terminalColumn
         } else if (listWall[i][1] > 0) {
             // remove Wall cannot display
@@ -1886,7 +1900,12 @@ void showAllWall(int *nextWall, int *score, int countWall) {
             };
         };
     };
-    return;
+
+    string fullOutput = "";
+    for(i = 0; i < k; i++) {
+        fullOutput = fullOutput + output[i];
+    }
+    return fullOutput;
 }
 
 bool gameOver(int score, int y) {
@@ -1965,8 +1984,9 @@ void flappyBird() {
     int maxUp = terminalRows / 4;
     int sizeInAnimation = sizeof(flyAnimation[countAnimation[0]]) / sizeof(flyAnimation[countAnimation[0]][0]);
     string text;
+    string outputWall;
     resetWall();
-    string lineMap = "[";
+    string lineMap = "\n[";
     for(i = 0; i < terminalColumns - 2; i++) {
         lineMap = lineMap + "/";
     };
@@ -2046,15 +2066,17 @@ void flappyBird() {
             };
         };
         text = "| [" + getNameKey(keymapData[5]) + "] -> GO UP | [" + getNameKey(keymapData[4]) + "] -> PAUSE | Y: " + to_string(y) + " |";
+        outputWall = showAllWall(&nextWall, &score, countWall);
+
         clearTerminal();
+
+        // show Wall + lineMap
+        cursorPos_up();
+        cout << outputWall << lineMap;
+
         bottomKeymap(text);
         showBird(countAnimation, sizeInAnimation, y);
-        showAllWall(&nextWall, &score, countWall);
         showScore(score, highScore_, highScoreIsScore);
-        // show Line in Game
-        cursorPos_move(0, terminalRows - 3);
-        cout << lineMap;
-
         inputMenu(&choose, 0, -3);
         Sleep(150);
     };
