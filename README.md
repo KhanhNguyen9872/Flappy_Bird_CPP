@@ -23,19 +23,20 @@
 
 > Settings menu
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/86d422fd-04ac-4108-8e89-f5432818197b)
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/f26b596a-e64c-4d7f-8797-76b22cf9017f)
+
 
 > Ingame screen
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/07224ab1-e134-445d-b543-f3ad97153f8b)
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/fbcea048-7e1f-42ef-ba30-1f5658f9c2b6)
 
 > Paused screen ingame
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/cb6c78f9-6313-46a2-bc27-92eee5f47d73)
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/de16b61d-7c46-4acd-9a80-fe81002e0a55)
 
 > Game over screen
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/0347a997-2523-4d6d-94ec-224ff601e69e)
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/a55bd119-468b-4ce8-900d-6506564cf1ec)
 
 > And more.....
 
