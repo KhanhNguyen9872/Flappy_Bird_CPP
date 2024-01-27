@@ -1997,6 +1997,8 @@ void flappyBird() {
     flushStdin();
     while(true) {
         if (choose == -1) {
+            resetWall();
+            gameStarted = 0;
             showChangeScene();
             return;
         };
