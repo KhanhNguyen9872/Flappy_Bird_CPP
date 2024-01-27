@@ -7,9 +7,9 @@
 > You can download test [here](https://codeload.github.com/KhanhNguyen9872/Flappy_Bird_CPP/zip/refs/heads/main)
 
 # VirusTotal
-> Link [here](https://www.virustotal.com/gui/file/bdaf02a8842dec2ff559b940c9466bab9d7886e2c4f2d5f32ca6709736454221?nocache=1)
+> Link [here](https://www.virustotal.com/gui/file/4c59b0bb6559f70015d9aa15750f74d6c0c13f159377fa799050c9857a8365d5)
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/661ef50d-267e-4fc5-b325-dbb9516eecc5)
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/af1e8e41-b106-46bd-85f5-60aa38cc7560)
 
 
 # Screenshot
