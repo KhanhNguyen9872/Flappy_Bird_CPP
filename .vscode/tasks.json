@@ -6,6 +6,52 @@
             "command": "g++.exe",
             "args": [
                 "-m64",
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
+                "icon\\icon_x64.res",
+                "-lwinmm"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "Build for 64bit"
+        },
+        {
+            "type": "cppbuild",
+            "label": "32bit build",
+            "command": "g++.exe",
+            "args": [
+                "-m32",
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
+                "icon\\icon_i386.res",
+                "-lwinmm"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "Build for 32bit"
+        },
+        {
+            "type": "cppbuild",
+            "label": "64bit build optimization",
+            "command": "g++.exe",
+            "args": [
+                "-m64",
                 "-O3",
                 "-fdiagnostics-color=always",
                 "-g",
@@ -21,15 +67,12 @@
             "problemMatcher": [
                 "$gcc"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "detail": "Build for 64bit"
         },
         {
             "type": "cppbuild",
-            "label": "32bit build",
+            "label": "32bit build optimization",
             "command": "g++.exe",
             "args": [
                 "-m32",
@@ -48,13 +91,9 @@
             "problemMatcher": [
                 "$gcc"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "detail": "Build for 32bit"
         },
-        // add manifest
         {
             "type": "cppbuild",
             "label": "manifest",
@@ -70,13 +109,9 @@
             "problemMatcher": [
                 "$gcc"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "detail": "Add manifest"
         },
-        // sign exe
         {
             "type": "cppbuild",
             "label": "signexe",
@@ -104,7 +139,7 @@
                 "sha256",
                 "/v",
                 "/as",
-                "..\\${fileBasenameNoExtension}.exe",
+                "..\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -112,13 +147,9 @@
             "problemMatcher": [
                 "$gcc"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "detail": "Sign EXE"
         },
-         // verify exe
         {
             "type": "cppbuild",
             "label": "verifyexe",
@@ -135,10 +166,7 @@
             "problemMatcher": [
                 "$gcc"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "detail": "Sign EXE"
         }
     ],
