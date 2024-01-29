@@ -428,7 +428,8 @@ void errorBox(string output, string bottom, bool isBlur) {
 
     int i, j;
     int boxSize = 26;
-    int sizeColumn = 0, sizeRow = 0;
+    int sizeColumn = 0;
+    int sizeRow;
 
     if(bottom == "") {
         bottom = "Press any key to continue";
@@ -443,72 +444,78 @@ void errorBox(string output, string bottom, bool isBlur) {
         showBlur();
     };
 
-    color(RED);
-    for(i = 0; i < terminalRows - 5; i++) {
-        if (i == (terminalRows / 2) - 3) {
-            text = "";
-            cursorPos_move(sizeColumn, sizeRow);
+    while(true) {
+        color(RED);
+        sizeRow = 0;
+        for(i = 0; i < terminalRows - 5; i++) {
+            if (i == (terminalRows / 2) - 3) {
+                text = "";
+                cursorPos_move(sizeColumn, sizeRow);
 
-            text = text + " ";
-            for(j = 0; j < boxSize - 2; j++) {
-                text = text + "_";
-            };
-            
-            text = text + "   /";
-            cout << text;
-
-            text = "";
-            cursorPos_move(sizeColumn, sizeRow + 1);
-
-            text = text + "/ ";
-            for(j = 0; j < boxSize - 4; j++) {
                 text = text + " ";
-            }; 
-            text = text + " \\ /";
-            cout << text;
-
-            text = "";
-            cursorPos_move(sizeColumn - 1, sizeRow + 2);
-            text = text + "/ ";
-            for(j = 0; j < boxSize - 2 - (output.length() ); j++) {
-                if (j == ((boxSize - 2) - output.length() ) / 2) {
-                    text = text + " " + output;
-                } else {
-                    text = text + " ";
+                for(j = 0; j < boxSize - 2; j++) {
+                    text = text + "_";
                 };
-            };
-            text = text + " /";
-            cout << text;
+                
+                text = text + "   /";
+                cout << text;
 
-            text = "";
-            cursorPos_move(sizeColumn - 2, sizeRow + 3);
-            text = text + "/ \\ ";
-            for(j = 0; j < boxSize - 4; j++) {
+                text = "";
+                cursorPos_move(sizeColumn, sizeRow + 1);
+
+                text = text + "/ ";
+                for(j = 0; j < boxSize - 4; j++) {
+                    text = text + " ";
+                }; 
+                text = text + " \\ /";
+                cout << text;
+
+                text = "";
+                cursorPos_move(sizeColumn - 1, sizeRow + 2);
+                text = text + "/ ";
+                for(j = 0; j < boxSize - 2 - (output.length() ); j++) {
+                    if (j == ((boxSize - 2) - output.length() ) / 2) {
+                        text = text + " " + output;
+                    } else {
+                        text = text + " ";
+                    };
+                };
+                text = text + " /";
+                cout << text;
+
+                text = "";
+                cursorPos_move(sizeColumn - 2, sizeRow + 3);
+                text = text + "/ \\ ";
+                for(j = 0; j < boxSize - 4; j++) {
+                    text = text + " ";
+                }; 
+                text = text + " /";
+                cout << text;
+
+                text = "";
+                cursorPos_move(sizeColumn - 3, sizeRow + 4);
+
+                text = text + "/   ";
+                for(j = 0; j < boxSize - 2; j++) {
+                    text = text + "`";
+                };
+                
                 text = text + " ";
-            }; 
-            text = text + " /";
-            cout << text;
-
-            text = "";
-            cursorPos_move(sizeColumn - 3, sizeRow + 4);
-
-            text = text + "/   ";
-            for(j = 0; j < boxSize - 2; j++) {
-                text = text + "`";
+                cout << text;
+                break;
+            } else {
+                sizeRow = sizeRow + 1;
             };
-            
-            text = text + " ";
-            cout << text;
-            break;
-        } else {
-            sizeRow = sizeRow + 1;
         };
-    };
 
-    color(settingsData[2]);
-    bottomKeymap(bottom);
-    flushStdin();
-    _getch();
+        color(settingsData[2]);
+        bottomKeymap(bottom);
+        if(_kbhit()) {
+            flushStdin();
+            return;
+        };
+        Sleep(250);
+    };
     return;
 };
 
@@ -648,16 +655,25 @@ bool showYesorNo(string text) {
     //   ````````````````````
     //
     int p;
+    bool tmp = true;
 
-    showBoxText(text, true);
-    bottomKeymap("| [y] -> YES | [n] -> NO |");
-    p = _getch();
-    if ((p == 'y') || (p == 'Y')) {
-        return 1;
-    } else if ((p == 'n') || (p == 'N')) {
-        return 0;
+    flushStdin();
+    while(true) {
+        showBoxText(text, tmp);
+        bottomKeymap("| [y] -> YES | [n] -> NO |");
+        if (_kbhit()) {
+            p = _getch();
+
+            if ((p == 'y') || (p == 'Y')) {
+                return 1;
+            } else if ((p == 'n') || (p == 'N')) {
+                return 0;
+            };
+        };
+        tmp = false;
+        Sleep(250);
     };
-    
+
     return 0;
 };
 
@@ -1557,6 +1573,24 @@ void mainMenu() {
     return;
 };
 
+void configError(int key) {
+    resizeTerminal(terminalColumns, terminalRows);
+    thread lockSizeTer(lockSizeTerminal);
+    hideCursor();
+    int j;
+    int size = sizeof(keymapData) / sizeof(keymapData[0]);
+    for(j = 0; j < size; j++) {
+        writeConfig("key" + to_string(j), "-1");
+    };
+    clearTerminal();
+    errorBox("Keymap Error [key" + to_string(key) + "]", "Keymap configuration has been reset! You can restart the game now!", false);
+    while(true) {
+        _getch();
+    };
+    exit(-1);
+    return;
+};
+
 void loadConfig() {
     int i, j, k;
     int size = sizeof(keymapData) / sizeof(keymapData[0]);
@@ -1573,17 +1607,7 @@ void loadConfig() {
         if(j > 7) {
             for(k = 0; k < size; k++) {
                 if(j == newKeymapData[k]) {
-                    resizeTerminal(terminalColumns, terminalRows);
-                    hideCursor();
-                    for(j = 0; j < size; j++) {
-                        writeConfig("key" + to_string(j), "-1");
-                    };
-                    clearTerminal();
-                    errorBox("Keymap Error [key" + to_string(i) + "]", "Keymap configuration has been reset! You can restart the game now!", false);
-                    while(true) {
-                        _getch();
-                    };
-                    exit(-1);
+                    configError(i);
                 };
             };
         };
@@ -1591,6 +1615,17 @@ void loadConfig() {
             newKeymapData[i] = j;
         } else {
             writeConfig("key" + to_string(i), "-1");
+        };
+    };
+    // check keymap after set
+    for(i = 0; i < size; i++) {
+        for(j = 0; j < size; j++) {
+            if(i == j) {
+                continue;
+            };
+            if(keymapData[i] == keymapData[j]) {
+                configError(i);
+            };
         };
     };
     return;
