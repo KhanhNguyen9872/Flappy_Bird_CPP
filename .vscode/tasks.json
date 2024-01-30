@@ -53,6 +53,8 @@
             "args": [
                 "-m64",
                 "-O3",
+                "-ffunction-sections",
+                "-fdata-sections",
                 "-fdiagnostics-color=always",
                 "-flto",
                 "${file}",
@@ -60,9 +62,8 @@
                 "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_x64.res",
                 "-lwinmm",
-                "&",
-                "strip",
-                "${fileDirname}\\..\\${fileBasenameNoExtension}.exe"
+                "-s",
+                "-Wl,--gc-sections"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -79,7 +80,9 @@
             "command": "g++.exe",
             "args": [
                 "-m32",
-                "-O3",
+//                "-O3",
+                "-ffunction-sections",
+                "-fdata-sections",
                 "-fdiagnostics-color=always",
                 "-flto",
                 "${file}",
@@ -87,9 +90,13 @@
                 "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_i386.res",
                 "-lwinmm",
-                "&",
-                "strip",
-                "${fileDirname}\\..\\${fileBasenameNoExtension}.exe"
+                "-s",
+                "-Wl,--gc-sections"
+                // "&",
+                // "strip",
+                // "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
+                // "--strip-all",
+                // "--verbose"
             ],
             "options": {
                 "cwd": "${fileDirname}"
