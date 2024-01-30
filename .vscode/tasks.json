@@ -54,12 +54,15 @@
                 "-m64",
                 "-O3",
                 "-fdiagnostics-color=always",
-                "-g",
+                "-flto",
                 "${file}",
                 "-o",
                 "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_x64.res",
-                "-lwinmm"
+                "-lwinmm",
+                "&",
+                "strip",
+                "${fileDirname}\\..\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -78,12 +81,15 @@
                 "-m32",
                 "-O3",
                 "-fdiagnostics-color=always",
-                "-g",
+                "-flto",
                 "${file}",
                 "-o",
                 "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_i386.res",
-                "-lwinmm"
+                "-lwinmm",
+                "&",
+                "strip",
+                "${fileDirname}\\..\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
                 "cwd": "${fileDirname}"

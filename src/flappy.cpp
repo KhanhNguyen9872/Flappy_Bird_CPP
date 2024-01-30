@@ -63,11 +63,20 @@ HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
 CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
 DWORD dwConsoleMode;
 
-string backGround[4] = {
-    "  ___             /```\\\\  ",
-    " /   \\\\  __      /     \\\\ ",
-    "/     \\\\/  \\\\   /       \\\\",
-    "            \\\\_/          "
+string backGround[5] = {
+    // 
+    // "                   /`\\             "
+    // "  ___             /   \\   /```\\   "
+    // " /   \\  __      /     \\_/     \\  "
+    // "/     \\/  \\   /                \\_"
+    // "            \\_/                    "
+    //
+
+    "                   /`\\\\             ",
+    "  ___             /   \\\\   /```\\\\   ",
+    " /   \\\\  __      /     \\\\_/     \\\\  ",
+    "/     \\\\/  \\\\   /                \\\\_",
+    "            \\\\_/                    "
 };
 int sizeBackground = sizeof(backGround) / sizeof(backGround[0]);
 
@@ -898,24 +907,23 @@ void showChangeScene() {
     return;
 };
 
-string getOutput(string output[]) {
+string getOutput(string output[], int sizeOutput) {
     int i;
-    int k = terminalRows - 3;
+    int k = terminalRows - 2;
     string fullOutput = "";
-    for(i = 0; i < k; i++) {
+    for(i = 0; i < sizeOutput; i++) {
         fullOutput = fullOutput + output[i];
     };
     return fullOutput;
 };
 
-void wipeOutput(string output[]) {
+void wipeOutput(string output[], int sizeOutput) {
     string lineBlank = "";
     int i;
-    int k = terminalRows - 3;
     for(i = 0; i < terminalColumns; i++) {
         lineBlank = lineBlank + " ";
     };
-    for(i = 0; i < k; i++) {
+    for(i = 0; i < sizeOutput; i++) {
         output[i] = lineBlank;
     };
     return;
@@ -1922,7 +1930,8 @@ void flappyBird() {
     int i;
     int minY = 0;
     int maxY = 0;
-    string output[terminalRows - 3];
+    string output[terminalRows - 2];
+    int sizeOutput = sizeof(output) / sizeof(output[0]);
     bool isOver = 0;
     gameStarted = 0;
     bool highScoreIsScore = 0;
@@ -1947,7 +1956,7 @@ void flappyBird() {
     string text;
     string outputGame;
     resetWall();
-    string lineMap = "\n[";
+    string lineMap = "[";
     for(i = 0; i < terminalColumns - 2; i++) {
         lineMap = lineMap + "/";
     };
@@ -2070,12 +2079,13 @@ void flappyBird() {
             text = "| [" + getNameKey(keymapData[5]) + "] -> PLAY";
         };
         text = text + " | [" + getNameKey(keymapData[4]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";
-        wipeOutput(output);
+        wipeOutput(output, sizeOutput);
         showBackground(output, countStart);
         showAllWall(output, &nextWall, &score, countWall);
         showBird(output, countAnimation, sizeInAnimation, y);
         showScore(output, score, highScore_, highScoreIsScore);
-        outputGame = getOutput(output) + lineMap;
+        output[terminalRows - 3] = lineMap;
+        outputGame = getOutput(output, sizeOutput);
 
         // output
         clearTerminal();
