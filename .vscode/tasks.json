@@ -80,7 +80,7 @@
             "command": "g++.exe",
             "args": [
                 "-m32",
-//                "-O3",
+                "-O3",
                 "-ffunction-sections",
                 "-fdata-sections",
                 "-fdiagnostics-color=always",
