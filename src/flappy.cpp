@@ -48,13 +48,14 @@ char keymapData[7] = {
 int listHighScore[7];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[4] = {1, 1, WHITE, 0};  // music, sfx, brightness, cheat
+int settingsData[5] = {1, 1, WHITE, 0, 0};  // music, sfx, brightness, cheat, skin
 int terminalColumns, terminalRows;
 int tmp_int[3] = {0, 0, 0};
 int listWall[10][3];
 int sizelistWall = sizeof(listWall) / sizeof(listWall[0]);
-bool isInGame = 0;
+bool isInGame = -1;
 bool gameStarted = 0;
+bool isBenchmark = 0;
 
 string smallLogo = "";
 
@@ -80,34 +81,90 @@ string backGround[5] = {
 };
 int sizeBackground = sizeof(backGround) / sizeof(backGround[0]);
 
-string flyAnimation[4][3] = {
+string skinFlyAnimation[3][4][3] = {
     {
-        "  /",
-        ">@@(O>",
-        "  \\"
+        {
+            "  /",
+            ">@@(O>",
+            "  \\"
+        },
+        {
+            "  )",
+            ">@@(O>",
+            "  )"
+        },
+        {
+            "  \\",
+            ">@@(O>",
+            "  /"
+        },
+        {
+            " __",
+            ">@@(O>",
+            " ``"
+        } 
     },
     {
-        "  )",
-        ">@@(O>",
-        "  )"
+        {
+            " ( O>",
+            "\\ @ @/",
+            " ^ ^"
+        },
+        {
+            " ( O>",
+            "/ @ @\\",
+            " ^ ^"
+        },
+        {
+            " ( O>",
+            "\\ @ @/",
+            " ^ ^"
+        },
+        {
+            " ( O>",
+            "/ @ @\\",
+            " ^ ^"
+        }
     },
     {
-        "  \\",
-        ">@@(O>",
-        "  /"
-    },
-    {
-        " __",
-        ">@@(O>",
-        " ``"
+        {
+            "  ...",
+            " | []|",
+            "/.....\\"
+        },
+        {
+            "  ...",
+            " | []|",
+            "/.....\\"
+        },
+        {
+            "  ...",
+            " | []|",
+            "/.....\\"
+        },
+        {
+            "  ...",
+            " | []|",
+            "/.....\\"
+        }
     }
 };
 
-string deadAnimation[1][3] = {
+string skinDeadAnimation[3][3] = {
     {
         "",
         ">@@(*>",
         ""
+    },
+    {
+        " ( *>",
+        " |@ @|",
+        " ^ ^"
+    },
+    {
+        "  ...",
+        " | XX|",
+        "/.....\\"
     }
 };
 
@@ -766,7 +823,11 @@ void showOverlayResolution() {
 
 void resizeTerminal(int column, int row) {
     string cmd = "MODE " + to_string(column) + "," + to_string(row);
-    system(cmd.c_str());
+    if (system(cmd.c_str()) != 0) {
+        clearTerminal();
+        errorBox("API ERROR", "Please run on real Windows!", false);
+        exit(1);
+    };
     titleTerminal("Flappy Bird - KhanhNguyen9872 - (C++) - [ " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " ]");
     showOverlayResolution();
     return;
@@ -907,6 +968,16 @@ void showChangeScene() {
     return;
 };
 
+string getRoad() {
+    int i;
+    string text = "[";
+    for(i = 0; i < terminalColumns - 2; i++) {
+        text = text + "/";
+    };
+    text = text + "]";
+    return text;
+};
+
 string getOutput(string output[], int sizeOutput) {
     int i;
     int k = terminalRows - 2;
@@ -947,7 +1018,7 @@ void loadingFrame(int progress, bool isShowBird) {
     //
     // [/////////////////////////////////////////]
 
-    int sizeAnimation = sizeof(flyAnimation) / sizeof(flyAnimation[0]);
+    int sizeAnimation = sizeof(skinFlyAnimation[settingsData[4]]) / sizeof(skinFlyAnimation[settingsData[4]][0]);
     int i, j, k;
 
     string text = "";
@@ -1005,13 +1076,9 @@ void loadingFrame(int progress, bool isShowBird) {
 
     if(isShowBird) {
         color(CYAN);
-        showAnimation(NULL, flyAnimation[tmp_int[1]], sizeof(flyAnimation[tmp_int[1]]) / sizeof(flyAnimation[tmp_int[1]][0]), 0);
+        text = getRoad();
+        showAnimation(NULL, skinFlyAnimation[settingsData[4]][tmp_int[1]], sizeof(skinFlyAnimation[settingsData[4]][tmp_int[1]]) / sizeof(skinFlyAnimation[settingsData[4]][tmp_int[1]][0]), 0);
     
-        text = "[";
-        for(j = 0; j < terminalColumns - 2; j++) {
-            text = text + "/";
-        };
-        text = text + "]";
         cursorPos_move(0, terminalRows - 6);
         cout << text;
 
@@ -1464,8 +1531,113 @@ void highScore() {
     return;
 };
 
-void changeSkin() {
+void showBackground(string output[], int countStart) {
+    int i, j, row, count;
+    j = terminalRows - 3 - sizeBackground;
+    for(row = 0; row < sizeBackground; row++) {
+        count = countStart;
+        for(i = 0; i < terminalColumns; i++) {
+            output[j + row][i] = backGround[row][count];
+            count = count + 1;
+            if(count > backGround[row].length() - 1) {
+                count = 0;
+            };
+        };
+    };
+    return;
+};
+
+void showBird(string output[], int countAnimation[], int sizeInAnimation, int skinIndex, int countGoUp) {
+    showAnimation(output, skinFlyAnimation[skinIndex][countAnimation[0]], sizeInAnimation, countGoUp);
+    if ((countAnimation[0] >= 3) || (countAnimation[0] <= 0) ) {
+        countAnimation[1] = !countAnimation[1];
+    };
+
+    if(!countAnimation[1]) {
+        countAnimation[0] = countAnimation[0] + 1;
+    } else {
+        countAnimation[0] = countAnimation[0] - 1;
+    };
+    return;
+};
+
+void benchmark() {
     errorBox("Unavailable", "", true);
+    return;
+};
+
+bool setSkin(int index) {
+    if ((index >= 0) && (index < (sizeof(skinFlyAnimation) / sizeof(skinFlyAnimation[0])))) {
+        settingsData[4] = index;
+        writeConfig("skin", to_string(index));
+        return 1;
+    };
+    return 0;
+};
+
+void previewSkin(int index) {
+    int i = terminalRows - 2;
+    int choose = 0;
+    int countAnimation[2] = {1, 0};
+    int sizeInAnimation = sizeof(skinFlyAnimation[index][countAnimation[0]]) / sizeof(skinFlyAnimation[index][countAnimation[0]][0]);
+    string road = getRoad();
+    string output[i];
+    string finalOutput;
+    while(true) {
+        if(choose == -1) {
+            break;
+        };
+        if(choose == -2) {
+            if (setSkin(index)) {
+                showBoxText("Completed", true);
+                bottomKeymap("Press any key to continue!");
+                flushStdin();
+                _getch();
+            } else {
+                errorBox("Cannot set skin", "", true);
+            };
+            break;
+        };
+        wipeOutput(output, i);
+        showBackground(output, 0);
+        showBird(output, countAnimation, sizeInAnimation, index, 0);
+        output[i - 1] = road;
+        finalOutput = getOutput(output, i);
+        clearTerminal();
+        cout << finalOutput;
+        bottomKeymap("| [" + getNameKey(keymapData[6]) + "] -> SET | [" + getNameKey(keymapData[4]) + "] -> BACK |");
+        inputMenu(&choose, 0, -7);
+        Sleep(250);
+    };
+    flushStdin();
+    return;
+};
+
+void changeSkin() {
+    string space = "";
+    int i;
+    int choose = 0;
+    int sizeAnimation = sizeof(skinFlyAnimation) / sizeof(skinFlyAnimation[0]);
+    string menu[sizeAnimation];
+
+    if (sizeAnimation > 9) {
+        space = space + " ";
+    } else if (sizeAnimation > 99) {
+        space = space + "  ";
+    };
+
+    for(i = 0; i < sizeAnimation; i++) {
+        menu[i] = "skin_" + to_string(i + 1) + space;
+    };
+    while(true) {
+        if (choose == -1) {
+            flushStdin();
+            return;
+        };
+        showMenu("| Current skin: skin_" + to_string(settingsData[4] + 1) + " |", menu, sizeAnimation, &choose);
+        inputMenu(&choose, sizeAnimation - 1, 5);
+        Sleep(100);
+    };
     return;
 };
 
@@ -1509,6 +1681,7 @@ void settingsMenu() {
         inputMenu(&choose, sizeMenu - 1, 1);
         Sleep(100);
     };
+    return;
 };
 
 int pausedMenu(bool isShowPauseInGame) {
@@ -1562,17 +1735,38 @@ int pausedMenu(bool isShowPauseInGame) {
     return 1;
 };
 
+void moreOptions() {
+    string menu[2] = {
+        " Benchmark ",
+        "    Back   "
+    };
+    int sizeMenu = sizeof(menu)/sizeof(menu[0]);
+    int choose = 0;
+    while(true) {
+        if (choose == -1) {
+            return;
+        };
+        showMenu("", menu, sizeMenu, &choose);
+        inputMenu(&choose, sizeMenu - 1, 6);
+        Sleep(100);
+    };
+    return;
+};
+
 void mainMenu() {
-    string menu[6] = {
+    isInGame = 0;
+    string menu[7] = {
         "   Start  ",
         "High score",
         "   Skin   ",
+        "   More   ",
         " Settings ",
         "  Credit  ",
         "   Exit   "
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int chooseMenu = 0;
+    flushStdin();
     while(true) {
         showMenu("", menu, sizeMenu, &chooseMenu);
         inputMenu(&chooseMenu, sizeMenu - 1, 0);
@@ -1584,7 +1778,6 @@ void mainMenu() {
 void configError(int key) {
     resizeTerminal(terminalColumns, terminalRows);
     thread lockSizeTer(lockSizeTerminal);
-    hideCursor();
     int j;
     int size = sizeof(keymapData) / sizeof(keymapData[0]);
     for(j = 0; j < size; j++) {
@@ -1610,6 +1803,9 @@ void loadConfig() {
     settingsData[0] = readConfig("music");
     settingsData[1] = readConfig("sfx");
     setBrightness(readConfig("brightness"));
+    if (!setSkin(readConfig("skin"))) {
+        writeConfig("skin", "0");  
+    };
     for(i = 0; i < size; i++) {
         j = readConfig("key" + to_string(i));
         if(j > 7) {
@@ -1635,20 +1831,6 @@ void loadConfig() {
                 configError(i);
             };
         };
-    };
-    return;
-};
-
-void showBird(string output[], int countAnimation[], int sizeInAnimation, int countGoUp) {
-    showAnimation(output, flyAnimation[countAnimation[0]], sizeInAnimation, countGoUp);
-    if ((countAnimation[0] >= 3) || (countAnimation[0] <= 0) ) {
-        countAnimation[1] = !countAnimation[1];
-    };
-
-    if(!countAnimation[1]) {
-        countAnimation[0] = countAnimation[0] + 1;
-    } else {
-        countAnimation[0] = countAnimation[0] - 1;
     };
     return;
 };
@@ -1804,7 +1986,7 @@ void showWall(string output[], int column, int up, int down) {
     int i, j, k;
 
     // up
-    for(i = 0; i <= up; i++) {
+    for(i = 0; i < up; i++) {
         for(k = 0; k < text.length(); k++) {
             output[i][column + k] = text[k]; 
         };
@@ -1812,7 +1994,7 @@ void showWall(string output[], int column, int up, int down) {
 
     // down
     j = terminalRows - 3;
-    for(i = down; i < j; i++) {
+    for(i = down + 1; i < j; i++) {
         for(k = 0; k < text.length(); k++) {
             output[i][column + k] = text2[k]; 
         };
@@ -1884,8 +2066,8 @@ void resetWall() {
 
 void addWall(int countWall) {
     listWall[countWall][0] = terminalColumns - 5;
-    listWall[countWall][1] = (rand() % (terminalRows - 10)); // up
-    listWall[countWall][2] = listWall[countWall][1] + 6; // down
+    listWall[countWall][1] = (rand() % (terminalRows - 13)) + 1; // up
+    listWall[countWall][2] = listWall[countWall][1] + 5; // down
     return;
 };
 
@@ -1904,22 +2086,6 @@ void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
         maxUp = maxUp + 1;
         if ((maxUp - listWall[nextWall][1] <= y) || (maxUp - listWall[nextWall][2] >= y)) {
             *isOver = 1;
-        };
-    };
-    return;
-};
-
-void showBackground(string output[], int countStart) {
-    int i, j, row, count;
-    j = terminalRows - 3 - sizeBackground;
-    for(row = 0; row < sizeBackground; row++) {
-        count = countStart;
-        for(i = 0; i < terminalColumns; i++) {
-            output[j + row][i] = backGround[row][count];
-            count = count + 1;
-            if(count > backGround[row].length() - 1) {
-                count = 0;
-            };
         };
     };
     return;
@@ -1950,18 +2116,13 @@ void flappyBird() {
     int y = 0;
     int oldX = x;
     int choose = 0;
-    int sizeBird = sizeof(flyAnimation) / sizeof(flyAnimation[0]);
+    int sizeBird = sizeof(skinFlyAnimation[settingsData[4]]) / sizeof(skinFlyAnimation[settingsData[4]][0]);
     int maxUp = terminalRows / 4;
-    int sizeInAnimation = sizeof(flyAnimation[countAnimation[0]]) / sizeof(flyAnimation[countAnimation[0]][0]);
+    int sizeInAnimation = sizeof(skinFlyAnimation[settingsData[4]][countAnimation[0]]) / sizeof(skinFlyAnimation[settingsData[4]][countAnimation[0]][0]);
     string text;
     string outputGame;
     resetWall();
-    string lineMap = "[";
-    for(i = 0; i < terminalColumns - 2; i++) {
-        lineMap = lineMap + "/";
-    };
-    lineMap = lineMap + "]";
-
+    string lineMap = getRoad();
     color(settingsData[2]);
     showChangeScene();
     flushStdin();
@@ -1981,7 +2142,7 @@ void flappyBird() {
             maxY = maxUp + 1 - listWall[nextWall][1];
             minY = maxUp + 1 - listWall[nextWall][2];
             if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver)) {
-                showAnimation(NULL, deadAnimation[0], sizeof(deadAnimation[0]) / sizeof(deadAnimation[0][0]), y);
+                showAnimation(NULL, skinDeadAnimation[settingsData[4]], sizeof(skinDeadAnimation[settingsData[4]]) / sizeof(skinDeadAnimation[settingsData[4]][0]), y);
                 gameStarted = 0;
                 if (gameOver(score, y, minY, maxY)) {
                     choose = -1;
@@ -2013,6 +2174,11 @@ void flappyBird() {
         if ((settingsData[3]) && (gameStarted)) { // cheat mode activated
             if ((minY == maxUp + 3) && (maxY == maxUp + 3)) { // maxUp + 1 - (-2)
                 // skip due to noWall
+                if (y < maxUp / 2) {
+                    y = y + 2;
+                } else {
+                    y = y - 1;
+                };
             } else {
                 if (y <= minY + 2) {
                     y = y + 2;
@@ -2028,10 +2194,10 @@ void flappyBird() {
                 continue;
             };
             if (!settingsData[3]) {
-                if (y < maxUp) {
-                    y = y + 2;
-                } else if (y == (maxUp) - 1) {
+                if (y == maxUp - 1) {
                     y = y + 1;
+                } else if (y < maxUp) {
+                    y = y + 2;
                 };
             };
         } else {
@@ -2069,20 +2235,24 @@ void flappyBird() {
                 highScore_ = score;
             };
         };
+
+        text = "| ";
         if (gameStarted) {
-            if (settingsData[3]) {
-                text = "| AUTO MODE";
+            if (isBenchmark) {
+                text = text + "BENCHMARK";
+            } else if (settingsData[3]) {
+                text = text + "AUTO MODE";
             } else {
-                text = "| [" + getNameKey(keymapData[5]) + "] -> GO UP";
+                text = text + "[" + getNameKey(keymapData[5]) + "] -> GO UP";
             };
         } else {
-            text = "| [" + getNameKey(keymapData[5]) + "] -> PLAY";
+            text = text + "[" + getNameKey(keymapData[5]) + "] -> PLAY";
         };
         text = text + " | [" + getNameKey(keymapData[4]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";
         wipeOutput(output, sizeOutput);
         showBackground(output, countStart);
         showAllWall(output, &nextWall, &score, countWall);
-        showBird(output, countAnimation, sizeInAnimation, y);
+        showBird(output, countAnimation, sizeInAnimation, settingsData[4], y);
         showScore(output, score, highScore_, highScoreIsScore);
         output[terminalRows - 3] = lineMap;
         outputGame = getOutput(output, sizeOutput);
@@ -2110,6 +2280,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 1:  // settingsMenu 
                 case 3:  // resolutionSettings
                 case 4:  // highScore
+                case 5:  // changeSkin
+                case 6:  // moreOptions
                     if(*chooseMenu > 0) {
                         *chooseMenu = *chooseMenu - 1;
                     } else {
@@ -2143,6 +2315,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 1:
                 case 3:
                 case 4:
+                case 5:
+                case 6:
                     if(*chooseMenu < max) {
                         *chooseMenu = *chooseMenu + 1;
                     } else {
@@ -2152,9 +2326,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if (p == keymapData[6]) /* ENTER */ {
             switch(type_menu) {
+                case -7:
                 case -6:
-                    *chooseMenu = -2;
-                    break;
                 case -5:
                     *chooseMenu = -2;
                     break;
@@ -2182,10 +2355,12 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     } else if (*chooseMenu == 2) {
                         changeSkin();
                     } else if (*chooseMenu == 3) {
-                        settingsMenu();
+                        moreOptions();
                     } else if (*chooseMenu == 4) {
-                        credit();
+                        settingsMenu();
                     } else if (*chooseMenu == 5) {
+                        credit();
+                    } else if (*chooseMenu == 6) {
                         if (showYesorNo("Do you want to exit?")) {
                             showChangeScene();
                             Sleep(500);
@@ -2230,9 +2405,20 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                         setResolution(*chooseMenu);
                     };
                     break;
+                case 5:
+                    previewSkin(*chooseMenu);
+                    break;
+                case 6:
+                    if (*chooseMenu == 0) {
+                        benchmark();
+                    } else if (*chooseMenu == 1) {
+                        *chooseMenu = -1;
+                    };
+                    break;
             };
         } else if (p == keymapData[4]) /* ESC */ {
             switch(type_menu) {
+                case -7:
                 case -6:
                 case -5:
                 case -4:
@@ -2241,6 +2427,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 2:
                 case 3:
                 case 4:
+                case 5:
+                case 6:
                     *chooseMenu = -1;
                     break;
                 case -3: // flappyBird
@@ -2293,6 +2481,7 @@ int main(int argc, char const *argv[]) {
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
     ios_base::sync_with_stdio(1); // Enable synchronization
 
+    hideCursor();
     disableTouch();
     system("color 07 >NUL 2>&1"); // default color CMD
     loadConfig();
@@ -2301,7 +2490,6 @@ int main(int argc, char const *argv[]) {
 
     srand(time(NULL));
     
-    hideCursor();
     loadHighScore();
 
     Sleep(1000);
