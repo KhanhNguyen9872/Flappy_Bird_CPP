@@ -235,6 +235,20 @@ void disableTouch() {
     return;
 };
 
+void disableButton() {
+    HWND consoleWindow = GetConsoleWindow();
+    EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_GRAYED);
+    SetWindowLong(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+    return;
+};
+
+void configureTerminal() {
+    hideCursor();
+    disableTouch();
+    disableButton();
+    return;
+};
+
 void flushStdin() {
     while (_kbhit()) {
         _getch();
@@ -775,8 +789,7 @@ void banner() {
 };
 
 void titleTerminal(string name) {
-    string title = "title " + name;
-    system(title.c_str());
+    SetConsoleTitle((LPCTSTR)name.c_str());
     return;
 };
 
@@ -965,6 +978,15 @@ void showChangeScene() {
     };
 
     Sleep(250);
+    return;
+};
+
+void exitProgram() {
+    if (showYesorNo("Do you want to exit?")) {
+        showChangeScene();
+        Sleep(500);
+        exit(0);
+    };
     return;
 };
 
@@ -1707,12 +1729,13 @@ int pausedMenu(bool isShowPauseInGame) {
 
     // paused menu
     choose = 0;
-    string menu[5] = {
+    string menu[6] = {
         "  Continue  ",
         "  New game  ",
         " High score ",
         "  Settings  ",
-        " Main menu  "
+        " Main menu  ",
+        "    Exit    "
     };
 
     int sizeMenu = sizeof(menu) / sizeof(menu[0]);
@@ -2344,6 +2367,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                         settingsMenu();
                     } else if (*chooseMenu == 4) {
                         *chooseMenu = -2;
+                    } else if (*chooseMenu == 5) {
+                        exitProgram();
                     };
                     break;
                 case -2:
@@ -2363,11 +2388,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     } else if (*chooseMenu == 5) {
                         credit();
                     } else if (*chooseMenu == 6) {
-                        if (showYesorNo("Do you want to exit?")) {
-                            showChangeScene();
-                            Sleep(500);
-                            exit(0);
-                        };
+                        exitProgram();
                     };
                     break;
                 case 1:
@@ -2439,7 +2460,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     while(true) {
                         tmp2 = pausedMenu(tmp);
                         if (tmp2 == 1) {
-                            if (showYesorNo("Exit to main menu?")) {
+                            if (showYesorNo("Back to main menu?")) {
                                 *chooseMenu = -1;
                                 break;
                             } else {
@@ -2483,8 +2504,7 @@ int main(int argc, char const *argv[]) {
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
     ios_base::sync_with_stdio(1); // Enable synchronization
 
-    hideCursor();
-    disableTouch();
+    configureTerminal();
     system("color 07 >NUL 2>&1"); // default color CMD
     loadConfig();
     resizeTerminal(terminalColumns, terminalRows);
