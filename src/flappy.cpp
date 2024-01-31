@@ -59,6 +59,7 @@ bool isBenchmark = 0;
 
 string smallLogo = "";
 
+HWND consoleWindow = GetConsoleWindow();
 HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
 CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
@@ -200,7 +201,7 @@ void clearTerminal() {
     return;
 };
 
-void hideCursor() {
+void hideCursor() {  // Windows API
     CONSOLE_CURSOR_INFO cursorInfo;
 
     cursorInfo.dwSize = 1;
@@ -210,24 +211,24 @@ void hideCursor() {
     return;
 };
 
-void getTerminalSize(int *columns, int *rows) {
+void getTerminalSize(int *columns, int *rows) {  // Windows API
     GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
     *columns = bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1;
     *rows = bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1;
     return;
 };
 
-void color(int index) {
+void color(int index) {  // Windows API
     SetConsoleTextAttribute(hOutput, index);
     return;
 };
 
-void playSound_thread(string file) {
+void playSound_thread(string file) {  // Windows API
     PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME);
     return;
 };
 
-void disableTouch() {
+void disableTouch() {  // Windows API
     GetConsoleMode(hInput, &dwConsoleMode);
     dwConsoleMode &= ~ENABLE_PROCESSED_INPUT;
     dwConsoleMode &= ~ENABLE_QUICK_EDIT_MODE;
@@ -235,8 +236,7 @@ void disableTouch() {
     return;
 };
 
-void disableButton() {
-    HWND consoleWindow = GetConsoleWindow();
+void disableButton() {  // Windows API
     EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_GRAYED);
     SetWindowLong(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX);
     return;
@@ -263,7 +263,7 @@ void flushStdin() {
 //     return;
 // }
 
-void playSound_main(string file) {
+void playSound_main(string file) {  // Windows API
     if(settingsData[0]) {
         PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
     };
@@ -979,6 +979,10 @@ void showChangeScene() {
 
     Sleep(250);
     return;
+};
+
+bool checkTerminalActive() {  // Windows API
+    return consoleWindow == GetForegroundWindow();
 };
 
 void exitProgram() {
@@ -1758,6 +1762,33 @@ int pausedMenu(bool isShowPauseInGame) {
     return 1;
 };
 
+void launchPaused(int *chooseMenu) {
+    bool tmp = true;
+    int tmp2 = 0;
+    while(true) {
+        tmp2 = pausedMenu(tmp);
+        if (tmp2 == 1) {
+            if (showYesorNo("Back to main menu?")) {
+                *chooseMenu = -1;
+                break;
+            } else {
+                tmp = false;
+            };
+        } else if (tmp2 == 2) {
+            if (showYesorNo("New game?")) {
+                *chooseMenu = -2;
+                break;
+            } else {
+                tmp = false;
+            };
+        } else {
+            *chooseMenu = -3;
+            break;
+        };
+    };
+    return;
+};
+
 void moreOptions() {
     string menu[2] = {
         " Benchmark ",
@@ -2290,6 +2321,10 @@ void flappyBird() {
         inputMenu(&choose, 0, -3);
         checkWall(nextWall, y, maxUp, &isOver);
         Sleep(150);
+
+        if ((!checkTerminalActive()) && (!settingsData[3]) && (gameStarted)) {
+            launchPaused(&choose);
+        };
     };
     return;
 };
@@ -2455,29 +2490,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     *chooseMenu = -1;
                     break;
                 case -3: // flappyBird
-                    bool tmp = true;
-                    int tmp2 = 0;
-                    while(true) {
-                        tmp2 = pausedMenu(tmp);
-                        if (tmp2 == 1) {
-                            if (showYesorNo("Back to main menu?")) {
-                                *chooseMenu = -1;
-                                break;
-                            } else {
-                                tmp = false;
-                            };
-                        } else if (tmp2 == 2) {
-                            if (showYesorNo("New game?")) {
-                                *chooseMenu = -2;
-                                break;
-                            } else {
-                                tmp = false;
-                            };
-                        } else {
-                            *chooseMenu = -3;
-                            break;
-                        };
-                    };
+                    launchPaused(&*chooseMenu);
                     break;
             };
         } else if (p == keymapData[5] /* SPACE */) {
