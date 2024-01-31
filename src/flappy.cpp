@@ -2131,6 +2131,7 @@ void flappyBird() {
             resetWall();
             isInGame = 0;
             showChangeScene();
+            flushStdin();
             return;
         };
         if (choose == -3) { // continue option in pausedMenu
@@ -2169,6 +2170,7 @@ void flappyBird() {
             countStart = rand() % sizeBackground;
             oldX = 0;
             gameStarted = 0;
+            flushStdin();
             continue;
         };
         if ((settingsData[3]) && (gameStarted)) { // cheat mode activated
@@ -2180,7 +2182,7 @@ void flappyBird() {
                     y = y - 1;
                 };
             } else {
-                if (y <= minY + 2) {
+                if (y <= minY + 1) {
                     y = y + 2;
                 } else {
                     y = y - 1;
@@ -2521,7 +2523,6 @@ int main(int argc, char const *argv[]) {
     
     playSound_main("sound\\mainmenu.wav");
     
-    flushStdin();
     mainMenu();
     return 0;
 };
