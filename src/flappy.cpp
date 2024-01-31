@@ -841,7 +841,7 @@ void resizeTerminal(int column, int row) {
         errorBox("API ERROR", "Please run on real Windows!", false);
         exit(1);
     };
-    titleTerminal("Flappy Bird - KhanhNguyen9872 - (C++) - [ " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " ]");
+    titleTerminal("Flappy Bird - KhanhNguyen9872 - C++  |  " + to_string(terminalColumns) + " x " + to_string(terminalRows));
     showOverlayResolution();
     return;
 };
@@ -2121,7 +2121,7 @@ void resetWall() {
 void addWall(int countWall) {
     listWall[countWall][0] = terminalColumns - 5;
     listWall[countWall][1] = (rand() % (terminalRows - 13)) + 1; // up
-    listWall[countWall][2] = listWall[countWall][1] + 5; // down
+    listWall[countWall][2] = listWall[countWall][1] + 6; // down
     return;
 };
 
@@ -2236,7 +2236,7 @@ void flappyBird() {
                     y = y - 1;
                 };
             } else {
-                if (y <= minY + 1) {
+                if (y <= minY + 2) {
                     y = y + 2;
                 } else {
                     y = y - 1;
