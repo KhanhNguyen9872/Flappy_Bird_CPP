@@ -13,8 +13,8 @@
 
 #pragma comment(lib, "winmm.lib")
 
-#define configFileName "flappy.conf"
-#define scoreFileName "score.txt"
+#define configFileName  "flappy.conf"
+#define scoreFileName   "score.txt"
 #define BLACK			0
 #define BLUE			1
 #define GREEN			2
@@ -236,8 +236,16 @@ void disableTouch() {  // Windows API
     return;
 };
 
-void disableButton() {  // Windows API
-    EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_GRAYED);
+void disableCloseButton(bool isDisable) {  // WIndows API
+    if (isDisable) {
+        EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_GRAYED);
+    } else {
+        EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_ENABLED);
+    };
+    return;
+};
+
+void disableMaximizeButton() {  // Windows API
     SetWindowLong(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX);
     return;
 };
@@ -245,7 +253,8 @@ void disableButton() {  // Windows API
 void configureTerminal() {
     hideCursor();
     disableTouch();
-    disableButton();
+    disableMaximizeButton();
+    disableCloseButton(false);
     return;
 };
 
@@ -834,8 +843,8 @@ void showOverlayResolution() {
     return;
 };
 
-void resizeTerminal(int column, int row) {
-    string cmd = "MODE " + to_string(column) + "," + to_string(row);
+void resizeTerminal(short column, short row) {
+    string cmd = "MODE " + to_string(column) + "," + to_string(row) + " >NUL 2>&1";
     if (system(cmd.c_str()) != 0) {
         clearTerminal();
         errorBox("API ERROR", "Please run on real Windows!", false);
@@ -1430,6 +1439,65 @@ void keymappingSettings() {
     return;
 };
 
+void stringToOutput(string str, string output[], int sizeOutput) {
+    int size = str.length();
+    int row = 0;
+    int i; 
+    int column = 0;
+    for(i = 0; i < size; i++) {
+        if (row >= sizeOutput) {
+            return;
+        };
+        if (str[i] == '\n') {
+            column = 0;
+            row = row + 1;
+            continue;
+        };
+        output[row][column] = str[i];
+        column = column + 1;
+    };
+    return;
+};
+
+void showBackground(string output[], int countStart) {
+    int i, j, row, count;
+    j = terminalRows - 3 - sizeBackground;
+    for(row = 0; row < sizeBackground; row++) {
+        count = countStart;
+        for(i = 0; i < terminalColumns; i++) {
+            output[j + row][i] = backGround[row][count];
+            count = count + 1;
+            if(count > backGround[row].length() - 1) {
+                count = 0;
+            };
+        };
+    };
+    return;
+};
+
+void showBird(string output[], int countAnimation[], int sizeInAnimation, int skinIndex, int countGoUp) {
+    int index;
+    if (countAnimation == NULL) {
+        index = 0;
+    } else {
+        index = countAnimation[0];
+    };
+    showAnimation(output, skinFlyAnimation[skinIndex][index], sizeInAnimation, countGoUp);
+
+    if (countAnimation != NULL) {
+        if ((countAnimation[0] >= 3) || (countAnimation[0] <= 0) ) {
+            countAnimation[1] = !countAnimation[1];
+        };
+
+        if(!countAnimation[1]) {
+            countAnimation[0] = countAnimation[0] + 1;
+        } else {
+            countAnimation[0] = countAnimation[0] - 1;
+        };
+    };
+    return;
+};
+
 void brightnessSettings() {
     //  
     //  ______________
@@ -1442,6 +1510,10 @@ void brightnessSettings() {
     int currentBrightness = getBrightness();
     
     int i, j;
+    string output[terminalRows - 2];
+    int sizeOutput = sizeof(output) / sizeof(output[0]);
+    string road = getRoad();
+
     string text;
     string tmp;
     string lineSpace = "";
@@ -1503,6 +1575,11 @@ void brightnessSettings() {
         };
         
         color(settingsData[2]);
+        wipeOutput(output, sizeOutput);
+        stringToOutput(text, output, sizeOutput);
+        showBackground(output, 0);
+        output[sizeOutput - 1] = road;
+        text = getOutput(output, sizeOutput);
         clearTerminal();
         cout << text;
         bottomKeymap("| [" + getNameKey(keymapData[2]) + "] -> LOW | [" + getNameKey(keymapData[3]) + "] -> HIGH | [" + getNameKey(keymapData[4]) + "] -> BACK |");
@@ -1553,36 +1630,6 @@ void highScore() {
         bottomKeymap("| [" + getNameKey(keymapData[4]) + "][" + getNameKey(keymapData[5]) + "] -> MAIN MENU |");
         inputMenu(&choose, sizeMenu - 1, 4);
         Sleep(100);
-    };
-    return;
-};
-
-void showBackground(string output[], int countStart) {
-    int i, j, row, count;
-    j = terminalRows - 3 - sizeBackground;
-    for(row = 0; row < sizeBackground; row++) {
-        count = countStart;
-        for(i = 0; i < terminalColumns; i++) {
-            output[j + row][i] = backGround[row][count];
-            count = count + 1;
-            if(count > backGround[row].length() - 1) {
-                count = 0;
-            };
-        };
-    };
-    return;
-};
-
-void showBird(string output[], int countAnimation[], int sizeInAnimation, int skinIndex, int countGoUp) {
-    showAnimation(output, skinFlyAnimation[skinIndex][countAnimation[0]], sizeInAnimation, countGoUp);
-    if ((countAnimation[0] >= 3) || (countAnimation[0] <= 0) ) {
-        countAnimation[1] = !countAnimation[1];
-    };
-
-    if(!countAnimation[1]) {
-        countAnimation[0] = countAnimation[0] + 1;
-    } else {
-        countAnimation[0] = countAnimation[0] - 1;
     };
     return;
 };
@@ -2185,6 +2232,7 @@ void flappyBird() {
             resetWall();
             isInGame = 0;
             showChangeScene();
+            disableCloseButton(false);
             flushStdin();
             return;
         };
@@ -2199,6 +2247,7 @@ void flappyBird() {
             if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver)) {
                 showAnimation(NULL, skinDeadAnimation[settingsData[4]], sizeof(skinDeadAnimation[settingsData[4]]) / sizeof(skinDeadAnimation[settingsData[4]][0]), y);
                 gameStarted = 0;
+                disableCloseButton(false);
                 if (gameOver(score, y, minY, maxY)) {
                     choose = -1;
                     continue;
@@ -2224,6 +2273,7 @@ void flappyBird() {
             countStart = rand() % sizeBackground;
             oldX = 0;
             gameStarted = 0;
+            disableCloseButton(false);
             flushStdin();
             continue;
         };
@@ -2246,6 +2296,7 @@ void flappyBird() {
         } else if (choose == -9) { // received by SPACE button
             choose = 0;
             if(!gameStarted) {
+                disableCloseButton(true);
                 gameStarted = 1;
                 continue;
             };
