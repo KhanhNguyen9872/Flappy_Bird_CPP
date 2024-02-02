@@ -35,14 +35,14 @@
 using namespace std;
 
 string version_code = "1.0.0";
-char keymapData[7] = {
-    119,    // UP       'w'
-    115,    // DOWN     's'
-    97,    // LEFT      'a'
-    100,    // RIGHT    'd'
-    27,     // ESC      
-    32,   // SPACE      ' '
-    13     // ENTER     '\r'
+char keymapData[7][2] = {
+    {0, 119},    // UP       'w'
+    {0, 115},    // DOWN     's'
+    {0, 97},    // LEFT      'a'
+    {0, 100},    // RIGHT    'd'
+    {0, 27},     // ESC      
+    {0, 32},   // SPACE      ' '
+    {0, 13}     // ENTER     '\r'
 };
 
 int listHighScore[7];
@@ -258,10 +258,27 @@ void configureTerminal() {
     return;
 };
 
+void __getch(int p[]) {
+    p[0] = 0;
+    p[1] = _getch();
+    if((p[1] == 0) || (p[1] == 224)) {
+        p[1] = _getch();
+        p[0] = 1;
+    };
+    return;
+};
+
 void flushStdin() {
     while (_kbhit()) {
         _getch();
     };
+    return;
+};
+
+void anyKey() {
+    flushStdin();
+    _getch();
+    flushStdin();
     return;
 };
 
@@ -743,7 +760,7 @@ bool showYesorNo(string text) {
     //  |                    |
     //   ````````````````````
     //
-    int p;
+    int p[2];
     bool tmp = true;
 
     flushStdin();
@@ -751,11 +768,11 @@ bool showYesorNo(string text) {
         showBoxText(text, tmp);
         bottomKeymap("| [y] -> YES | [n] -> NO |");
         if (_kbhit()) {
-            p = _getch();
+            __getch(p);
 
-            if ((p == 'y') || (p == 'Y')) {
+            if (((p[1] == 'y') || (p[1] == 'Y')) && (!p[0])) {
                 return 1;
-            } else if ((p == 'n') || (p == 'N')) {
+            } else if (((p[1] == 'n') || (p[1] == 'N')) && (!p[0])) {
                 return 0;
             };
         };
@@ -1173,37 +1190,82 @@ void lockSizeTerminal() {
     return;
 };
 
-string getNameKey(int value) {
-    switch(value) {
-        case 8:
-            return "BACKS";
-        case 9:
-            return "TAB";
-        case 13:
-            return "ENTER";
-        case 27:
-            return "ESC";
-        case 32:
-            return "SPACE";
-        default:
-            return string(1, value);
+string getNameKey(short value, bool isTwoChar) {
+    if (isTwoChar) {
+        switch(value) {
+            case 59:
+            case 60:
+            case 61:
+            case 62:
+            case 63:
+            case 64:
+            case 65:
+            case 66:
+            case 67:
+            case 68:
+                return "F" + to_string(value - 58);
+            case 71:
+                return "HOME";
+            case 79:
+                return "END";
+            case 82:
+                return "INSER";
+            case 83:
+                return "DEL";
+            case 73:
+                return "PG UP";
+            case 81:
+                return "PG DN";
+            case 72:
+                return "UP";
+            case 80:
+                return "DOWN";
+            case 75:
+                return "LEFT";
+            case 77:
+                return "RIGHT";
+            default:
+                return "NULL";
+        };
+    } else {
+        switch(value) {
+            case 8:
+                return "BACKS";
+            case 9:
+                return "TAB";
+            case 13:
+                return "ENTER";
+            case 27:
+                return "ESC";
+            case 32:
+                return "SPACE";
+            default:
+                break;
+        };
     };
+    return string(1, value);
 };
 
-bool setKeymap(int value, int key) {
+bool setKeymap(int value, int key, bool isTwoChar) {
     int keyAllow[5] = {
         8, 9, 13, 27, 32
     };
     int i;
-    if (key > 7) {
+    if(isTwoChar) {
+        if (getNameKey(key, isTwoChar) != "NULL") {
+            keymapData[value][0] = 1;
+            keymapData[value][1] = key;
+            return 1;
+        };
+    } else if (key > 7) {
         for(i = 0; i < sizeof(keyAllow) / sizeof(keyAllow[0]); i++) {
             if (key == keyAllow[i]) {
-                keymapData[value] = key;
+                keymapData[value][1] = key;
                 return 1;
             };
         };
         if ((key >= ' ') && (key <= '~') ) {
-            keymapData[value] = key;
+            keymapData[value][1] = key;
             return 1;
         };
     };
@@ -1262,7 +1324,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     color(settingsData[2]);
     clearTerminal();
     cout << text;
-    bottomKeymap("| [" + getNameKey(keymapData[0]) + "] -> UP | [" + getNameKey(keymapData[1]) + "] -> DOWN | [" + getNameKey(keymapData[6]) + "] -> ENTER | [" + getNameKey(keymapData[4]) + "] -> BACK |");
+    bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
     return;
 };
 
@@ -1320,8 +1382,7 @@ void credit() {
                 cout << " ";
             };
             cout << tmp;
-            flushStdin();
-            _getch();
+            anyKey();
             return;
         };
         clearTerminal();
@@ -1370,30 +1431,33 @@ void changeKeymapping(int value) {
     int i, j = 1;
     string text;
     string lineSpace = "";
-    char p;
+    int p[2];
     showBoxText("INPUT NEW KEY", false);
     bottomKeymap("");
     flushStdin();
-    p = _getch();
+    __getch(p);
     for(i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); i++) {
-        if(p == keymapData[i]) {
+        if((p[0] == keymapData[i][0]) && (p[1] == keymapData[i][1])) {
             j = 0;
             break;
         };
     };
     if(j) {
-        if (setKeymap(value, p)) {
-            writeConfig("key" + to_string(value), to_string(p));
+        if (setKeymap(value, p[1], p[0])) {
+            writeConfig("key" + to_string(value), to_string(500 + p[1]));
         } else {
+            flushStdin();
             errorBox("Key unavailable", "", true);
         };
     } else {
-        if(p == keymapData[value]) {
+        if((p[0] == keymapData[value][0]) && (p[1] == keymapData[value][1])) {
             return;
         } else {
+            flushStdin();
             errorBox("Key already set", "", true);
         };
     };
+    flushStdin();
     return;
 };
 
@@ -1419,12 +1483,16 @@ void keymappingSettings() {
         };
         
         for(i = 0; i < sizeMenu; i++) {
-            text = "(" + to_string(keymapData[i]) + ")";
+            k = keymapData[i][1];
+            if (keymapData[i][0]) {
+                k = k + 500;
+            };
+            text = "(" + to_string(k) + ")";
             k = text.length();
             for(j = 0; j < 5 - k; k++) {
                 text = text + " ";
             };
-            text = text + " '" + getNameKey(keymapData[i]) + "'";
+            text = text + " '" + getNameKey(keymapData[i][1], keymapData[i][0]) + "'";
             k = text.length();
             for(j = 0; j < 13 - k; j++) {
                 text = text + " ";
@@ -1582,7 +1650,7 @@ void brightnessSettings() {
         text = getOutput(output, sizeOutput);
         clearTerminal();
         cout << text;
-        bottomKeymap("| [" + getNameKey(keymapData[2]) + "] -> LOW | [" + getNameKey(keymapData[3]) + "] -> HIGH | [" + getNameKey(keymapData[4]) + "] -> BACK |");
+        bottomKeymap("| [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "] -> LOW | [" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> HIGH | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
         inputMenu(&currentBrightness, 2, 2);
         Sleep(50);
     };
@@ -1627,7 +1695,7 @@ void highScore() {
             return;
         };
         showMenu("| High score |", menu, sizeMenu, &choose);
-        bottomKeymap("| [" + getNameKey(keymapData[4]) + "][" + getNameKey(keymapData[5]) + "] -> MAIN MENU |");
+        bottomKeymap("| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |");
         inputMenu(&choose, sizeMenu - 1, 4);
         Sleep(100);
     };
@@ -1664,8 +1732,7 @@ void previewSkin(int index) {
             if (setSkin(index)) {
                 showBoxText("Completed", true);
                 bottomKeymap("Press any key to continue!");
-                flushStdin();
-                _getch();
+                anyKey();
             } else {
                 errorBox("Cannot set skin", "", true);
             };
@@ -1678,7 +1745,7 @@ void previewSkin(int index) {
         finalOutput = getOutput(output, i);
         clearTerminal();
         cout << finalOutput;
-        bottomKeymap("| [" + getNameKey(keymapData[6]) + "] -> SET | [" + getNameKey(keymapData[4]) + "] -> BACK |");
+        bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> SET | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
         inputMenu(&choose, 0, -7);
         Sleep(250);
     };
@@ -1772,7 +1839,7 @@ int pausedMenu(bool isShowPauseInGame) {
                 break;
             };
             showBoxText("PAUSED", false);
-            bottomKeymap("| [" + getNameKey(keymapData[4]) + "][" + getNameKey(keymapData[5]) + "] -> RESUME | [" + getNameKey(keymapData[6]) + "] -> PAUSED MENU |");
+            bottomKeymap("| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> RESUME | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> PAUSED MENU |");
             inputMenu(&choose, 0, -5);
             Sleep(100);
         };
@@ -1894,11 +1961,13 @@ void configError(int key) {
 };
 
 void loadConfig() {
+    bool isTwoChar;
     int i, j, k;
     int size = sizeof(keymapData) / sizeof(keymapData[0]);
-    int *newKeymapData = new int[size];
+    int newKeymapData[size][2];
     for(i = 0; i < sizeof(newKeymapData) / sizeof(newKeymapData[0]); i++) {
-        newKeymapData[i] = -1;
+        newKeymapData[i][1] = -1;
+        newKeymapData[i][0] = 0;
     };
     setResolution(readConfig("resolution"));
     settingsData[0] = readConfig("music");
@@ -1908,16 +1977,22 @@ void loadConfig() {
         writeConfig("skin", "0");  
     };
     for(i = 0; i < size; i++) {
+        isTwoChar = 0;
         j = readConfig("key" + to_string(i));
-        if(j > 7) {
+        if(j > 500) {
+            j = j - 500;
+            isTwoChar = 1;
+        };
+        if (j > 7) {
             for(k = 0; k < size; k++) {
-                if(j == newKeymapData[k]) {
+                if((j == newKeymapData[k][1]) && (isTwoChar == newKeymapData[k][0])) {
                     configError(i);
                 };
             };
         };
-        if (setKeymap(i, j)) {
-            newKeymapData[i] = j;
+        if (setKeymap(i, j, isTwoChar)) {
+            newKeymapData[i][0] = isTwoChar;
+            newKeymapData[i][1] = j;
         } else {
             writeConfig("key" + to_string(i), "-1");
         };
@@ -2148,7 +2223,7 @@ bool gameOver(int score, int y, int minY, int maxY) {
             return 0;
         };
         showBoxText("Game over", false);
-        bottomKeymap("| [" + getNameKey(keymapData[6]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4]) + "] -> MAIN MENU | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |");
+        bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> MAIN MENU | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |");
         inputMenu(&choose, 0, -6);
         Sleep(200);
     };
@@ -2350,12 +2425,12 @@ void flappyBird() {
             } else if (settingsData[3]) {
                 text = text + "AUTO MODE";
             } else {
-                text = text + "[" + getNameKey(keymapData[5]) + "] -> GO UP";
+                text = text + "[" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> GO UP";
             };
         } else {
-            text = text + "[" + getNameKey(keymapData[5]) + "] -> PLAY";
+            text = text + "[" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> PLAY";
         };
-        text = text + " | [" + getNameKey(keymapData[4]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";
+        text = text + " | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";
         wipeOutput(output, sizeOutput);
         showBackground(output, countStart);
         showAllWall(output, &nextWall, &score, countWall);
@@ -2382,8 +2457,9 @@ void flappyBird() {
 
 void inputMenu(int *chooseMenu, int max, int type_menu) {
     if (_kbhit()) {
-        int p = _getch();
-        if (p == keymapData[0]) /* UP */ {
+        int p[2];
+        __getch(p);
+        if ((p[1] == keymapData[0][1]) && (p[0] == keymapData[0][0])) /* UP */ {
             switch (type_menu) {
                 case -4: // pausedMenu
                 case -2: // keymappingSettings
@@ -2400,7 +2476,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if (p == keymapData[2]) /* LEFT */ {
+        } else if ((p[1] == keymapData[2][1]) && (p[0] == keymapData[2][0])) /* LEFT */ {
             switch (type_menu) {
                 case 2: // brightnessSettings
                     if(*chooseMenu > 1) {
@@ -2409,7 +2485,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if (p == keymapData[3]) /* RIGHT */ {
+        } else if ((p[1] == keymapData[3][1]) && (p[0] == keymapData[3][0])) /* RIGHT */ {
             switch (type_menu) {
                 case 2:
                     if(*chooseMenu <= max) {
@@ -2418,7 +2494,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if (p == keymapData[1]) /* DOWN */ {
+        } else if ((p[1] == keymapData[1][1]) && (p[0] == keymapData[1][0])) /* DOWN */ {
             switch (type_menu) {
                 case -4:
                 case -2:
@@ -2435,7 +2511,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if (p == keymapData[6]) /* ENTER */ {
+        } else if ((p[1] == keymapData[6][1]) && (p[0] == keymapData[6][0])) /* ENTER */ {
             switch(type_menu) {
                 case -7:
                 case -6:
@@ -2525,7 +2601,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else if (p == keymapData[4]) /* ESC */ {
+        } else if ((p[1] == keymapData[4][1]) && (p[0] == keymapData[4][0])) /* ESC */ {
             switch(type_menu) {
                 case -7:
                 case -6:
@@ -2544,7 +2620,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     launchPaused(&*chooseMenu);
                     break;
             };
-        } else if (p == keymapData[5] /* SPACE */) {
+        } else if ((p[1] == keymapData[5][1]) && (p[0] == keymapData[5][0])) /* SPACE */ {
             switch(type_menu) {
                 case -5:
                 case 4:
