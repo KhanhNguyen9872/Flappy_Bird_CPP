@@ -1184,6 +1184,7 @@ void lockSizeTerminal() {
         getTerminalSize(&columns, &rows);
         if ((columns != terminalColumns) || (rows != terminalRows)) {
             resizeTerminal(terminalColumns, terminalRows);
+            disableMaximizeButton();
         };
         Sleep(500);
     };
@@ -1260,11 +1261,13 @@ bool setKeymap(int value, int key, bool isTwoChar) {
     } else if (key > 7) {
         for(i = 0; i < sizeof(keyAllow) / sizeof(keyAllow[0]); i++) {
             if (key == keyAllow[i]) {
+                keymapData[value][0] = 0;
                 keymapData[value][1] = key;
                 return 1;
             };
         };
         if ((key >= ' ') && (key <= '~') ) {
+            keymapData[value][0] = 0;
             keymapData[value][1] = key;
             return 1;
         };
