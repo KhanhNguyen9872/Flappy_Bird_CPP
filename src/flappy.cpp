@@ -2664,33 +2664,30 @@ int main(int argc, char const *argv[]) {
     ios_base::sync_with_stdio(true); // Enable synchronization with stdio (slower performance)
 
     if (argc > 1) {
-        cout << "\nUsing debug arguments can affect performance!\n";
-        int i, j, size;
+        cout << "\n>> Using debug arguments can affect performance!\n";
+        int i, j;
         string arg;
         for(i = 1; i < argc; i++) {
             arg = "";
-            // get size const char*
-            size = 0;
-            while (argv[i][size] != '\0') {
-                size = size + 1;
-            };
+            j = 0;
             // append char to string
-            for(j = 0; j < size; j++) {
+            while(argv[i][j] != '\0') {
                 arg = arg + argv[i][j];
+                j = j + 1;
             };
             // check arg
             if (arg == "--disable-v2") {
                 settingsData[5] = 0;
             };
-            cout << "argument: " << arg;
+            cout << "argument: " << arg << "\n";
         };
         Sleep(2500);
-        system("cls");
     };
 
     configureTerminal();
     system("color 07 >NUL 2>&1"); // default color CMD
     loadConfig();
+    clearTerminal();
     resizeTerminal(terminalColumns, terminalRows);
     thread lockSizeTer(lockSizeTerminal);
 
