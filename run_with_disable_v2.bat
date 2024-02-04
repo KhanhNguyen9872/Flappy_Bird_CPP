@@ -1,0 +1,1 @@
+start "" .\flappy.exe --disable-v2
