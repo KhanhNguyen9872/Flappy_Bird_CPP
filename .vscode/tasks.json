@@ -12,7 +12,8 @@
                 "-o",
                 "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_x64.res",
-                "-lwinmm"
+                "-lwinmm",
+                "-pthread"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -35,7 +36,8 @@
                 "-o",
                 "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_i386.res",
-                "-lwinmm"
+                "-lwinmm",
+                "-pthread"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -67,6 +69,7 @@
                 "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_x64.res",
                 "-lwinmm",
+                "-pthread",
                 "-s",
                 "-Wl,--gc-sections"
             ],
@@ -100,6 +103,7 @@
                 "${fileDirname}\\..\\${fileBasenameNoExtension}.exe",
                 "icon\\icon_i386.res",
                 "-lwinmm",
+                "-pthread",
                 "-s",
                 "-Wl,--gc-sections"
                 // "&",

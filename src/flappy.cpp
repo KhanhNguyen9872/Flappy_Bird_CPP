@@ -48,7 +48,7 @@ char keymapData[7][2] = {
 int listHighScore[7];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[5] = {1, 1, WHITE, 0, 0};  // music, sfx, brightness, cheat, skin
+int settingsData[6] = {1, 1, WHITE, 0, 0, 1};  // music, sfx, brightness, cheat, skin, cmd mode v1/v2 (0/1)
 int terminalColumns, terminalRows;
 int tmp_int[3] = {0, 0, 0};
 int listWall[10][3];
@@ -215,6 +215,9 @@ void getTerminalSize(int *columns, int *rows) {  // Windows API
     GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
     *columns = bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1;
     *rows = bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1;
+    if(!settingsData[5]) {
+        *columns = *columns - 1;
+    };
     return;
 };
 
@@ -351,139 +354,8 @@ void writeConfig(string key, string value) {
     return;
 };
 
-void setResolution(int value) {
-    if(value == 0) {
-        terminalColumns = 80;
-        terminalRows = 20;
-    } else if (value == 1) {
-        terminalColumns = 100;
-        terminalRows = 26;
-    } else if (value == 2) {
-        terminalColumns = 120;
-        terminalRows = 30;
-    } else if (value == 3) {
-        terminalColumns = 140;
-        terminalRows = 36;
-    } else if (value == 4) {
-        terminalColumns = 160;
-        terminalRows = 40;
-    } else {
-        terminalColumns = 80;
-        terminalRows = 20;
-        value = 0;
-    };
-    smallLogo = "";
-    writeConfig("resolution", to_string(value));
-    return;
-};
-
-int getResolutionValue() {
-    if ((terminalColumns == 80) && (terminalRows == 20)) {
-        return 0;
-    } else if ((terminalColumns == 100) && (terminalRows == 26)) {
-        return 1;
-    } else if ((terminalColumns == 120) && (terminalRows == 30)) {
-        return 2;
-    } else if ((terminalColumns == 140) && (terminalRows == 36)) {
-        return 3;
-    } else if ((terminalColumns == 160) && (terminalRows == 40)) {
-        return 4;
-    } else {
-        setResolution(0);
-        return 0;
-    };
-};
-
-int readConfig(string key) {
-    string fileData = readFile(configFileName);
-    string line;
-    string key_;
-    string value_ = "0";
-    istringstream file(fileData);
-    try {
-        while (getline(file, line)) {
-            if (line.empty() || line[0] == '#') {
-                continue;
-            };
-            istringstream iss(line);
-            if (getline(iss, key_, '=') && (key_ == key)) {
-                if (getline(iss, value_)) {
-                    return stoi(value_);
-                } else {
-                    writeConfig(key, "-1");
-                    return -1;
-                };
-            };
-        };
-        return stoi(value_);
-    } catch (...) {
-        writeConfig(key, "-1");
-        return -1;
-    };
-};
-
-void showUser(string username) {
-    // 
-    // +-----------------------+
-    // | User: KhanhNguyen9872 |
-    // +-----------------------+
-    //
-    int i;
-    int j = 5 * getResolutionValue();
-    int sizeColumn = 0;
-    int sizeRow = 0;
-
-    string text;
-
-    if (username.length() > 6 + j) {
-        text = "";
-        for(i = 0; i < 6 + j; i++) {
-            if (i >= username.length()) {
-                break;
-            };
-            text = text + username[i];
-        };
-
-        if (i >= username.length()) {
-            username = text;
-        } else {
-            username = text + "...";
-        };
-    };
-
-    username = "User: " + username;
-
-    text = "+-";
-    for(i = 0; i < username.length(); i++) {
-        text = text + "-";
-    };
-    text = text + "-+";
-
-    for(i = 0; i < terminalColumns; i++) {
-        if (i == terminalColumns - 7 - username.length()) {
-            break;
-        } else {
-            sizeColumn = sizeColumn + 1;
-        };
-    };
-
-    for(i = 0; i < terminalRows; i++) {
-        if (i == 1) {
-            cursorPos_move(sizeColumn, sizeRow);
-            cout << text;
-
-            cursorPos_move(sizeColumn, sizeRow + 1);
-            cout << "| " << username << " |";
-
-            cursorPos_move(sizeColumn, sizeRow + 2);
-            cout << text;
-
-            break;
-        } else {
-            sizeRow = sizeRow + 1;
-        };
-    };
-
+void titleTerminal(string name) {
+    SetConsoleTitle((LPCTSTR)name.c_str());
     return;
 };
 
@@ -622,6 +494,205 @@ void errorBox(string output, string bottom, bool isBlur) {
         };
         Sleep(250);
     };
+    return;
+};
+
+void showOverlayResolution() {
+    color(settingsData[2]);
+    string resolutionString = to_string(terminalColumns) + " x " + to_string(terminalRows);
+    string text = "";
+    string text2 = "";
+    int i, j;
+    for(i = 0; i < terminalColumns; i++) {
+        text = text + "=";
+    };
+
+    text2 = text2 + "| +-";
+    for(i = 0; i < resolutionString.length(); i++) {
+        text2 = text2 + "-";
+    };
+    text2 = text2 + "-+\n| | " + resolutionString + " |\n| +-";
+    for(i = 0; i < resolutionString.length(); i++) {
+        text2 = text2 + "-";
+    };
+    text2 = text2 + "-+";
+
+    color(settingsData[2]);
+    for(i = 0; i < terminalRows; i++) {
+        if (i == 0) {
+            cursorPos_move(0, i);
+            cout << text;
+        } else if (i == terminalRows - 1) {
+            cursorPos_move(0, i);
+            cout << text;
+        } else {
+            if (i == 1) {
+                cursorPos_move(0, i);
+                cout << text2;
+            };
+            cursorPos_move(0, i);
+            cout << "|";
+            cursorPos_move(terminalColumns - 1, i);
+            cout << "|";
+        };
+    };
+    return;
+};
+
+void resizeTerminal(short column, short row) {
+    if(!settingsData[5]) {
+        column = column + 1;
+    };
+    string cmd = "MODE " + to_string(column) + "," + to_string(row) + " >NUL 2>&1";
+    if (system(cmd.c_str()) != 0) {
+        clearTerminal();
+        errorBox("API ERROR", "Please run on real Windows!", false);
+        exit(1);
+    };
+    if (settingsData[5]) {
+        cmd = "Enabled";
+    } else {
+        cmd = "Disabled";
+    };
+    titleTerminal("Flappy Bird - KhanhNguyen9872 - C++  |  Res: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + "  |  v2 mode: " + cmd);
+    showOverlayResolution();
+    return;
+};
+
+void setResolution(int value) {
+    if(value == 0) {
+        terminalColumns = 80;
+        terminalRows = 20;
+    } else if (value == 1) {
+        terminalColumns = 100;
+        terminalRows = 26;
+    } else if (value == 2) {
+        terminalColumns = 120;
+        terminalRows = 30;
+    } else if (value == 3) {
+        terminalColumns = 140;
+        terminalRows = 36;
+    } else if (value == 4) {
+        terminalColumns = 160;
+        terminalRows = 40;
+    } else {
+        terminalColumns = 80;
+        terminalRows = 20;
+        value = 0;
+    };
+    smallLogo = "";
+    writeConfig("resolution", to_string(value));
+    resizeTerminal(terminalColumns, terminalRows);
+    return;
+};
+
+int getResolutionValue() {
+    if ((terminalColumns == 80) && (terminalRows == 20)) {
+        return 0;
+    } else if ((terminalColumns == 100) && (terminalRows == 26)) {
+        return 1;
+    } else if ((terminalColumns == 120) && (terminalRows == 30)) {
+        return 2;
+    } else if ((terminalColumns == 140) && (terminalRows == 36)) {
+        return 3;
+    } else if ((terminalColumns == 160) && (terminalRows == 40)) {
+        return 4;
+    } else {
+        setResolution(0);
+        return 0;
+    };
+};
+
+int readConfig(string key) {
+    string fileData = readFile(configFileName);
+    string line;
+    string key_;
+    string value_ = "0";
+    istringstream file(fileData);
+    try {
+        while (getline(file, line)) {
+            if (line.empty() || line[0] == '#') {
+                continue;
+            };
+            istringstream iss(line);
+            if (getline(iss, key_, '=') && (key_ == key)) {
+                if (getline(iss, value_)) {
+                    return stoi(value_);
+                } else {
+                    writeConfig(key, "-1");
+                    return -1;
+                };
+            };
+        };
+        return stoi(value_);
+    } catch (...) {
+        writeConfig(key, "-1");
+        return -1;
+    };
+};
+
+void showUser(string username) {
+    // 
+    // +-----------------------+
+    // | User: KhanhNguyen9872 |
+    // +-----------------------+
+    //
+    int i;
+    int j = 5 * getResolutionValue();
+    int sizeColumn = 0;
+    int sizeRow = 0;
+
+    string text;
+
+    if (username.length() > 6 + j) {
+        text = "";
+        for(i = 0; i < 6 + j; i++) {
+            if (i >= username.length()) {
+                break;
+            };
+            text = text + username[i];
+        };
+
+        if (i >= username.length()) {
+            username = text;
+        } else {
+            username = text + "...";
+        };
+    };
+
+    username = "User: " + username;
+
+    text = "+-";
+    for(i = 0; i < username.length(); i++) {
+        text = text + "-";
+    };
+    text = text + "-+";
+
+    for(i = 0; i < terminalColumns; i++) {
+        if (i == terminalColumns - 7 - username.length()) {
+            break;
+        } else {
+            sizeColumn = sizeColumn + 1;
+        };
+    };
+
+    for(i = 0; i < terminalRows; i++) {
+        if (i == 1) {
+            cursorPos_move(sizeColumn, sizeRow);
+            cout << text;
+
+            cursorPos_move(sizeColumn, sizeRow + 1);
+            cout << "| " << username << " |";
+
+            cursorPos_move(sizeColumn, sizeRow + 2);
+            cout << text;
+
+            break;
+        } else {
+            sizeRow = sizeRow + 1;
+        };
+    };
+
     return;
 };
 
@@ -814,64 +885,6 @@ void banner() {
     return;
 };
 
-void titleTerminal(string name) {
-    SetConsoleTitle((LPCTSTR)name.c_str());
-    return;
-};
-
-void showOverlayResolution() {
-    color(settingsData[2]);
-    string resolutionString = to_string(terminalColumns) + " x " + to_string(terminalRows);
-    string text = "";
-    string text2 = "";
-    int i, j;
-    for(i = 0; i < terminalColumns; i++) {
-        text = text + "=";
-    };
-
-    text2 = text2 + "| +-";
-    for(i = 0; i < resolutionString.length(); i++) {
-        text2 = text2 + "-";
-    };
-    text2 = text2 + "-+\n| | " + resolutionString + " |\n| +-";
-    for(i = 0; i < resolutionString.length(); i++) {
-        text2 = text2 + "-";
-    };
-    text2 = text2 + "-+";
-
-    color(settingsData[2]);
-    for(i = 0; i < terminalRows; i++) {
-        if (i == 0) {
-            cursorPos_move(0, i);
-            cout << text;
-        } else if (i == terminalRows - 1) {
-            cursorPos_move(0, i);
-            cout << text;
-        } else {
-            if (i == 1) {
-                cout << text2;
-            };
-            cursorPos_move(0, i);
-            cout << "|";
-            cursorPos_move(terminalColumns - 1, i);
-            cout << "|";
-        };
-    };
-    return;
-};
-
-void resizeTerminal(short column, short row) {
-    string cmd = "MODE " + to_string(column) + "," + to_string(row) + " >NUL 2>&1";
-    if (system(cmd.c_str()) != 0) {
-        clearTerminal();
-        errorBox("API ERROR", "Please run on real Windows!", false);
-        exit(1);
-    };
-    titleTerminal("Flappy Bird - KhanhNguyen9872 - C++  |  " + to_string(terminalColumns) + " x " + to_string(terminalRows));
-    showOverlayResolution();
-    return;
-};
-
 void showTip(string tip) {
     if (tip.length() >= terminalColumns - 18) {
         return;
@@ -1036,6 +1049,9 @@ string getOutput(string output[], int sizeOutput) {
     string fullOutput = "";
     for(i = 0; i < sizeOutput; i++) {
         fullOutput = fullOutput + output[i];
+        if (i != sizeOutput - 1) {
+            fullOutput = fullOutput + "\n";
+        };
     };
     return fullOutput;
 };
@@ -2573,13 +2589,13 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                         keymappingSettings();
                     } else if (*chooseMenu == 4) {
                         if(isInGame) {
-                            errorBox("Unavailable in game", "", true);
+                            errorBox("Unavailable in game", "You must return to main menu first!", true);
                         } else {
                             resolutionSettings();
                         };
                     } else if (*chooseMenu == 5) {
                         if(isInGame) {
-                            errorBox("Unavailable in game", "", true);
+                            errorBox("Unavailable in game", "You must return to main menu first!", true);
                         } else {
                             settingsData[3] = !settingsData[3];
                         };
@@ -2645,7 +2661,32 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
 
 int main(int argc, char const *argv[]) {
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
-    ios_base::sync_with_stdio(1); // Enable synchronization
+    ios_base::sync_with_stdio(true); // Enable synchronization with stdio (slower performance)
+
+    if (argc > 1) {
+        cout << "\nUsing debug arguments can affect performance!\n";
+        int i, j, size;
+        string arg;
+        for(i = 1; i < argc; i++) {
+            arg = "";
+            // get size const char*
+            size = 0;
+            while (argv[i][size] != '\0') {
+                size = size + 1;
+            };
+            // append char to string
+            for(j = 0; j < size; j++) {
+                arg = arg + argv[i][j];
+            };
+            // check arg
+            if (arg == "--disable-v2") {
+                settingsData[5] = 0;
+            };
+            cout << "argument: " << arg;
+        };
+        Sleep(2500);
+        system("cls");
+    };
 
     configureTerminal();
     system("color 07 >NUL 2>&1"); // default color CMD
