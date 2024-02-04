@@ -2737,6 +2737,7 @@ void checkARG(int argc, char const *argv[]) {
             };
             // check arg
             if ((arg == "-h" ) || (arg == "--help")) {
+                clearTerminal();
                 cout << " >> HELP: \n";
                 cout << "COMMAND: " << argv[0] << " [ARG]\n";
                 cout << "ARG: ";
