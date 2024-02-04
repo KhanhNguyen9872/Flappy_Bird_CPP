@@ -48,7 +48,18 @@ char keymapData[7][2] = {
 int listHighScore[7];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[6] = {1, 1, WHITE, 0, 0, 1};  // music, sfx, brightness, cheat, skin, cmd mode v1/v2 (0/1)
+int settingsData[10] = {
+    1,  // music
+    1,  // sfx
+    WHITE, // brightness
+    0,  // auto mode
+    0,  // skin
+    1,  // cmd mode v1/v2 (0/1)
+    1,  // enable load conf
+    1,  // enable color
+    1,  // enable sound
+    1   // enable resolution
+};
 int terminalColumns, terminalRows;
 int tmp_int[3] = {0, 0, 0};
 int listWall[10][3];
@@ -222,12 +233,16 @@ void getTerminalSize(int *columns, int *rows) {  // Windows API
 };
 
 void color(int index) {  // Windows API
-    SetConsoleTextAttribute(hOutput, index);
+    if (settingsData[7]) {
+        SetConsoleTextAttribute(hOutput, index);
+    };
     return;
 };
 
 void playSound_thread(string file) {  // Windows API
-    PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME);
+    if (settingsData[8]) {
+        PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME);
+    };
     return;
 };
 
@@ -254,6 +269,7 @@ void disableMaximizeButton() {  // Windows API
 };
 
 void configureTerminal() {
+    system("color 07 >NUL 2>&1"); // default color CMD
     hideCursor();
     disableTouch();
     disableMaximizeButton();
@@ -293,14 +309,18 @@ void anyKey() {
 // }
 
 void playSound_main(string file) {  // Windows API
-    if(settingsData[0]) {
-        PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
+    if (settingsData[8]) {
+        if(settingsData[0]) {
+            PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
+        };
     };
     return;
 };
 
 void stopSound() {
-    PlaySound(NULL, 0, 0);
+    if (settingsData[8]) {
+        PlaySound(NULL, 0, 0);
+    };
     return;
 };
 
@@ -329,27 +349,29 @@ void writeFile(string fileName, string data) {
 };
 
 void writeConfig(string key, string value) {
-    string fileData = readFile(configFileName);
-    istringstream file(fileData);
-    string line;
-    string key_;
-    string value_;
-    ofstream f(configFileName);
-    if (f.is_open()) {
-        f << key << "=" << value << "\n";
-        while (getline(file, line)) {
-            if (line.empty() || line[0] == '#') {
-                continue;
+    if (settingsData[6]) {
+        string fileData = readFile(configFileName);
+        istringstream file(fileData);
+        string line;
+        string key_;
+        string value_;
+        ofstream f(configFileName);
+        if (f.is_open()) {
+            f << key << "=" << value << "\n";
+            while (getline(file, line)) {
+                if (line.empty() || line[0] == '#') {
+                    continue;
+                };
+                istringstream iss(line);
+                if (getline(iss, key_, '=') && (key_ == key)) {
+                    continue;
+                } else {
+                    getline(iss, value_);
+                    f << key_ << "=" << value_ << "\n";
+                };
             };
-            istringstream iss(line);
-            if (getline(iss, key_, '=') && (key_ == key)) {
-                continue;
-            } else {
-                getline(iss, value_);
-                f << key_ << "=" << value_ << "\n";
-            };
+            f.close();
         };
-        f.close();
     };
     return;
 };
@@ -540,14 +562,18 @@ void showOverlayResolution() {
 };
 
 void resizeTerminal(short column, short row) {
-    if(!settingsData[5]) {
-        column = column + 1;
-    };
-    string cmd = "MODE " + to_string(column) + "," + to_string(row) + " >NUL 2>&1";
-    if (system(cmd.c_str()) != 0) {
-        clearTerminal();
-        errorBox("API ERROR", "Please run on real Windows!", false);
-        exit(1);
+    string cmd;
+    if (settingsData[9]) {
+        if(!settingsData[5]) {
+            column = column + 1;
+        };
+        cmd = "MODE " + to_string(column) + "," + to_string(row) + " >NUL 2>&1";
+        if (system(cmd.c_str()) != 0) {
+            clearTerminal();
+            errorBox("API ERROR", "Please run on real Windows!", false);
+            exit(1);
+        };
+        showOverlayResolution();
     };
     if (settingsData[5]) {
         cmd = "Enabled";
@@ -555,7 +581,6 @@ void resizeTerminal(short column, short row) {
         cmd = "Disabled";
     };
     titleTerminal("Flappy Bird - KhanhNguyen9872 - C++  |  Res: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + "  |  v2 mode: " + cmd);
-    showOverlayResolution();
     return;
 };
 
@@ -604,31 +629,34 @@ int getResolutionValue() {
 };
 
 int readConfig(string key) {
-    string fileData = readFile(configFileName);
-    string line;
-    string key_;
-    string value_ = "0";
-    istringstream file(fileData);
-    try {
-        while (getline(file, line)) {
-            if (line.empty() || line[0] == '#') {
-                continue;
-            };
-            istringstream iss(line);
-            if (getline(iss, key_, '=') && (key_ == key)) {
-                if (getline(iss, value_)) {
-                    return stoi(value_);
-                } else {
-                    writeConfig(key, "-1");
-                    return -1;
+    if (settingsData[6]) {
+        string fileData = readFile(configFileName);
+        string line;
+        string key_;
+        string value_ = "0";
+        istringstream file(fileData);
+        try {
+            while (getline(file, line)) {
+                if (line.empty() || line[0] == '#') {
+                    continue;
+                };
+                istringstream iss(line);
+                if (getline(iss, key_, '=') && (key_ == key)) {
+                    if (getline(iss, value_)) {
+                        return stoi(value_);
+                    } else {
+                        writeConfig(key, "-1");
+                        return -1;
+                    };
                 };
             };
+            return stoi(value_);
+        } catch (...) {
+            writeConfig(key, "-1");
+            return -1;
         };
-        return stoi(value_);
-    } catch (...) {
-        writeConfig(key, "-1");
-        return -1;
     };
+    return -1;
 };
 
 void showUser(string username) {
@@ -1195,6 +1223,9 @@ string menuText(string text[], int size, int choose) {
 };
 
 void lockSizeTerminal() {
+    if (!settingsData[9]) {
+        return;
+    };
     int columns = 0, rows = 0;
     while(true) {
         getTerminalSize(&columns, &rows);
@@ -1591,87 +1622,91 @@ void brightnessSettings() {
     // [=========     ]
     //  ``````````````
     //
-    int sizeBar = 15;
-    int max = 3;
+    if (settingsData[7]) {
+        int sizeBar = 15;
+        int max = 3;
 
-    int currentBrightness = getBrightness();
-    
-    int i, j;
-    string output[terminalRows - 2];
-    int sizeOutput = sizeof(output) / sizeof(output[0]);
-    string road = getRoad();
-
-    string text;
-    string tmp;
-    string lineSpace = "";
-    for(j = 0; j < (terminalColumns - sizeBar) / 2; j++) {
-        lineSpace = lineSpace + " ";
-    };
-    string perProcess = "";
-    for(i = 0; i < (sizeBar / max); i++) {
-        perProcess = perProcess + "=";
-    };
-    string blankPerProcess = "";
-    for(i = 0; i < (sizeBar / max); i++) {
-        blankPerProcess = blankPerProcess + " ";
-    };
-    while(true) {
-        if (currentBrightness == -1) {
-            return;
-        };
-        text = "";
-        for(i = 0; i < terminalRows - 4; i++) {
-            if ((terminalRows / 2) - 2 == i) {
-                text = text + lineSpace + " ";
-                for(j = 0; j < sizeBar; j++) {
-                    text = text + "_";
-                };
-                text = text + "\n";
-
-                if(currentBrightness > 1) {
-                    tmp = string(lineSpace);
-                    tmp.resize(lineSpace.length() - 5);
-                    text = text + tmp + "<--  ";
-                } else {
-                    text = text + lineSpace;
-                };
-
-                text = text + "[";
-
-                for(j = 0; j < currentBrightness; j++) {
-                    text = text + perProcess;
-                };
-                for(j = 0; j < max - currentBrightness; j++) {
-                    text = text + blankPerProcess;
-                };
-
-                text = text + "]";
-                if(currentBrightness < max) {
-                    text = text + "  -->";
-                };
-
-                text = text + "\n" + lineSpace + " ";
-
-                for(j = 0; j < sizeBar; j++) {
-                    text = text + "`";
-                };
-                text = text + "\n";
-            } else {
-                text = text + "\n";
-            };
-        };
+        int currentBrightness = getBrightness();
         
-        color(settingsData[2]);
-        wipeOutput(output, sizeOutput);
-        stringToOutput(text, output, sizeOutput);
-        showBackground(output, 0);
-        output[sizeOutput - 1] = road;
-        text = getOutput(output, sizeOutput);
-        clearTerminal();
-        cout << text;
-        bottomKeymap("| [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "] -> LOW | [" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> HIGH | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
-        inputMenu(&currentBrightness, 2, 2);
-        Sleep(50);
+        int i, j;
+        string output[terminalRows - 2];
+        int sizeOutput = sizeof(output) / sizeof(output[0]);
+        string road = getRoad();
+
+        string text;
+        string tmp;
+        string lineSpace = "";
+        for(j = 0; j < (terminalColumns - sizeBar) / 2; j++) {
+            lineSpace = lineSpace + " ";
+        };
+        string perProcess = "";
+        for(i = 0; i < (sizeBar / max); i++) {
+            perProcess = perProcess + "=";
+        };
+        string blankPerProcess = "";
+        for(i = 0; i < (sizeBar / max); i++) {
+            blankPerProcess = blankPerProcess + " ";
+        };
+        while(true) {
+            if (currentBrightness == -1) {
+                return;
+            };
+            text = "";
+            for(i = 0; i < terminalRows - 4; i++) {
+                if ((terminalRows / 2) - 2 == i) {
+                    text = text + lineSpace + " ";
+                    for(j = 0; j < sizeBar; j++) {
+                        text = text + "_";
+                    };
+                    text = text + "\n";
+
+                    if(currentBrightness > 1) {
+                        tmp = string(lineSpace);
+                        tmp.resize(lineSpace.length() - 5);
+                        text = text + tmp + "<--  ";
+                    } else {
+                        text = text + lineSpace;
+                    };
+
+                    text = text + "[";
+
+                    for(j = 0; j < currentBrightness; j++) {
+                        text = text + perProcess;
+                    };
+                    for(j = 0; j < max - currentBrightness; j++) {
+                        text = text + blankPerProcess;
+                    };
+
+                    text = text + "]";
+                    if(currentBrightness < max) {
+                        text = text + "  -->";
+                    };
+
+                    text = text + "\n" + lineSpace + " ";
+
+                    for(j = 0; j < sizeBar; j++) {
+                        text = text + "`";
+                    };
+                    text = text + "\n";
+                } else {
+                    text = text + "\n";
+                };
+            };
+            
+            color(settingsData[2]);
+            wipeOutput(output, sizeOutput);
+            stringToOutput(text, output, sizeOutput);
+            showBackground(output, 0);
+            output[sizeOutput - 1] = road;
+            text = getOutput(output, sizeOutput);
+            clearTerminal();
+            cout << text;
+            bottomKeymap("| [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "] -> LOW | [" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> HIGH | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
+            inputMenu(&currentBrightness, 2, 2);
+            Sleep(50);
+        };
+    } else {
+        errorBox("COLOR DISABLED", "", true);
     };
     return;
 };
@@ -1980,52 +2015,64 @@ void configError(int key) {
 };
 
 void loadConfig() {
-    bool isTwoChar;
-    int i, j, k;
-    int size = sizeof(keymapData) / sizeof(keymapData[0]);
-    int newKeymapData[size][2];
-    for(i = 0; i < sizeof(newKeymapData) / sizeof(newKeymapData[0]); i++) {
-        newKeymapData[i][1] = -1;
-        newKeymapData[i][0] = 0;
-    };
-    setResolution(readConfig("resolution"));
-    settingsData[0] = readConfig("music");
-    settingsData[1] = readConfig("sfx");
-    setBrightness(readConfig("brightness"));
-    if (!setSkin(readConfig("skin"))) {
-        writeConfig("skin", "0");  
-    };
-    for(i = 0; i < size; i++) {
-        isTwoChar = 0;
-        j = readConfig("key" + to_string(i));
-        if(j > 500) {
-            j = j - 500;
-            isTwoChar = 1;
+    if (settingsData[6]) {
+        bool isTwoChar;
+        int i, j, k;
+        int size = sizeof(keymapData) / sizeof(keymapData[0]);
+        int newKeymapData[size][2];
+        for(i = 0; i < sizeof(newKeymapData) / sizeof(newKeymapData[0]); i++) {
+            newKeymapData[i][1] = -1;
+            newKeymapData[i][0] = 0;
         };
-        if (j > 7) {
-            for(k = 0; k < size; k++) {
-                if((j == newKeymapData[k][1]) && (isTwoChar == newKeymapData[k][0])) {
+        if (settingsData[9]) {
+            setResolution(readConfig("resolution"));
+        } else {
+            setResolution(0);
+        };
+        if (settingsData[8]) {
+            settingsData[0] = readConfig("music");
+            settingsData[1] = readConfig("sfx");
+        };
+        if (settingsData[7]) {
+            setBrightness(readConfig("brightness"));
+        };
+        if (!setSkin(readConfig("skin"))) {
+            writeConfig("skin", "0");  
+        };
+        for(i = 0; i < size; i++) {
+            isTwoChar = 0;
+            j = readConfig("key" + to_string(i));
+            if(j > 500) {
+                j = j - 500;
+                isTwoChar = 1;
+            };
+            if (j > 7) {
+                for(k = 0; k < size; k++) {
+                    if((j == newKeymapData[k][1]) && (isTwoChar == newKeymapData[k][0])) {
+                        configError(i);
+                    };
+                };
+            };
+            if (setKeymap(i, j, isTwoChar)) {
+                newKeymapData[i][0] = isTwoChar;
+                newKeymapData[i][1] = j;
+            } else {
+                writeConfig("key" + to_string(i), "-1");
+            };
+        };
+        // check keymap after set
+        for(i = 0; i < size; i++) {
+            for(j = 0; j < size; j++) {
+                if(i == j) {
+                    continue;
+                };
+                if(keymapData[i] == keymapData[j]) {
                     configError(i);
                 };
             };
         };
-        if (setKeymap(i, j, isTwoChar)) {
-            newKeymapData[i][0] = isTwoChar;
-            newKeymapData[i][1] = j;
-        } else {
-            writeConfig("key" + to_string(i), "-1");
-        };
-    };
-    // check keymap after set
-    for(i = 0; i < size; i++) {
-        for(j = 0; j < size; j++) {
-            if(i == j) {
-                continue;
-            };
-            if(keymapData[i] == keymapData[j]) {
-                configError(i);
-            };
-        };
+    } else {
+        setResolution(0);
     };
     return;
 };
@@ -2574,15 +2621,23 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     break;
                 case 1:
                     if(*chooseMenu == 0) {
-                        settingsData[0] = !settingsData[0];
-                        playSound_main("sound\\mainmenu.wav");
-                        if (!settingsData[0]) {
-                            stopSound();
+                        if (settingsData[8]) {
+                            settingsData[0] = !settingsData[0];
+                            playSound_main("sound\\mainmenu.wav");
+                            if (!settingsData[0]) {
+                                stopSound();
+                            };
+                            writeConfig("music", to_string(settingsData[0]));
+                        } else {
+                            errorBox("SOUND DISABLED", "", true);
                         };
-                        writeConfig("music", to_string(settingsData[0]));
                     } else if (*chooseMenu == 1) {
-                        settingsData[1] = !settingsData[1];
-                        writeConfig("sfx", to_string(settingsData[1]));
+                        if (settingsData[8]) {
+                            settingsData[1] = !settingsData[1];
+                            writeConfig("sfx", to_string(settingsData[1]));
+                        } else {
+                            errorBox("SOUND DISABLED", "", true);
+                        };
                     } else if (*chooseMenu == 2) {
                         brightnessSettings();
                     } else if (*chooseMenu == 3) {
@@ -2591,7 +2646,11 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                         if(isInGame) {
                             errorBox("Unavailable in game", "You must return to main menu first!", true);
                         } else {
-                            resolutionSettings();
+                            if (settingsData[9]) {
+                                resolutionSettings();
+                            } else {
+                                errorBox("RESOLUTION DISABLED", "", true);
+                            };
                         };
                     } else if (*chooseMenu == 5) {
                         if(isInGame) {
@@ -2659,16 +2718,17 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
     return;
 };
 
-int main(int argc, char const *argv[]) {
-    SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
-    ios_base::sync_with_stdio(true); // Enable synchronization with stdio (slower performance)
-
+void checkARG(int argc, char const *argv[]) {
     if (argc > 1) {
-        cout << "\n>> Using debug arguments can affect performance!\n";
+        setResolution(0);
         int i, j;
         string arg;
+        string tmp;
+        string text = "";
+        text = text + ">> Using debug arguments can affect performance and experience!\n";
         for(i = 1; i < argc; i++) {
             arg = "";
+            tmp = "INVALID";
             j = 0;
             // append char to string
             while(argv[i][j] != '\0') {
@@ -2676,16 +2736,59 @@ int main(int argc, char const *argv[]) {
                 j = j + 1;
             };
             // check arg
+            if ((arg == "-h" ) || (arg == "--help")) {
+                cout << " >> HELP: \n";
+                cout << "COMMAND: " << argv[0] << " [ARG]\n";
+                cout << "ARG: ";
+                cout << "\t--disable-v2\t\t Disable v2 mode CMD\n";
+                cout << "\t--disable-conf\t\t Disable config file (read/write)\n";
+                cout << "\t--disable-color\t\t Disable color\n";
+                cout << "\t--disable-sound\t\t Disable all sound (Music/SFX)\n";
+                cout << "\t--disable-resolution\t Disable resolution (resize)\n";
+                cout << "\nPRESS ANY KEY TO EXIT\n";
+                flushStdin();
+                _getch();
+                exit(-1);
+            };
             if (arg == "--disable-v2") {
                 settingsData[5] = 0;
+                tmp = "OK";
             };
-            cout << "argument: " << arg << "\n";
+            if (arg == "--disable-conf") {
+                settingsData[6] = 0;
+                tmp = "OK";
+            };
+            if (arg == "--disable-color") {
+                settingsData[7] = 0;
+                tmp = "OK";
+            };
+            if (arg == "--disable-sound") {
+                settingsData[8] = 0;
+                settingsData[0] = 0;
+                settingsData[1] = 0;
+                tmp = "OK";
+            };
+            if (arg == "--disable-resolution") {
+                settingsData[9] = 0;
+                tmp = "OK";
+            };
+            text = text + "argument: [" + arg + "] => " + tmp + "\n";
         };
-        Sleep(2500);
+        clearTerminal();
+        cout << text;
+        cout << "\n>> Program will start in 5 seconds...\n";
+        Sleep(5250);
     };
+    return;
+};
+
+int main(int argc, char const *argv[]) {
+    SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
+    ios_base::sync_with_stdio(true); // Enable synchronization with stdio (slower performance)
+
+    checkARG(argc, &*argv);
 
     configureTerminal();
-    system("color 07 >NUL 2>&1"); // default color CMD
     loadConfig();
     clearTerminal();
     resizeTerminal(terminalColumns, terminalRows);
