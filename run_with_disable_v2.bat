@@ -1,1 +1,1 @@
-start "" .\flappy.exe --disable-v2
+start /MIN "You can safely close this window!" "cmd.exe" "/c" ".\flappy.exe" "--disable-v2"
