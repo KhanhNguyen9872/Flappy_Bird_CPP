@@ -121,12 +121,12 @@ string skinFlyAnimation[3][4][3] = {
     {
         {
             " ( O>",
-            "\\ @ @/",
+            "/ @ @\\",
             " ^ ^"
         },
         {
             " ( O>",
-            "/ @ @\\",
+            "\\ @ @/",
             " ^ ^"
         },
         {
@@ -2366,8 +2366,8 @@ void addWall(int *countWall) {
     if (listWall[*countWall][0] > -1) {
         return;
     };
-    listWall[*countWall][0] = terminalColumns - 5;
-    listWall[*countWall][1] = (rand() % (terminalRows - 13)) + 1; // up
+    listWall[*countWall][0] = terminalColumns - 4;
+    listWall[*countWall][1] = (rand() % (terminalRows - 11)) + 1; //up
     listWall[*countWall][2] = listWall[*countWall][1] + 6; // down
 
     *countWall = *countWall + 1;
@@ -2418,7 +2418,7 @@ void flappyBird() {
     int countStart = rand() % sizeBackground;
     int nextWall = 0;
     int countWall = 0;
-    int wallCreateDistance = 18;
+    int wallCreateDistance = 19 + getResolutionValue();
     for(i = 0; i < getResolutionValue(); i++) {
         wallCreateDistance = wallCreateDistance + 5;
     };
