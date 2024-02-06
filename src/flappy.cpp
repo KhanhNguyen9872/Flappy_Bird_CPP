@@ -2245,23 +2245,31 @@ void showScore(string output[], int score, int higherScore, bool isHigher) {
 };
 
 void showWall(string output[], int column, int up, int down) {
-    string text = "|__|";
-    string text2 = "|``|";
+    string text = "|  |";
+    string text2 = "|  |";
     int i, j, k;
 
     // up
-    for(i = 0; i < up; i++) {
+    for(i = 0; i < up - 1; i++) {
         for(k = 0; k < text.length(); k++) {
             output[i][column + k] = text[k]; 
         };
     };
+    text = "|____|";
+    for(k = 0; k < text.length(); k++) {
+        output[up - 1][column + k - 1] = text[k]; 
+    };
 
     // down
     j = terminalRows - 3;
-    for(i = down + 1; i < j; i++) {
-        for(k = 0; k < text.length(); k++) {
+    for(i = down + 2; i < j; i++) {
+        for(k = 0; k < text2.length(); k++) {
             output[i][column + k] = text2[k]; 
         };
+    };
+    text2 = "|````|";
+    for(k = 0; k < text2.length(); k++) {
+        output[down + 1][column + k - 1] = text2[k]; 
     };
     return;
 };
@@ -2285,6 +2293,9 @@ void showAllWall(string output[], int *nextWall, int *score, int countWall) {
             *score = *score + 1;
             if (*nextWall > sizelistWall - 1) {
                 *nextWall = 0;
+            };
+            if (*score > 2000000000) {
+                gameStarted = false;
             };
         };
     };
@@ -2353,13 +2364,22 @@ void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
     if (listWall[nextWall][0] == -2) {
         return;
     };
-    if (listWall[nextWall][0] < 8) { // < size Animation Bird + 1
-        if ((listWall[nextWall][1] < 0) || (listWall[nextWall][2] < 0)) {
+    if (listWall[nextWall][0] < 9) { // < size Animation Bird + 1 (+ 1)
+        if ((listWall[nextWall][1] < 0) || (listWall[nextWall][2] < 0)) { // wall not initial
             return;
         };
         maxUp = maxUp + 1;
-        if ((maxUp - listWall[nextWall][1] <= y) || (maxUp - listWall[nextWall][2] >= y)) {
+        int up = maxUp - listWall[nextWall][1];
+        int down = maxUp - listWall[nextWall][2];
+        if (((y >= up) && (y < up + 3)) || ((y <= down) && (y > down - 3))) { // 3 is row of Bird Animation
             *isOver = 1;
+            return;
+        };
+        if (listWall[nextWall][0] < 8) { // < size Animation Bird + 1
+            if ((up <= y) || (down >= y)) {
+                *isOver = 1;
+                return;
+            };
         };
     };
     return;
@@ -2378,7 +2398,7 @@ void flappyBird() {
     int countStart = rand() % sizeBackground;
     int nextWall = 0;
     int countWall = 0;
-    int wallCreateDistance = 20;
+    int wallCreateDistance = 22;
     for(i = 0; i < getResolutionValue(); i++) {
         wallCreateDistance = wallCreateDistance + 5;
     };
