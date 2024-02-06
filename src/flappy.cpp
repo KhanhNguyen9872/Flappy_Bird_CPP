@@ -1560,6 +1560,7 @@ void keymappingSettings() {
     clearTerminal();
     while(true) {
         if(choose == -1) {
+            flushStdin();
             return;
         };
         
@@ -1988,6 +1989,7 @@ void moreOptions() {
     int choose = 0;
     while(true) {
         if (choose == -1) {
+            flushStdin();
             return;
         };
         showMenu("", menu, sizeMenu, &choose);
@@ -2245,15 +2247,22 @@ void showScore(string output[], int score, int higherScore, bool isHigher) {
 };
 
 void showWall(string output[], int column, int up, int down) {
-    string text = "|  |";
-    string text2 = "|  |";
+    if (output == NULL) {
+        return;
+    };
+    string text;
     int i, j, k;
 
     // up
-    for(i = 0; i < up - 1; i++) {
+    text = "|  |";
+    for(i = 0; i < up - 2; i++) {
         for(k = 0; k < text.length(); k++) {
             output[i][column + k] = text[k]; 
         };
+    };
+    text = "|__|";
+    for(k = 0; k < text.length(); k++) {
+        output[up - 2][column + k] = text[k]; 
     };
     text = "|____|";
     for(k = 0; k < text.length(); k++) {
@@ -2261,15 +2270,20 @@ void showWall(string output[], int column, int up, int down) {
     };
 
     // down
+    text = "|  |";
     j = terminalRows - 3;
-    for(i = down + 2; i < j; i++) {
-        for(k = 0; k < text2.length(); k++) {
-            output[i][column + k] = text2[k]; 
+    for(i = down + 3; i < j; i++) {
+        for(k = 0; k < text.length(); k++) {
+            output[i][column + k] = text[k]; 
         };
     };
-    text2 = "|````|";
-    for(k = 0; k < text2.length(); k++) {
-        output[down + 1][column + k - 1] = text2[k]; 
+    text = "|````|";
+    for(k = 0; k < text.length(); k++) {
+        output[down + 1][column + k - 1] = text[k]; 
+    };
+    text = "|``|";
+    for(k = 0; k < text.length(); k++) {
+        output[down + 2][column + k] = text[k]; 
     };
     return;
 };
