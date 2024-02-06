@@ -589,7 +589,7 @@ void resizeTerminal(short column, short row) {
 };
 
 void setResolution(int value) {
-    if(value == 0) {
+    if((value == -1) || (value == 0)) {
         terminalColumns = 80;
         terminalRows = 20;
     } else if (value == 1) {
@@ -610,7 +610,9 @@ void setResolution(int value) {
         value = 0;
     };
     smallLogo = "";
-    writeConfig("resolution", to_string(value));
+    if (value != -1) {
+        writeConfig("resolution", to_string(value));
+    };
     resizeTerminal(terminalColumns, terminalRows);
     return;
 };
@@ -2051,7 +2053,7 @@ void loadConfig() {
         if (settingsData[9]) {
             setResolution(readConfig("resolution"));
         } else {
-            setResolution(0);
+            setResolution(-1);
         };
         if (settingsData[8]) {
             settingsData[0] = readConfig("music");
@@ -2260,13 +2262,17 @@ void showWall(string output[], int column, int up, int down) {
             output[i][column + k] = text[k]; 
         };
     };
-    text = "|__|";
-    for(k = 0; k < text.length(); k++) {
-        output[up - 2][column + k] = text[k]; 
+    if (up - 2 >= 0) {
+        text = "|__|";
+        for(k = 0; k < text.length(); k++) {
+            output[up - 2][column + k] = text[k]; 
+        };
     };
-    text = "|____|";
-    for(k = 0; k < text.length(); k++) {
-        output[up - 1][column + k - 1] = text[k]; 
+    if (up - 1 >= 0) {
+        text = "|____|";
+        for(k = 0; k < text.length(); k++) {
+            output[up - 1][column + k - 1] = text[k]; 
+        };
     };
 
     // down
@@ -2412,7 +2418,7 @@ void flappyBird() {
     int countStart = rand() % sizeBackground;
     int nextWall = 0;
     int countWall = 0;
-    int wallCreateDistance = 22;
+    int wallCreateDistance = 18;
     for(i = 0; i < getResolutionValue(); i++) {
         wallCreateDistance = wallCreateDistance + 5;
     };
@@ -2792,7 +2798,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
 
 void checkARG(int argc, char const *argv[]) {
     if (argc > 1) {
-        setResolution(0);
+        setResolution(-1);
         int i, j;
         string arg;
         string tmp;
@@ -2867,11 +2873,69 @@ void checkARG(int argc, char const *argv[]) {
     return;
 };
 
+void checkTerminalMode() {
+    if (!settingsData[5]) {
+        return;
+    };
+    setResolution(-1);
+    clearTerminal();
+    string text;
+    string text2;
+    int row, i, j;
+    int p[2];
+
+    int center = (terminalRows / 2) - 7;
+
+    text = "";
+    for(j = 0; j < terminalColumns; j++) {
+        text = text + " ";
+    };
+
+    cursorPos_move(0, center);
+    for(row = 0; row < 5; row++) {
+        text2 = text;
+        i = (terminalColumns / 2) - 5;
+        for(j = 0; j < 10; j++) {
+            text2[i + j] = ':';
+        };
+        
+        text2 = text2 + "\n";
+        cout << text2;
+    };
+
+    text = "Is this a square?";
+    cursorPos_move((terminalColumns / 2) - (text.length() / 2), terminalRows - 6);
+    cout << text;
+    
+    text = "Input [y/n]: ";
+    cursorPos_move((terminalColumns / 2) - (text.length() / 2), terminalRows - 4);
+    cout << text;
+    
+    while(true) {
+        __getch(p);
+        if (((p[1] == 'y') || (p[1] == 'Y')) && (!p[0])) {
+            cout << "YES";
+            settingsData[5] = true;
+            Sleep(1000);
+            return;
+        };
+        if (((p[1] == 'n') || (p[1] == 'N')) && (!p[0])) {
+            cout << "NO";
+            settingsData[5] = false;
+            Sleep(1000);
+            return;
+        };
+    };
+    return;
+};
+
 int main(int argc, char const *argv[]) {
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
     ios_base::sync_with_stdio(true); // Enable synchronization with stdio (slower performance)
 
     checkARG(argc, &*argv);
+
+    checkTerminalMode();
 
     configureTerminal();
     loadConfig();
