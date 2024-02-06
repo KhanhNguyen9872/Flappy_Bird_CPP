@@ -182,6 +182,8 @@ string skinDeadAnimation[3][3] = {
     }
 };
 
+int sizeBirdAnimation = sizeof(skinFlyAnimation) / sizeof(skinFlyAnimation[0]);
+
 void inputMenu(int *chooseMenu, int max, int type_menu);
 void flappyBird();
 
@@ -1778,7 +1780,7 @@ bool setSkin(int index) {
     if (!settingsData[11]) {
         return 1;
     };
-    if ((index >= 0) && (index < (sizeof(skinFlyAnimation) / sizeof(skinFlyAnimation[0])))) {
+    if ((index >= 0) && (index < sizeBirdAnimation)) {
         settingsData[4] = index;
         writeConfig("skin", to_string(index));
         return 1;
@@ -1831,25 +1833,25 @@ void changeSkin() {
     string space = "";
     int i;
     int choose = 0;
-    int sizeAnimation = sizeof(skinFlyAnimation) / sizeof(skinFlyAnimation[0]);
-    string menu[sizeAnimation];
+    string menu[sizeBirdAnimation + 1];
 
-    if (sizeAnimation > 9) {
+    if (sizeBirdAnimation > 9) {
         space = space + " ";
-    } else if (sizeAnimation > 99) {
+    } else if (sizeBirdAnimation > 99) {
         space = space + "  ";
     };
 
-    for(i = 0; i < sizeAnimation; i++) {
+    for(i = 0; i < sizeBirdAnimation; i++) {
         menu[i] = "skin_" + to_string(i + 1) + space;
     };
+    menu[sizeBirdAnimation] = " Back ";
     while(true) {
         if (choose == -1) {
             flushStdin();
             return;
         };
-        showMenu("| Current skin: skin_" + to_string(settingsData[4] + 1) + " |", menu, sizeAnimation, &choose);
-        inputMenu(&choose, sizeAnimation - 1, 5);
+        showMenu("| Current skin: skin_" + to_string(settingsData[4] + 1) + " |", menu, sizeBirdAnimation + 1, &choose);
+        inputMenu(&choose, sizeBirdAnimation, 5);
         Sleep(100);
     };
     return;
@@ -2701,7 +2703,11 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
                 case 5:
-                    previewSkin(*chooseMenu);
+                    if (*chooseMenu == sizeBirdAnimation) {
+                        *chooseMenu = -1;
+                    } else {
+                        previewSkin(*chooseMenu);
+                    };
                     break;
                 case 6:
                     if (*chooseMenu == 0) {
