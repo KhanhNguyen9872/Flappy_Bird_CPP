@@ -1714,7 +1714,7 @@ void brightnessSettings() {
             showBackground(output, 0, terminalRows - 3);
             output[sizeOutput - 1] = road;
             text = getOutput(output, sizeOutput);
-            clearTerminal();
+            cursorPos_up();
             cout << text;
             bottomKeymap("| [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "] -> LOW | [" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> HIGH | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
             inputMenu(&currentBrightness, 2, 2);
@@ -2556,7 +2556,7 @@ void flappyBird() {
         outputGame = getOutput(output, sizeOutput);
 
         // output
-        clearTerminal();
+        cursorPos_up();
         cout << outputGame;
 
         bottomKeymap(text);
