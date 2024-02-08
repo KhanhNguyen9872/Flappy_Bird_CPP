@@ -2266,9 +2266,9 @@ void loadConfig() {
         };
         // show firework
         i = readConfig("showfw");
-        if (i == -1) {
-            writeConfig("showfw", "1");
-        } else if (i) {
+        if ((i == 0) || (i == -1)) {
+            writeConfig("showfw", "2");
+        } else if (i == 2) {
             settingsData[12] = true;
         } else {
             settingsData[12] = false;
@@ -2281,18 +2281,18 @@ void loadConfig() {
         };
         // show background
         i = readConfig("showbg");
-        if (i == -1) {
-            writeConfig("showbg", "1");
-        } else if (i) {
+        if ((i == 0) || (i == -1)) {
+            writeConfig("showbg", "2");
+        } else if (i == 2) {
             settingsData[13] = true;
         } else {
             settingsData[13] = false;
         };
         // show xy
         i = readConfig("showxy");
-        if (i == -1) {
-            writeConfig("showxy", "1");
-        } else if (i) {
+        if ((i == 0) || (i == -1)) {
+            writeConfig("showxy", "2");
+        } else if (i == 1) {
             settingsData[14] = true;
         } else {
             settingsData[14] = false;
@@ -3227,15 +3227,15 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                             break;
                         case 1:
                             settingsData[12] = !settingsData[12];
-                            writeConfig("showfw", to_string(settingsData[12]));
+                            writeConfig("showfw", to_string(settingsData[12] + 1));
                             break;
                         case 2:
                             settingsData[13] = !settingsData[13];
-                            writeConfig("showbg", to_string(settingsData[13]));
+                            writeConfig("showbg", to_string(settingsData[13] + 1));
                             break;
                         case 3:
                             settingsData[14] = !settingsData[14];
-                            writeConfig("showxy", to_string(settingsData[14]));
+                            writeConfig("showxy", to_string(settingsData[14] + 1));
                             break;
                         case 4:
                             if (isInGame) {
