@@ -52,7 +52,7 @@ char keymapData[7][2] = {
 int listHighScore[7];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[12] = {
+int settingsData[15] = {
     true,  // music
     true,  // sfx
     WHITE, // brightness
@@ -65,6 +65,9 @@ int settingsData[12] = {
     true,   // enable resolution
     true,   // enable auto mode
     true,   // enable skin
+    true,   // show firework
+    true,   // show background
+    true    // show X/Y
 };
 
 int terminalColumns, terminalRows;
@@ -1862,14 +1865,62 @@ void changeSkin() {
     return;
 };
 
+void moreSettingsMenu() {
+    string menu[5] = {
+        "   Auto mode [ ]   ",
+        " Show firework [ ] ",
+        "Show background [ ]",
+        "    Show X/Y [ ]   ",
+        "       Back        "
+    };
+    int sizeMenu = sizeof(menu)/sizeof(menu[0]);
+    int choose = 0;
+    while(true) {
+        if (choose == -1) {
+            flushStdin();
+            return;
+        };
+
+        if (settingsData[3]) {
+            menu[0][14] = 'X';
+        } else {
+            menu[0][14] = ' ';
+        };
+
+        if (settingsData[12]) {
+            menu[1][16] = 'X';
+        } else {
+            menu[1][16] = ' ';
+        };
+
+        if (settingsData[13]) {
+            menu[2][17] = 'X';
+        } else {
+            menu[2][17] = ' ';
+        };
+
+        if (settingsData[14]) {
+            menu[3][14] = 'X';
+        } else {
+            menu[3][14] = ' ';
+        };
+
+        showMenu("| Settings |", menu, sizeMenu, &choose);
+        inputMenu(&choose, sizeMenu - 1, 7);
+        Sleep(100);
+    };
+    return;
+    return;
+};
+
 void settingsMenu() {
     string menu[7] = {
-        "",
-        "",
+        "    Music [ ]    ",
+        "    SFX [ ]      ",
         "    Brightness   ",
         "    Keymapping   ",
         "    Resolution   ",
-        "",
+        "    More...      ",
         "    Back         "
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
@@ -1881,21 +1932,15 @@ void settingsMenu() {
         };
 
         if (settingsData[0]) {
-            menu[0] =  "    Music [x]    ";
+            menu[0][11] = 'X';
         } else {
-            menu[0] =  "    Music [ ]    ";
+            menu[0][11] = ' ';
         };
         
         if (settingsData[1]) {
-            menu[1] =  "    SFX [x]      ";
+            menu[1][9] = 'X';
         } else {
-            menu[1] =  "    SFX [ ]      ";
-        };
-
-        if (settingsData[3]) {
-            menu[5] =  "    Auto [x]     ";
-        } else {
-            menu[5] =  "    Auto [ ]     ";
+            menu[1][9] = ' ';
         };
 
         showMenu("| Settings |", menu, sizeMenu, &choose);
@@ -2009,7 +2054,7 @@ void mainMenu() {
         "   Start  ",
         "High score",
         "   Skin   ",
-        "   More   ",
+        "  More... ",
         " Settings ",
         "  Credit  ",
         "   Exit   "
@@ -2741,7 +2786,9 @@ void flappyBird() {
         } else if (choose == -9) { // received by SPACE button
             choose = 0;
             if(!gameStarted) {
-                disableCloseButton(true);
+                if (!settingsData[3]) {
+                    disableCloseButton(true);
+                };
                 gameStarted = true;
                 continue;
             };
@@ -2799,12 +2846,19 @@ void flappyBird() {
         } else {
             text = text + "[" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> PLAY";
         };
-        text = text + " | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";
+        text = text + " | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> PAUSE |";
+        if (settingsData[14]) {
+            text = text + " X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";  
+        };
         wipeOutput(output, sizeOutput);
-        showBackground(output, countStart, terminalRows - 3);
-        if (gameStarted) {
-            for(i = 0; i < totalFirework; ++i) {
-                showFirework(output, fireworkData[i]);
+        if (settingsData[13]) {
+            showBackground(output, countStart, terminalRows - 3);
+        };
+        if (settingsData[12]) {
+            if (gameStarted) {
+                for(i = 0; i < totalFirework; ++i) {
+                    showFirework(output, fireworkData[i]);
+                };
             };
         };
         showAllWall(output, &nextWall, &score, countWall);
@@ -2843,6 +2897,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 4:  // highScore
                 case 5:  // changeSkin
                 case 6:  // moreOptions
+                case 7:  // moreSettingsMenu
                     if(*chooseMenu > 0) {
                         *chooseMenu = *chooseMenu - 1;
                     } else {
@@ -2878,6 +2933,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 4:
                 case 5:
                 case 6:
+                case 7:
                     if(*chooseMenu < max) {
                         *chooseMenu = *chooseMenu + 1;
                     } else {
@@ -2893,88 +2949,102 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     *chooseMenu = -2;
                     break;
                 case -4:
-                    if(*chooseMenu == 0) {
-                        *chooseMenu = -1;
-                    } else if (*chooseMenu == 1) {
-                        *chooseMenu = -3;
-                    } else if (*chooseMenu == 2) {
-                        highScore();
-                    } else if (*chooseMenu == 3) {
-                        settingsMenu();
-                    } else if (*chooseMenu == 4) {
-                        *chooseMenu = -2;
-                    } else if (*chooseMenu == 5) {
-                        exitProgram();
+                    switch(*chooseMenu) {
+                        case 0:
+                            *chooseMenu = -1;
+                            break;
+                        case 1:
+                            *chooseMenu = -3;
+                            break;
+                        case 2:
+                            highScore();
+                            break;
+                        case 3:
+                            settingsMenu();
+                            break;
+                        case 4:
+                            *chooseMenu = -2;
+                            break;
+                        case 5:
+                            exitProgram();
+                            break;
                     };
                     break;
                 case -2:
                     changeKeymapping(*chooseMenu);
                     break;
                 case 0:
-                    if(*chooseMenu == 0) {
-                        flappyBird();
-                    } else if (*chooseMenu == 1) {
-                        highScore();
-                    } else if (*chooseMenu == 2) {
-                        changeSkin();
-                    } else if (*chooseMenu == 3) {
-                        moreOptions();
-                    } else if (*chooseMenu == 4) {
-                        settingsMenu();
-                    } else if (*chooseMenu == 5) {
-                        credit();
-                    } else if (*chooseMenu == 6) {
-                        exitProgram();
+                    switch(*chooseMenu) {
+                        case 0:
+                            flappyBird();
+                            break;
+                        case 1:
+                            highScore();
+                            break;
+                        case 2:
+                            changeSkin();
+                            break;
+                        case 3:
+                            moreOptions();
+                            break;
+                        case 4:
+                            settingsMenu();
+                            break;
+                        case 5:
+                            credit();
+                            break;
+                        case 6:
+                            exitProgram();
+                            break;
                     };
                     break;
                 case 1:
-                    if(*chooseMenu == 0) {
-                        if (settingsData[8]) {
-                            settingsData[0] = !settingsData[0];
-                            if (!isInGame) {
-                                playSound(soundMainmenu, false);
-                            };
-                            if (!settingsData[0]) {
-                                stopSound();
-                            };
-                            writeConfig("music", to_string(settingsData[0]));
-                        } else {
-                            errorBox("SOUND DISABLED", "", true);
-                        };
-                    } else if (*chooseMenu == 1) {
-                        if (settingsData[8]) {
-                            settingsData[1] = !settingsData[1];
-                            writeConfig("sfx", to_string(settingsData[1]));
-                        } else {
-                            errorBox("SOUND DISABLED", "", true);
-                        };
-                    } else if (*chooseMenu == 2) {
-                        brightnessSettings();
-                    } else if (*chooseMenu == 3) {
-                        keymappingSettings();
-                    } else if (*chooseMenu == 4) {
-                        if(isInGame) {
-                            errorBox("Unavailable in game", "You must return to main menu first!", true);
-                        } else {
-                            if (settingsData[9]) {
-                                resolutionSettings();
+                    switch(*chooseMenu) {
+                        case 0:
+                            if (settingsData[8]) {
+                                settingsData[0] = !settingsData[0];
+                                if (!isInGame) {
+                                    playSound(soundMainmenu, false);
+                                };
+                                if (!settingsData[0]) {
+                                    stopSound();
+                                };
+                                writeConfig("music", to_string(settingsData[0]));
                             } else {
-                                errorBox("RESOLUTION DISABLED", "", true);
+                                errorBox("SOUND DISABLED", "", true);
                             };
-                        };
-                    } else if (*chooseMenu == 5) {
-                        if (settingsData[10]) {
+                            break;
+                        case 1:
+                            if (settingsData[8]) {
+                                settingsData[1] = !settingsData[1];
+                                writeConfig("sfx", to_string(settingsData[1]));
+                            } else {
+                                errorBox("SOUND DISABLED", "", true);
+                            };
+                            break;
+                        case 2:
+                            brightnessSettings();
+                            break;
+                        case 3:
+                            keymappingSettings();
+                            break;
+                        case 4:
                             if(isInGame) {
                                 errorBox("Unavailable in game", "You must return to main menu first!", true);
                             } else {
-                                settingsData[3] = !settingsData[3];
-                                // writeConfig("auto", to_string(settingsData[1]));  // auto mode not need saved!
+                                if (settingsData[9]) {
+                                    resolutionSettings();
+                                } else {
+                                    errorBox("RESOLUTION DISABLED", "", true);
+                                };
                             };
-                        } else {
-                            errorBox("AUTO DISABLED", "", true);
-                        };
-                    } else if (*chooseMenu == 6) {
-                        *chooseMenu = -1;
+                            break;
+                        case 5:
+                            moreSettingsMenu();
+                            break;
+                        case 6:
+                            *chooseMenu = -1;
+                            break;
                     };
                     break;
                 case 3:
@@ -2990,10 +3060,41 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
                 case 6:
-                    if (*chooseMenu == 0) {
-                        author();
-                    } else if (*chooseMenu == 1) {
-                        *chooseMenu = -1;
+                    switch (*chooseMenu) {
+                        case 0:
+                            author();
+                            break;
+                        case 1:
+                            *chooseMenu = -1;
+                            break;
+                    };
+                    break;
+                case 7:
+                    switch (*chooseMenu) {
+                        case 0:
+                            if (settingsData[10]) {
+                                if(isInGame) {
+                                    errorBox("Unavailable in game", "You must return to main menu first!", true);
+                                } else {
+                                    settingsData[3] = !settingsData[3];
+                                    // writeConfig("auto", to_string(settingsData[1]));  // auto mode not need saved!
+                                };
+                            } else {
+                                errorBox("AUTO DISABLED", "", true);
+                            };
+                            break;
+                        case 1:
+                            settingsData[12] = !settingsData[12];
+                            break;
+                        case 2:
+                            settingsData[13] = !settingsData[13];
+                            break;
+                        case 3:
+                            settingsData[14] = !settingsData[14];
+                            break;
+                        case 4:
+                            *chooseMenu = -1;
+                            break;
                     };
                     break;
             };
