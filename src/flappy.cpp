@@ -2439,7 +2439,7 @@ void showFirework(string output[], int firework[3]) {
         };
     };
 
-    if (firework[2] < -1) {
+    if (firework[2] < 0) {
         switch(firework[2]) {
             //
             //
@@ -2448,24 +2448,31 @@ void showFirework(string output[], int firework[3]) {
             //   .`:`.
             //
             //
+            case -5:
             case -6:
             case -7:
             case -8:
             case -9:
+            case -10:
+            case -11:
                 // left
                 if ((firework[0] - 2) > -1) {
                     output[firework[1]][firework[0] - 2] = '-';
                 };
-                if ((firework[0] + 2) <= terminalColumns) {
-                    output[firework[1]][firework[0] + 2] = '-';
+                if (firework[2] < -6) {
+                    if ((firework[0] - 3) > -1) {
+                        output[firework[1]][firework[0] - 3] = '-';
+                    };
                 };
 
                 // right
-                if ((firework[0] - 3) > -1) {
-                    output[firework[1]][firework[0] - 3] = '-';
+                if ((firework[0] + 2) <= terminalColumns) {
+                    output[firework[1]][firework[0] + 2] = '-';
                 };
-                if ((firework[0] + 3) <= terminalColumns) {
-                    output[firework[1]][firework[0] + 3] = '-';
+                if (firework[2] < -7) {
+                    if ((firework[0] + 3) <= terminalColumns) {
+                        output[firework[1]][firework[0] + 3] = '-';
+                    };
                 };
 
                 if ((firework[1] - 1) > -1) {
@@ -2473,8 +2480,10 @@ void showFirework(string output[], int firework[3]) {
                     output[firework[1] - 1][firework[0]] = ':';
 
                     // up left
-                    if ((firework[0] - 2) > -1) {
-                        output[firework[1] - 1][firework[0] - 2] = '`';
+                    if (firework[2] < -6) {
+                        if ((firework[0] - 2) > -1) {
+                            output[firework[1] - 1][firework[0] - 2] = '`';
+                        };
                     };
                     if ((firework[0] - 1) > -1) {
                         output[firework[1] - 1][firework[0] - 1] = '.';
@@ -2484,8 +2493,10 @@ void showFirework(string output[], int firework[3]) {
                     if ((firework[0] + 1) <= terminalColumns) {
                         output[firework[1] - 1][firework[0] + 1] = '.';
                     };
-                    if ((firework[0] + 2) <= terminalColumns) {
-                        output[firework[1] - 1][firework[0] + 2] = '`';
+                    if (firework[2] < -7) {
+                        if ((firework[0] + 2) <= terminalColumns) {
+                            output[firework[1] - 1][firework[0] + 2] = '`';
+                        };
                     };
                 };
 
@@ -2494,8 +2505,10 @@ void showFirework(string output[], int firework[3]) {
                     output[firework[1] + 1][firework[0]] = ':';
 
                     // down left
-                    if ((firework[0] - 2) > -1) {
-                        output[firework[1] + 1][firework[0] - 2] = '.';
+                    if (firework[2] < -7) {
+                        if ((firework[0] - 2) > -1) {
+                            output[firework[1] + 1][firework[0] - 2] = '.';
+                        };
                     };
                     if ((firework[0] - 1) > -1) {
                         output[firework[1] + 1][firework[0] - 1] = '`';
@@ -2505,12 +2518,14 @@ void showFirework(string output[], int firework[3]) {
                     if ((firework[0] + 1) <= terminalColumns) {
                         output[firework[1] + 1][firework[0] + 1] = '`';
                     };
-                    if ((firework[0] + 2) <= terminalColumns) {
-                        output[firework[1] + 1][firework[0] + 2] = '.';
+                    if (firework[2] < -8) {
+                        if ((firework[0] + 2) <= terminalColumns) {
+                            output[firework[1] + 1][firework[0] + 2] = '.';
+                        };
                     };
                 };
+            case -3:
             case -4:
-            case -5:
                 // left
                 if ((firework[0] - 1) > -1) {
                     output[firework[1]][firework[0] - 1] = '-';
@@ -2551,14 +2566,14 @@ void showFirework(string output[], int firework[3]) {
                         };
                     };
                 };
+            case -1:
             case -2:
-            case -3:
                 // middle
                 output[firework[1]][firework[0]] = 'O';
         };
 
         firework[2] = firework[2] - 1;
-        if (firework[2] <= -10) {
+        if (firework[2] <= -12) {
             firework[0] = -1;
         };
         return;
@@ -2566,7 +2581,7 @@ void showFirework(string output[], int firework[3]) {
 
     output[firework[1]][firework[0]] = '|';
     if (firework[1] <= firework[2]) {
-            firework[2] = -2;
+            firework[2] = -1;
     } else {
         firework[1] = firework[1] - 1;
         if (firework[1] < 0) {
