@@ -15,6 +15,10 @@
 
 #define configFileName  ".\\flappy.conf"
 #define scoreFileName   ".\\score.txt"
+#define soundMainmenu   ".\\sound\\mainmenu.wav"
+#define soundBirdFlyUp   ".\\sound\\birdFlyUp.wav"
+#define soundBirdDead   ".\\sound\\birdDead.wav"
+
 #define BLACK			0
 #define BLUE			1
 #define GREEN			2
@@ -220,7 +224,7 @@ void hideCursor() {  // Windows API
     CONSOLE_CURSOR_INFO cursorInfo;
 
     cursorInfo.dwSize = 1;
-    cursorInfo.bVisible = FALSE;
+    cursorInfo.bVisible = false;
 
     SetConsoleCursorInfo(hOutput, &cursorInfo);
     return;
@@ -239,13 +243,6 @@ void getTerminalSize(int *columns, int *rows) {  // Windows API
 void color(int index) {  // Windows API
     if (settingsData[7]) {
         SetConsoleTextAttribute(hOutput, index);
-    };
-    return;
-};
-
-void playSound_thread(string file) {  // Windows API
-    if (settingsData[8]) {
-        PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME);
     };
     return;
 };
@@ -305,17 +302,16 @@ void anyKey() {
     return;
 };
 
-// void playSound_SFX(string file) {
-//     if(settingsData[1]) {
-        
-//     };
-//     return;
-// }
-
-void playSound_main(string file) {  // Windows API
+void playSound(string file, bool isSFX) {  // Windows API
     if (settingsData[8]) {
-        if(settingsData[0]) {
-            PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
+        if (isSFX) {
+            if(settingsData[1]) {
+                PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_ASYNC);
+            };
+        } else {
+            if(settingsData[0]) {
+                PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
+            };
         };
     };
     return;
@@ -2008,7 +2004,7 @@ void moreOptions() {
 };
 
 void mainMenu() {
-    isInGame = 0;
+    isInGame = false;
     string menu[7] = {
         "   Start  ",
         "High score",
@@ -2020,6 +2016,7 @@ void mainMenu() {
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int chooseMenu = 0;
+    playSound(soundMainmenu, false);
     flushStdin();
     while(true) {
         showMenu("", menu, sizeMenu, &chooseMenu);
@@ -2448,18 +2445,18 @@ void showFirework(string output[], int firework[3]) {
             //   .`:`.
             //
             //
-            case -5:
             case -6:
             case -7:
             case -8:
             case -9:
             case -10:
             case -11:
+            case -12:
                 // left
                 if ((firework[0] - 2) > -1) {
                     output[firework[1]][firework[0] - 2] = '-';
                 };
-                if (firework[2] < -6) {
+                if (firework[2] < -7) {
                     if ((firework[0] - 3) > -1) {
                         output[firework[1]][firework[0] - 3] = '-';
                     };
@@ -2469,7 +2466,7 @@ void showFirework(string output[], int firework[3]) {
                 if ((firework[0] + 2) <= terminalColumns) {
                     output[firework[1]][firework[0] + 2] = '-';
                 };
-                if (firework[2] < -7) {
+                if (firework[2] < -8) {
                     if ((firework[0] + 3) <= terminalColumns) {
                         output[firework[1]][firework[0] + 3] = '-';
                     };
@@ -2480,7 +2477,7 @@ void showFirework(string output[], int firework[3]) {
                     output[firework[1] - 1][firework[0]] = ':';
 
                     // up left
-                    if (firework[2] < -6) {
+                    if (firework[2] < -7) {
                         if ((firework[0] - 2) > -1) {
                             output[firework[1] - 1][firework[0] - 2] = '`';
                         };
@@ -2493,7 +2490,7 @@ void showFirework(string output[], int firework[3]) {
                     if ((firework[0] + 1) <= terminalColumns) {
                         output[firework[1] - 1][firework[0] + 1] = '.';
                     };
-                    if (firework[2] < -7) {
+                    if (firework[2] < -8) {
                         if ((firework[0] + 2) <= terminalColumns) {
                             output[firework[1] - 1][firework[0] + 2] = '`';
                         };
@@ -2505,7 +2502,7 @@ void showFirework(string output[], int firework[3]) {
                     output[firework[1] + 1][firework[0]] = ':';
 
                     // down left
-                    if (firework[2] < -7) {
+                    if (firework[2] < -8) {
                         if ((firework[0] - 2) > -1) {
                             output[firework[1] + 1][firework[0] - 2] = '.';
                         };
@@ -2518,7 +2515,7 @@ void showFirework(string output[], int firework[3]) {
                     if ((firework[0] + 1) <= terminalColumns) {
                         output[firework[1] + 1][firework[0] + 1] = '`';
                     };
-                    if (firework[2] < -8) {
+                    if (firework[2] < -9) {
                         if ((firework[0] + 2) <= terminalColumns) {
                             output[firework[1] + 1][firework[0] + 2] = '.';
                         };
@@ -2526,9 +2523,12 @@ void showFirework(string output[], int firework[3]) {
                 };
             case -3:
             case -4:
+            case -5:
                 // left
-                if ((firework[0] - 1) > -1) {
-                    output[firework[1]][firework[0] - 1] = '-';
+                if (firework[2] < -4) {
+                    if ((firework[0] - 1) > -1) {
+                        output[firework[1]][firework[0] - 1] = '-';
+                    };
                 };
 
                 // right
@@ -2536,7 +2536,7 @@ void showFirework(string output[], int firework[3]) {
                     output[firework[1]][firework[0] + 1] = '-';
                 };
 
-                if (firework[2] > -6) {
+                if (firework[2] > -7) {
                     if ((firework[1] - 1) > -1) {
                         // up
                         output[firework[1] - 1][firework[0]] = '.';
@@ -2547,8 +2547,10 @@ void showFirework(string output[], int firework[3]) {
                         };
 
                         // up right
-                        if ((firework[0] + 1) <= terminalColumns) {
-                            output[firework[1] - 1][firework[0] + 1] = '.';
+                        if (firework[2] < -5) {
+                            if ((firework[0] + 1) <= terminalColumns) {
+                                output[firework[1] - 1][firework[0] + 1] = '.';
+                            };
                         };
                     };
 
@@ -2557,8 +2559,10 @@ void showFirework(string output[], int firework[3]) {
                         output[firework[1] + 1][firework[0]] = '`';
 
                         // down left
-                        if ((firework[0] - 1) > -1) {
-                            output[firework[1] + 1][firework[0] - 1] = '`';
+                        if (firework[2] < -4) {
+                            if ((firework[0] - 1) > -1) {
+                                output[firework[1] + 1][firework[0] - 1] = '`';
+                            };
                         };
                         // down right
                         if ((firework[0] - 1) > -1) {
@@ -2650,6 +2654,7 @@ void flappyBird() {
     resetWall();
     color(settingsData[2]);
     showChangeScene();
+    stopSound();
     flushStdin();
     while(true) {
         if (choose == -1) { // return to main menu
@@ -2657,6 +2662,7 @@ void flappyBird() {
             isInGame = false;
             showChangeScene();
             disableCloseButton(false);
+            playSound(soundMainmenu, false);
             flushStdin();
             return;
         };
@@ -2668,7 +2674,8 @@ void flappyBird() {
         if(gameStarted) {
             maxY = maxUp + 1 - listWall[nextWall][1];
             minY = maxUp + 1 - listWall[nextWall][2];
-            if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver)) {
+            if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver)) { // game over
+                playSound(soundBirdDead, true);
                 showAnimation(NULL, skinDeadAnimation[settingsData[4]], sizeof(skinDeadAnimation[settingsData[4]]) / sizeof(skinDeadAnimation[settingsData[4]][0]), y);
                 gameStarted = false;
                 disableCloseButton(false);
@@ -2705,12 +2712,14 @@ void flappyBird() {
             if ((minY == maxUp + 3) && (maxY == maxUp + 3)) { // maxUp + 1 - (-2)
                 // skip due to noWall
                 if (y < maxUp / 2) {
+                    playSound(soundBirdFlyUp, true);
                     y = y + 2;
                 } else {
                     y = y - 1;
                 };
             } else {
                 if (y <= minY + 2) {
+                    playSound(soundBirdFlyUp, true);
                     y = y + 2;
                 } else {
                     y = y - 1;
@@ -2725,6 +2734,7 @@ void flappyBird() {
                 continue;
             };
             if (!settingsData[3]) {
+                playSound(soundBirdFlyUp, true);
                 if (y == maxUp - 1) {
                     y = y + 1;
                 } else if (y < maxUp) {
@@ -2909,7 +2919,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     if(*chooseMenu == 0) {
                         if (settingsData[8]) {
                             settingsData[0] = !settingsData[0];
-                            playSound_main("sound\\mainmenu.wav");
+                            if (!isInGame) {
+                                playSound(soundMainmenu, false);
+                            };
                             if (!settingsData[0]) {
                                 stopSound();
                             };
@@ -3189,8 +3201,6 @@ int main(int argc, char const *argv[]) {
 
     Sleep(500);
     clearTerminal();
-    
-    playSound_main("sound\\mainmenu.wav");
     
     mainMenu();
     return 0;
