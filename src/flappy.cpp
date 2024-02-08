@@ -2430,7 +2430,7 @@ void showFirework(string output[], int firework[3]) {
             } while (firework[0] < 1); // left
 
             firework[1] = terminalRows - 3; // Row
-            firework[2] = (rand() % ((firework[1] / 2) + 2)); // BUMMM
+            firework[2] = (rand() % ((firework[1] / 2) + (firework[1] / 4) + 1)); // BUMMM
         } else {
             return;
         };
@@ -2503,12 +2503,12 @@ void showFirework(string output[], int firework[3]) {
                     };
                 };
 
-                if (firework[1] + 1 <= terminalRows) {
+                if (firework[1] + 1 <= terminalRows - 3) {
                     // down
                     output[firework[1] + 1][firework[0]] = ':';
 
                     if (firework[2] < -8) {
-                        if ((firework[1] + 2) <= terminalRows) {
+                        if ((firework[1] + 2) <= terminalRows - 3) {
                             output[firework[1] + 2][firework[0]] = '`';
                         };
                     };
@@ -2566,7 +2566,7 @@ void showFirework(string output[], int firework[3]) {
                         };
                     };
 
-                    if ((firework[1] + 1) <= terminalRows) {
+                    if ((firework[1] + 1) <= terminalRows - 3) {
                         // down
                         output[firework[1] + 1][firework[0]] = '`';
 
