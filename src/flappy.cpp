@@ -52,12 +52,12 @@ char keymapData[7][2] = {
 int listHighScore[7];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[15] = {
+int settingsData[17] = {
     true,  // music
     true,  // sfx
     WHITE, // brightness
     false,  // auto mode
-    0,  // skin
+    0,  // skin bird
     true,  // cmd mode v1/v2 (0/1)
     true,  // enable load conf
     true,  // enable color
@@ -67,7 +67,9 @@ int settingsData[15] = {
     true,   // enable skin
     true,   // show firework
     true,   // show background
-    true    // show X/Y
+    true,   // show X/Y
+    0,      // skin wall
+    4,      // number of firework 
 };
 
 int terminalColumns, terminalRows;
@@ -101,6 +103,28 @@ string backGround[5] = {
     "            \\\\_/                    "
 };
 int sizeBackground = sizeof(backGround) / sizeof(backGround[0]);
+
+string skinWall[2][6] = {
+    {
+         "|  |", // up
+         "|__|",
+        "|____|",
+
+        "|````|",  // down
+         "|``|",
+         "|  |"
+    },
+    {
+         "|__|", // up
+         "|__|",
+        "/____\\",
+
+        "\\````/",  // down
+          "|``|",
+          "|``|"
+    }
+};
+int sizeSkinWall = sizeof(skinWall) / sizeof(skinWall[0]);
 
 string skinFlyAnimation[3][4][3] = {
     {
@@ -210,7 +234,7 @@ void clearTerminal() {
     string line = "";
     string text = "";
     for(i = 0; i < terminalColumns; ++i) {
-        line = line + " ";
+        line = line + ' ';
     };
     for(i = 0; i < terminalRows - 1; ++i) {
         text = text + line + "\n";
@@ -409,7 +433,7 @@ void bottomKeymap(string text) {
     lineLastTer = lineLastTer + "\n";
     i = text.length();
     for(j = 0; j < terminalColumns - i; ++j) {
-        text = text + " ";
+        text = text + ' ';
     };
     cursorPos_move(0, terminalRows - 2);
     color(WHITE);
@@ -455,7 +479,7 @@ void errorBox(string output, string bottom, bool isBlur) {
                 text = "";
                 cursorPos_move(sizeColumn, sizeRow);
 
-                text = text + " ";
+                text = text + ' ';
                 for(j = 0; j < boxSize - 2; ++j) {
                     text = text + "_";
                 };
@@ -468,7 +492,7 @@ void errorBox(string output, string bottom, bool isBlur) {
 
                 text = text + "/ ";
                 for(j = 0; j < boxSize - 4; ++j) {
-                    text = text + " ";
+                    text = text + ' ';
                 }; 
                 text = text + " \\ /";
                 cout << text;
@@ -478,9 +502,9 @@ void errorBox(string output, string bottom, bool isBlur) {
                 text = text + "/ ";
                 for(j = 0; j < boxSize - 2 - (output.length() ); ++j) {
                     if (j == ((boxSize - 2) - output.length() ) / 2) {
-                        text = text + " " + output;
+                        text = text + ' ' + output;
                     } else {
-                        text = text + " ";
+                        text = text + ' ';
                     };
                 };
                 text = text + " /";
@@ -490,7 +514,7 @@ void errorBox(string output, string bottom, bool isBlur) {
                 cursorPos_move(sizeColumn - 2, sizeRow + 3);
                 text = text + "/ \\ ";
                 for(j = 0; j < boxSize - 4; ++j) {
-                    text = text + " ";
+                    text = text + ' ';
                 }; 
                 text = text + " /";
                 cout << text;
@@ -503,7 +527,7 @@ void errorBox(string output, string bottom, bool isBlur) {
                     text = text + "`";
                 };
                 
-                text = text + " ";
+                text = text + ' ';
                 cout << text;
                 break;
             } else {
@@ -736,7 +760,7 @@ string centerText(string text[], int size) {
 
     Tmp = (terminalColumns - text[0].length()) / 2;
     for(i=0; i < Tmp; ++i) {
-        lineSpace = lineSpace + " ";
+        lineSpace = lineSpace + ' ';
     };
 
     for(i=0; i < size; ++i) {
@@ -828,7 +852,7 @@ void showBoxText(string text, bool isBlur) {
             cursorPos_move(sizeColumn, sizeRow + 1);
             tmp = " | ";
             for(j = 0; j < text.length(); ++j) {
-                tmp = tmp + " ";
+                tmp = tmp + ' ';
             }
             cout << tmp << " |";
 
@@ -838,7 +862,7 @@ void showBoxText(string text, bool isBlur) {
             cursorPos_move(sizeColumn, sizeRow + 3);
             tmp = " | ";
             for(j = 0; j < text.length(); ++j) {
-                tmp = tmp + " ";
+                tmp = tmp + ' ';
             }
             cout << tmp << " |";
 
@@ -938,7 +962,7 @@ void showTip(string tip) {
     int i;
     string text = "";
     for(i = 0; i < terminalColumns - 16; ++i) {
-        text = text + " ";
+        text = text + ' ';
     };
 
     cursorPos_up();
@@ -1012,7 +1036,7 @@ void showChangeScene() {
 
     for(i = 0; i < terminalColumns; ++i) {
         text = text + p;
-        text2 = text2 + " ";
+        text2 = text2 + ' ';
     };
 
     bool randomVar = rand() % 1;
@@ -1099,7 +1123,7 @@ void wipeOutput(string output[], int sizeOutput) {
     string lineBlank = "";
     int i;
     for(i = 0; i < terminalColumns; ++i) {
-        lineBlank = lineBlank + " ";
+        lineBlank = lineBlank + ' ';
     };
     for(i = 0; i < sizeOutput; ++i) {
         output[i] = lineBlank;
@@ -1173,7 +1197,7 @@ void loadingFrame(int progress, bool isShowBird) {
                         if(progress >= k) {
                             text = text + "=";
                         } else {
-                            text = text + " ";
+                            text = text + ' ';
                         };
                     };
                     text = text + "|";
@@ -1194,7 +1218,7 @@ void loadingFrame(int progress, bool isShowBird) {
                 text = text + ".";
             };
             for(k=0; k < 4 - tmp_int[0]; ++k) {
-                text = text + " ";
+                text = text + ' ';
             };
             cout << text + "\n";
 
@@ -1210,7 +1234,9 @@ void loadingFrame(int progress, bool isShowBird) {
     if(isShowBird) {
         color(CYAN);
         text = getRoad();
-        showBackground(NULL, 0, terminalRows - 6);
+        if (settingsData[13]) {
+            showBackground(NULL, 0, terminalRows - 6);
+        };
         showAnimation(NULL, skinFlyAnimation[settingsData[4]][tmp_int[1]], sizeof(skinFlyAnimation[settingsData[4]][tmp_int[1]]) / sizeof(skinFlyAnimation[settingsData[4]][tmp_int[1]][0]), 0);
     
         cursorPos_move(0, terminalRows - 6);
@@ -1247,7 +1273,7 @@ string menuText(string text[], int size, int choose) {
     int i;
 
     for(i = 0; i < ((terminalColumns - text[0].length()) / 2) - 6; ++i) {
-        lineSpace = lineSpace + " ";
+        lineSpace = lineSpace + ' ';
     };
     
     for(i = 0; i < size; ++i) {
@@ -1449,7 +1475,7 @@ void credit() {
                     tmp = "";
                     for(k=0; k<count; ++k) {
                         for(j=0; j < (terminalColumns - credit_info[k].length()) / 2; ++j) {
-                            tmp = tmp + " ";
+                            tmp = tmp + ' ';
                         };
                          tmp = tmp + credit_info[k] + "\n";
                     };
@@ -1467,7 +1493,7 @@ void credit() {
             cout << "\n\n";
             tmp = ">> Press any key to exit <<";
             for(i=0; i < (terminalColumns - tmp.length()) / 2; ++i) {
-                cout << " ";
+                cout << ' ';
             };
             cout << tmp;
             anyKey();
@@ -1579,12 +1605,12 @@ void keymappingSettings() {
             text = "(" + to_string(k) + ")";
             k = text.length();
             for(j = 0; j < 5 - k; ++k) {
-                text = text + " ";
+                text = text + ' ';
             };
             text = text + " '" + getNameKey(keymapData[i][1], keymapData[i][0]) + "'";
             k = text.length();
             for(j = 0; j < 13 - k; ++j) {
-                text = text + " ";
+                text = text + ' ';
             };
             
             menu[i] = text + "  -->  " + template_menu[i];
@@ -1660,7 +1686,7 @@ void brightnessSettings() {
         string tmp;
         string lineSpace = "";
         for(j = 0; j < (terminalColumns - sizeBar) / 2; ++j) {
-            lineSpace = lineSpace + " ";
+            lineSpace = lineSpace + ' ';
         };
         string perProcess = "";
         for(i = 0; i < (sizeBar / max); ++i) {
@@ -1668,7 +1694,7 @@ void brightnessSettings() {
         };
         string blankPerProcess = "";
         for(i = 0; i < (sizeBar / max); ++i) {
-            blankPerProcess = blankPerProcess + " ";
+            blankPerProcess = blankPerProcess + ' ';
         };
         while(true) {
             if (currentBrightness == -1) {
@@ -1677,7 +1703,7 @@ void brightnessSettings() {
             text = "";
             for(i = 0; i < terminalRows - 4; ++i) {
                 if ((terminalRows / 2) - 2 == i) {
-                    text = text + lineSpace + " ";
+                    text = text + lineSpace + ' ';
                     for(j = 0; j < sizeBar; ++j) {
                         text = text + "_";
                     };
@@ -1705,7 +1731,7 @@ void brightnessSettings() {
                         text = text + "  -->";
                     };
 
-                    text = text + "\n" + lineSpace + " ";
+                    text = text + "\n" + lineSpace + ' ';
 
                     for(j = 0; j < sizeBar; ++j) {
                         text = text + "`";
@@ -1719,8 +1745,10 @@ void brightnessSettings() {
             color(settingsData[2]);
             wipeOutput(output, sizeOutput);
             stringToOutput(text, output, sizeOutput);
-            showBackground(output, 0, terminalRows - 3);
-            output[sizeOutput - 1] = road;
+            if (settingsData[13]) {
+                showBackground(output, 0, terminalRows - 3);
+                output[sizeOutput - 1] = road;
+            };
             text = getOutput(output, sizeOutput);
             cursorPos_up();
             cout << text;
@@ -1784,23 +1812,80 @@ void author() {
     return;
 };
 
-bool setSkin(int index) {
+bool setSkin(int index, bool isSkinBird) {
     if (!settingsData[11]) {
         return 1;
     };
-    if ((index >= 0) && (index < sizeBirdAnimation)) {
-        settingsData[4] = index;
-        writeConfig("skin", to_string(index));
-        return 1;
+    if (index >= 0) {
+        if ((isSkinBird) && (index < sizeBirdAnimation)) {
+            settingsData[4] = index;
+            writeConfig("skinbird", to_string(index));
+            return 1;
+        };
+        if ((!isSkinBird) && (index < sizeSkinWall)) {
+            settingsData[15] = index;
+            writeConfig("skinwall", to_string(index));
+            return 1;
+        };
     };
     return 0;
 };
 
-void previewSkin(int index) {
+void showWall(string output[], int skinValue, int column, int up, int down) {
+    if (output == NULL) {
+        return;
+    };
+    string text;
+    int i, j, k;
+
+    // up
+    text = skinWall[skinValue][0];
+    for(i = 0; i < up - 2; ++i) {
+        for(k = 0; k < text.length(); ++k) {
+            output[i][column + k] = text[k]; 
+        };
+    };
+    if (up - 2 >= 0) {
+        text = skinWall[skinValue][1];
+        for(k = 0; k < text.length(); ++k) {
+            output[up - 2][column + k] = text[k]; 
+        };
+    };
+    if (up - 1 >= 0) {
+        text = skinWall[skinValue][2];
+        for(k = 0; k < text.length(); ++k) {
+            output[up - 1][column + k - 1] = text[k]; 
+        };
+    };
+
+    // down
+    text = skinWall[skinValue][5];
+    j = terminalRows - 3;
+    for(i = down + 3; i < j; ++i) {
+        for(k = 0; k < text.length(); ++k) {
+            output[i][column + k] = text[k]; 
+        };
+    };
+    text = skinWall[skinValue][3];
+    for(k = 0; k < text.length(); ++k) {
+        output[down + 1][column + k - 1] = text[k]; 
+    };
+    text = skinWall[skinValue][4];
+    for(k = 0; k < text.length(); ++k) {
+        output[down + 2][column + k] = text[k]; 
+    };
+    return;
+};
+
+void previewSkin(int index, bool isSkinBird) {
     int i = terminalRows - 2;
     int choose = 0;
     int countAnimation[2] = {1, 0};
-    int sizeInAnimation = sizeof(skinFlyAnimation[index][countAnimation[0]]) / sizeof(skinFlyAnimation[index][countAnimation[0]][0]);
+    int sizeInAnimation;
+    int j = 0;
+    if (isSkinBird) {
+        sizeInAnimation = sizeof(skinFlyAnimation[index][countAnimation[0]]) / sizeof(skinFlyAnimation[index][countAnimation[0]][0]);
+    };
     string road = getRoad();
     string output[i];
     string finalOutput;
@@ -1809,7 +1894,7 @@ void previewSkin(int index) {
             break;
         };
         if(choose == -2) {
-            if (setSkin(index)) {
+            if (setSkin(index, isSkinBird)) {
                 showBoxText("Completed", true);
                 bottomKeymap("Press any key to continue!");
                 anyKey();
@@ -1819,8 +1904,16 @@ void previewSkin(int index) {
             break;
         };
         wipeOutput(output, i);
-        showBackground(output, 0, terminalRows - 3);
-        showBird(output, countAnimation, sizeInAnimation, index, 0);
+        if (settingsData[13]) {
+            showBackground(output, 0, terminalRows - 3);
+        };
+
+        if (isSkinBird) {
+            showBird(output, countAnimation, sizeInAnimation, index, 0);
+        } else {
+            j = i - 9;
+            showWall(output, index, 10, 5, j);
+        };
         output[i - 1] = road;
         finalOutput = getOutput(output, i);
         clearTerminal();
@@ -1833,44 +1926,96 @@ void previewSkin(int index) {
     return;
 };
 
-void changeSkin() {
+void changeSkin(bool isSkinBird) {
     if (!settingsData[11]) {
         errorBox("SKIN DISABLED", "", true);
         return;
     };
-    string space = "";
-    int i;
-    int choose = 0;
-    string menu[sizeBirdAnimation + 1];
+    string text;
+    int size, inputCase;
+    if (isSkinBird) {
+        size = sizeBirdAnimation;
+        text = "skin_bird_";
+        inputCase = 5;
+    } else {
+        size = sizeSkinWall;
+        text = "skin_wall_";
+        inputCase = 9;
+    };
 
-    if (sizeBirdAnimation > 9) {
-        space = space + " ";
-    } else if (sizeBirdAnimation > 99) {
+    string space = "";
+    int i, j;
+    int choose = 0;
+    string menu[size + 1];
+
+    if (size > 9) {
+        space = space + ' ';
+    } else if (size > 99) {
         space = space + "  ";
     };
 
-    for(i = 0; i < sizeBirdAnimation; ++i) {
-        menu[i] = "skin_" + to_string(i + 1) + space;
+    j = 0;
+    for(i = 0; i < size; ++i) {
+        menu[i] = text + to_string(i + 1) + space;
+        if (j < menu[i].length()) {
+            j = menu[i].length();
+        };
     };
-    menu[sizeBirdAnimation] = " Back ";
+    j = j - 6;
+    menu[size] = " Back ";
+    for(i = 0; i < j; i++) {
+        menu[size] = menu[size] + ' ';
+    };
     while(true) {
         if (choose == -1) {
             flushStdin();
             return;
         };
-        showMenu("| Current skin: skin_" + to_string(settingsData[4] + 1) + " |", menu, sizeBirdAnimation + 1, &choose);
-        inputMenu(&choose, sizeBirdAnimation, 5);
+        if (isSkinBird) {
+            j = settingsData[4] + 1;
+        } else {
+            j = settingsData[15] + 1;
+        };
+        showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, &choose);
+        inputMenu(&choose, size, inputCase);
+        Sleep(100);
+    };
+    return;
+};
+
+void optionsSkin() {
+    if (!settingsData[11]) {
+        errorBox("SKIN DISABLED", "", true);
+        return;
+    };
+    
+    string menu[3] = {
+        " Bird ",
+        " Wall ",
+        " Back "
+    };
+    int sizeMenu = sizeof(menu)/sizeof(menu[0]);
+    int choose = 0;
+    while(true) {
+        if (choose == -1) {
+            flushStdin();
+            return;
+        };
+
+        showMenu("| Change Skin |", menu, sizeMenu, &choose);
+        inputMenu(&choose, sizeMenu - 1, 8);
         Sleep(100);
     };
     return;
 };
 
 void moreSettingsMenu() {
-    string menu[5] = {
+    string menu[6] = {
         "   Auto mode [ ]   ",
         " Show firework [ ] ",
         "Show background [ ]",
         "    Show X/Y [ ]   ",
+        "Number firework [ ]",
         "       Back        "
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
@@ -1880,6 +2025,8 @@ void moreSettingsMenu() {
             flushStdin();
             return;
         };
+
+        menu[4][17] = to_string(settingsData[16])[0];
 
         if (settingsData[3]) {
             menu[0][14] = 'X';
@@ -1909,7 +2056,6 @@ void moreSettingsMenu() {
         inputMenu(&choose, sizeMenu - 1, 7);
         Sleep(100);
     };
-    return;
     return;
 };
 
@@ -2110,9 +2256,48 @@ void loadConfig() {
         if (settingsData[7]) {
             setBrightness(readConfig("brightness"));
         };
-        if (!setSkin(readConfig("skin"))) {
-            writeConfig("skin", "0");  
+        // skin bird
+        if (!setSkin(readConfig("skinbird"), true)) {
+            writeConfig("skinbird", "0");  
         };
+        // skin wall
+        if (!setSkin(readConfig("skinwall"), false)) {
+            writeConfig("skinwall", "0");  
+        };
+        // show firework
+        i = readConfig("showfw");
+        if (i == -1) {
+            writeConfig("showfw", "1");
+        } else if (i) {
+            settingsData[12] = true;
+        } else {
+            settingsData[12] = false;
+        };
+        i = readConfig("totalfirework");
+        if ((i > 0) && (i < 10)) {
+            settingsData[16] = i;
+        } else {
+            writeConfig("totalfirework", to_string(settingsData[16]));
+        };
+        // show background
+        i = readConfig("showbg");
+        if (i == -1) {
+            writeConfig("showbg", "1");
+        } else if (i) {
+            settingsData[13] = true;
+        } else {
+            settingsData[13] = false;
+        };
+        // show xy
+        i = readConfig("showxy");
+        if (i == -1) {
+            writeConfig("showxy", "1");
+        } else if (i) {
+            settingsData[14] = true;
+        } else {
+            settingsData[14] = false;
+        };
+        
         for(i = 0; i < size; ++i) {
             isTwoChar = false;
             j = readConfig("key" + to_string(i));
@@ -2302,52 +2487,6 @@ void showScore(string output[], int score, int higherScore, bool isHigher) {
     return;
 };
 
-void showWall(string output[], int column, int up, int down) {
-    if (output == NULL) {
-        return;
-    };
-    string text;
-    int i, j, k;
-
-    // up
-    text = "|  |";
-    for(i = 0; i < up - 2; ++i) {
-        for(k = 0; k < text.length(); ++k) {
-            output[i][column + k] = text[k]; 
-        };
-    };
-    if (up - 2 >= 0) {
-        text = "|__|";
-        for(k = 0; k < text.length(); ++k) {
-            output[up - 2][column + k] = text[k]; 
-        };
-    };
-    if (up - 1 >= 0) {
-        text = "|____|";
-        for(k = 0; k < text.length(); ++k) {
-            output[up - 1][column + k - 1] = text[k]; 
-        };
-    };
-
-    // down
-    text = "|  |";
-    j = terminalRows - 3;
-    for(i = down + 3; i < j; ++i) {
-        for(k = 0; k < text.length(); ++k) {
-            output[i][column + k] = text[k]; 
-        };
-    };
-    text = "|````|";
-    for(k = 0; k < text.length(); ++k) {
-        output[down + 1][column + k - 1] = text[k]; 
-    };
-    text = "|``|";
-    for(k = 0; k < text.length(); ++k) {
-        output[down + 2][column + k] = text[k]; 
-    };
-    return;
-};
-
 void showAllWall(string output[], int *nextWall, int *score, int countWall) {
     if (output == NULL) {
         return;
@@ -2357,7 +2496,7 @@ void showAllWall(string output[], int *nextWall, int *score, int countWall) {
     for(i = 0; i < sizelistWall; ++i) {
         if ((listWall[i][0] > -1) && (listWall[i][0] < terminalColumns - 3)) {
             // display Wall
-            showWall(output, listWall[i][0], listWall[i][1], listWall[i][2]);
+            showWall(output, settingsData[15], listWall[i][0], listWall[i][1], listWall[i][2]);
             if(gameStarted) {
                 listWall[i][0] = listWall[i][0] - 1; // decrease terminalColumn
             };
@@ -2699,9 +2838,8 @@ void flappyBird() {
     string outputGame;
 
     // firework
-    int totalFirework = 4;
-    int fireworkData[totalFirework][3];
-    for(i = 0; i < totalFirework; ++i) {
+    int fireworkData[settingsData[16]][3];
+    for(i = 0; i < settingsData[16]; ++i) {
         for(j = 0; j < 3; ++j) {
             fireworkData[i][j] = -1;
         };
@@ -2856,7 +2994,7 @@ void flappyBird() {
         };
         if (settingsData[12]) {
             if (gameStarted) {
-                for(i = 0; i < totalFirework; ++i) {
+                for(i = 0; i < settingsData[16]; ++i) {
                     showFirework(output, fireworkData[i]);
                 };
             };
@@ -2895,9 +3033,11 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 1:  // settingsMenu 
                 case 3:  // resolutionSettings
                 case 4:  // highScore
-                case 5:  // changeSkin
+                case 5:  // changeSkin (bird)
                 case 6:  // moreOptions
                 case 7:  // moreSettingsMenu
+                case 8:  // optionsSkin
+                case 9:  // changeSkin (wall)
                     if(*chooseMenu > 0) {
                         *chooseMenu = *chooseMenu - 1;
                     } else {
@@ -2934,6 +3074,8 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 5:
                 case 6:
                 case 7:
+                case 8:
+                case 9:
                     if(*chooseMenu < max) {
                         *chooseMenu = *chooseMenu + 1;
                     } else {
@@ -2982,7 +3124,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                             highScore();
                             break;
                         case 2:
-                            changeSkin();
+                            optionsSkin();
                             break;
                         case 3:
                             moreOptions();
@@ -3056,7 +3198,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     if (*chooseMenu == sizeBirdAnimation) {
                         *chooseMenu = -1;
                     } else {
-                        previewSkin(*chooseMenu);
+                        previewSkin(*chooseMenu, true);
                     };
                     break;
                 case 6:
@@ -3085,16 +3227,59 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                             break;
                         case 1:
                             settingsData[12] = !settingsData[12];
+                            writeConfig("showfw", to_string(settingsData[12]));
                             break;
                         case 2:
                             settingsData[13] = !settingsData[13];
+                            writeConfig("showbg", to_string(settingsData[13]));
                             break;
                         case 3:
                             settingsData[14] = !settingsData[14];
+                            writeConfig("showxy", to_string(settingsData[14]));
                             break;
                         case 4:
+                            if (isInGame) {
+                                errorBox("Unavailable in game", "You must return to main menu first!", true);
+                            } else {
+                                if (settingsData[13]) {
+                                    int p[2];
+                                    showBoxText("Input number of firework [1-9]", true);
+                                    __getch(p);
+                                    if ((!p[0]) && (p[1] >= '1') && (p[1] <= '9')) {
+                                        settingsData[16] = p[1] - 48;
+                                        writeConfig("totalfirework", to_string(settingsData[16]));
+                                    } else {
+                                        errorBox("Wrong number", "Number must be from 1 to 9", true);
+                                        break;
+                                    };
+                                } else {
+                                    errorBox("Firework Disabled", "You must enable [Show firework] first!", true);
+                                };
+                            };
+                            break;
+                        case 5:
                             *chooseMenu = -1;
                             break;
+                    };
+                    break;
+                case 8:
+                    switch (*chooseMenu) {
+                        case 0:
+                            changeSkin(true);
+                            break;
+                        case 1:
+                            changeSkin(false);
+                            break;
+                        case 2:
+                            *chooseMenu = -1;
+                            break;
+                    };
+                    break;
+                case 9:
+                    if (*chooseMenu == sizeSkinWall) {
+                        *chooseMenu = -1;
+                    } else {
+                        previewSkin(*chooseMenu, false);
                     };
                     break;
             };
@@ -3111,6 +3296,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 4:
                 case 5:
                 case 6:
+                case 7:
+                case 8:
+                case 9:
                     *chooseMenu = -1;
                     break;
                 case -3: // flappyBird
@@ -3229,7 +3417,7 @@ void checkTerminalMode() {
 
     text = "";
     for(j = 0; j < terminalColumns; ++j) {
-        text = text + " ";
+        text = text + ' ';
     };
 
     cursorPos_move(0, center);
