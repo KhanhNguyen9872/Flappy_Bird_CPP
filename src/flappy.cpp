@@ -2476,6 +2476,12 @@ void showFirework(string output[], int firework[3]) {
                     // up
                     output[firework[1] - 1][firework[0]] = ':';
 
+                    if (firework[2] < -9) {
+                        if ((firework[1] - 2) > -1) {
+                            output[firework[1] - 2][firework[0]] = '.';
+                        };
+                    };
+
                     // up left
                     if (firework[2] < -7) {
                         if ((firework[0] - 2) > -1) {
@@ -2500,6 +2506,12 @@ void showFirework(string output[], int firework[3]) {
                 if (firework[1] + 1 <= terminalRows) {
                     // down
                     output[firework[1] + 1][firework[0]] = ':';
+
+                    if (firework[2] < -8) {
+                        if ((firework[1] + 2) <= terminalRows) {
+                            output[firework[1] + 2][firework[0]] = '`';
+                        };
+                    };
 
                     // down left
                     if (firework[2] < -8) {
