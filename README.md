@@ -7,9 +7,9 @@
 > You can download test [here](https://codeload.github.com/KhanhNguyen9872/Flappy_Bird_CPP/zip/refs/heads/main)
 
 # VirusTotal
-> Link [here](https://www.virustotal.com/gui/file/4c59b0bb6559f70015d9aa15750f74d6c0c13f159377fa799050c9857a8365d5)
+> Link [here](https://www.virustotal.com/gui/file/81e50597719244d701680f684338657a8f1a3f0c165ea6c3d42f7f35a3afba4e?nocache=1)
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/af1e8e41-b106-46bd-85f5-60aa38cc7560)
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/7a17d023-b37d-410a-a8d0-0dfa1b722c18)
 
 
 # Screenshot
@@ -17,26 +17,53 @@
 > 
 ![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/189ce5ec-f7b7-46e5-a4aa-f6980d05f3dc)
 
+> Loading screen
+>
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/74dac77b-a44f-4717-b36b-cb6f1ad187c1)
+
 > Main menu
 > 
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/ba5f6f14-f0f4-4995-ac4f-b238af3e52b1)
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/8150315e-ebec-4acd-b864-e38d4d989a20)
+
+> High score
+>
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/5fe4fb3a-6faa-4d89-914a-845210355ecd)
+
+> Skin
+>
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/04a623f5-353d-4c08-9dcd-d876fa65aae3)
 
 > Settings menu
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/f26b596a-e64c-4d7f-8797-76b22cf9017f)
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/29d6a294-de02-4f09-a599-90cdbdd011e4)
 
+> Brightness settings
+>
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/1afbb24f-614f-4225-8c70-d31bb38b2133)
+
+> Keymapping settings
+>
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/a196d043-80ed-424c-836d-9a82207cfc6c)
+
+> Resolution settings
+>
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/a3c3041c-8aee-4d5b-99bb-8de1064da96c)
 
 > Ingame screen
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/fbcea048-7e1f-42ef-ba30-1f5658f9c2b6)
+> ![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/c4d799a5-aa72-49ab-a814-0eed7cbfd566)
 
 > Paused screen ingame
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/de16b61d-7c46-4acd-9a80-fe81002e0a55)
+> ![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/359ebb30-8540-41a5-a3eb-e5e88f657866)
 
 > Game over screen
 >
-![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/a55bd119-468b-4ce8-900d-6506564cf1ec)
+> ![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/6df7b090-fd75-45e3-a53b-3df1ac98f821)
+
+> Credit screen
+>
+![image](https://github.com/KhanhNguyen9872/Flappy_Bird_CPP/assets/88880309/8803fc6d-d647-48b2-b205-5ccc6ebfff6d)
 
 > And more.....
 
