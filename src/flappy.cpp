@@ -202,10 +202,10 @@ void clearTerminal() {
     int i;
     string line = "";
     string text = "";
-    for(i = 0; i < terminalColumns; i++) {
+    for(i = 0; i < terminalColumns; ++i) {
         line = line + " ";
     };
-    for(i = 0; i < terminalRows - 1; i++) {
+    for(i = 0; i < terminalRows - 1; ++i) {
         text = text + line + "\n";
     };
     text = text + line;
@@ -281,7 +281,7 @@ void configureTerminal() {
     return;
 };
 
-void __getch(int p[]) {
+void __getch(int p[2]) {
     p[0] = 0;
     p[1] = _getch();
     if((p[1] == 0) || (p[1] == 224)) {
@@ -391,7 +391,7 @@ void showBlur() {
         i = rand() % 15;
     } while ((i == BLACK) || (i == RED));
     color(i);
-    for(i = 0; i < terminalRows; i++) {
+    for(i = 0; i < terminalRows; ++i) {
         for(j = 0; j < terminalColumns; j = j + 5) {
             cursorPos_move(j, i);
             cout << "-";
@@ -404,12 +404,12 @@ void showBlur() {
 void bottomKeymap(string text) {
     string lineLastTer = "";
     int i, j;
-    for(j=0; j < terminalColumns; j++) {
+    for(j=0; j < terminalColumns; ++j) {
         lineLastTer = lineLastTer + "_";
     };
     lineLastTer = lineLastTer + "\n";
     i = text.length();
-    for(j = 0; j < terminalColumns - i; j++) {
+    for(j = 0; j < terminalColumns - i; ++j) {
         text = text + " ";
     };
     cursorPos_move(0, terminalRows - 2);
@@ -439,7 +439,7 @@ void errorBox(string output, string bottom, bool isBlur) {
         bottom = "Press any key to continue";
     };
     
-    for(i = 0; i < (terminalColumns - boxSize) / 2; i++) {
+    for(i = 0; i < (terminalColumns - boxSize) / 2; ++i) {
         sizeColumn = sizeColumn + 1;
     };
     string text;
@@ -451,13 +451,13 @@ void errorBox(string output, string bottom, bool isBlur) {
     while(true) {
         color(RED);
         sizeRow = 0;
-        for(i = 0; i < terminalRows - 5; i++) {
+        for(i = 0; i < terminalRows - 5; ++i) {
             if (i == (terminalRows / 2) - 3) {
                 text = "";
                 cursorPos_move(sizeColumn, sizeRow);
 
                 text = text + " ";
-                for(j = 0; j < boxSize - 2; j++) {
+                for(j = 0; j < boxSize - 2; ++j) {
                     text = text + "_";
                 };
                 
@@ -468,7 +468,7 @@ void errorBox(string output, string bottom, bool isBlur) {
                 cursorPos_move(sizeColumn, sizeRow + 1);
 
                 text = text + "/ ";
-                for(j = 0; j < boxSize - 4; j++) {
+                for(j = 0; j < boxSize - 4; ++j) {
                     text = text + " ";
                 }; 
                 text = text + " \\ /";
@@ -477,7 +477,7 @@ void errorBox(string output, string bottom, bool isBlur) {
                 text = "";
                 cursorPos_move(sizeColumn - 1, sizeRow + 2);
                 text = text + "/ ";
-                for(j = 0; j < boxSize - 2 - (output.length() ); j++) {
+                for(j = 0; j < boxSize - 2 - (output.length() ); ++j) {
                     if (j == ((boxSize - 2) - output.length() ) / 2) {
                         text = text + " " + output;
                     } else {
@@ -490,7 +490,7 @@ void errorBox(string output, string bottom, bool isBlur) {
                 text = "";
                 cursorPos_move(sizeColumn - 2, sizeRow + 3);
                 text = text + "/ \\ ";
-                for(j = 0; j < boxSize - 4; j++) {
+                for(j = 0; j < boxSize - 4; ++j) {
                     text = text + " ";
                 }; 
                 text = text + " /";
@@ -500,7 +500,7 @@ void errorBox(string output, string bottom, bool isBlur) {
                 cursorPos_move(sizeColumn - 3, sizeRow + 4);
 
                 text = text + "/   ";
-                for(j = 0; j < boxSize - 2; j++) {
+                for(j = 0; j < boxSize - 2; ++j) {
                     text = text + "`";
                 };
                 
@@ -529,22 +529,22 @@ void showOverlayResolution() {
     string text = "";
     string text2 = "";
     int i, j;
-    for(i = 0; i < terminalColumns; i++) {
+    for(i = 0; i < terminalColumns; ++i) {
         text = text + "=";
     };
 
     text2 = text2 + "| +-";
-    for(i = 0; i < resolutionString.length(); i++) {
+    for(i = 0; i < resolutionString.length(); ++i) {
         text2 = text2 + "-";
     };
     text2 = text2 + "-+\n| | " + resolutionString + " |\n| +-";
-    for(i = 0; i < resolutionString.length(); i++) {
+    for(i = 0; i < resolutionString.length(); ++i) {
         text2 = text2 + "-";
     };
     text2 = text2 + "-+";
 
     color(settingsData[2]);
-    for(i = 0; i < terminalRows; i++) {
+    for(i = 0; i < terminalRows; ++i) {
         if (i == 0) {
             cursorPos_move(0, i);
             cout << text;
@@ -680,7 +680,7 @@ void showUser(string username) {
 
     if (username.length() > 6 + j) {
         text = "";
-        for(i = 0; i < 6 + j; i++) {
+        for(i = 0; i < 6 + j; ++i) {
             if (i >= username.length()) {
                 break;
             };
@@ -697,12 +697,12 @@ void showUser(string username) {
     username = "User: " + username;
 
     text = "+-";
-    for(i = 0; i < username.length(); i++) {
+    for(i = 0; i < username.length(); ++i) {
         text = text + "-";
     };
     text = text + "-+";
 
-    for(i = 0; i < terminalColumns; i++) {
+    for(i = 0; i < terminalColumns; ++i) {
         if (i == terminalColumns - 7 - username.length()) {
             break;
         } else {
@@ -710,7 +710,7 @@ void showUser(string username) {
         };
     };
 
-    for(i = 0; i < terminalRows; i++) {
+    for(i = 0; i < terminalRows; ++i) {
         if (i == 1) {
             cursorPos_move(sizeColumn, sizeRow);
             cout << text;
@@ -736,11 +736,11 @@ string centerText(string text[], int size) {
     int Tmp, i;
 
     Tmp = (terminalColumns - text[0].length()) / 2;
-    for(i=0; i < Tmp; i++) {
+    for(i=0; i < Tmp; ++i) {
         lineSpace = lineSpace + " ";
     };
 
-    for(i=0; i < size; i++) {
+    for(i=0; i < size; ++i) {
         finalText = finalText + lineSpace + text[i] + "\n";  
     };
     return finalText;
@@ -758,7 +758,7 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
     int i;
     string text = "";
 
-    for(i=0; i <= terminalRows; i++) {
+    for(i=0; i <= terminalRows; ++i) {
         if(i == (terminalRows/2) - ((sizeLogo) / 2)) {
             text = text + centerText(logo, sizeLogo);
             break;
@@ -773,7 +773,7 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
         color(WHITE);
         showUser(getenv("username"));
     };
-    for(i=0;i < 40; i++) {
+    for(i=0;i < 40; ++i) {
         if (i<5) {
             color(BLACK);
         } else if(i<8) {
@@ -807,7 +807,7 @@ void showBoxText(string text, bool isBlur) {
     int sizeRow = 0;
     int i, j;
     string tmp;
-    for(i = 0; i < (terminalColumns - text.length()) / 2; i++) {
+    for(i = 0; i < (terminalColumns - text.length()) / 2; ++i) {
         sizeColumn = sizeColumn + 1;
     };
     sizeColumn = sizeColumn - 1;
@@ -816,19 +816,19 @@ void showBoxText(string text, bool isBlur) {
         showBlur();
     };
 
-    for(i = 0; i < terminalRows; i++) {
+    for(i = 0; i < terminalRows; ++i) {
         if (i == (terminalRows / 2) - 3) {
             color(YELLOW);
             cursorPos_move(sizeColumn, sizeRow);
             tmp = "  ";
-            for(j = 0; j < text.length() + 2; j++) {
+            for(j = 0; j < text.length() + 2; ++j) {
                 tmp = tmp + "_";
             };
             cout << tmp;
 
             cursorPos_move(sizeColumn, sizeRow + 1);
             tmp = " | ";
-            for(j = 0; j < text.length(); j++) {
+            for(j = 0; j < text.length(); ++j) {
                 tmp = tmp + " ";
             }
             cout << tmp << " |";
@@ -838,14 +838,14 @@ void showBoxText(string text, bool isBlur) {
 
             cursorPos_move(sizeColumn, sizeRow + 3);
             tmp = " | ";
-            for(j = 0; j < text.length(); j++) {
+            for(j = 0; j < text.length(); ++j) {
                 tmp = tmp + " ";
             }
             cout << tmp << " |";
 
             cursorPos_move(sizeColumn, sizeRow + 4);
             tmp = "  ";
-            for(j = 0; j < text.length() + 2; j++) {
+            for(j = 0; j < text.length() + 2; ++j) {
                 tmp = tmp + "`";
             };
             cout << tmp;
@@ -938,14 +938,14 @@ void showTip(string tip) {
     };
     int i;
     string text = "";
-    for(i = 0; i < terminalColumns - 16; i++) {
+    for(i = 0; i < terminalColumns - 16; ++i) {
         text = text + " ";
     };
 
     cursorPos_up();
     color(YELLOW);
     int sizeRow = 0;
-    for(i = 0; i < terminalRows; i++) {
+    for(i = 0; i < terminalRows; ++i) {
         if (i == terminalRows - 3) {
             cursorPos_move(0, sizeRow);
             cout << text;
@@ -965,9 +965,9 @@ void showAnimation(string output[], string animation[], int sizeAnimation, int c
     int k = (terminalRows / 4) - countUp;
     int l = terminalRows - 3;
     int sizeRow = 0;
-    for(i = 0; i < l; i++) {
+    for(i = 0; i < l; ++i) {
         if (i == k) {
-            for(j = 0; j < sizeAnimation; j++) {
+            for(j = 0; j < sizeAnimation; ++j) {
                 if (output == NULL) { // print direct to terminal
                     cursorPos_move(3, sizeRow + j);
                     cout << animation[j];
@@ -1011,7 +1011,7 @@ void showChangeScene() {
     };
     string p = listText[rand() % (sizeof(listText) / sizeof(listText[0]))];
 
-    for(i = 0; i < terminalColumns; i++) {
+    for(i = 0; i < terminalColumns; ++i) {
         text = text + p;
         text2 = text2 + " ";
     };
@@ -1024,26 +1024,26 @@ void showChangeScene() {
     Sleep(400);
     if (randomVar) {
         cursorPos_up();
-        for(i = 0; i < terminalRows; i++) {
+        for(i = 0; i < terminalRows; ++i) {
             cout << text;
             Sleep(k);
         };
 
         Sleep(150);
         cursorPos_up();
-        for(i = 0; i < terminalRows; i++) {
+        for(i = 0; i < terminalRows; ++i) {
             cout << text2;
             Sleep(k);
         };
     } else {
-        for(i = terminalRows - 1; i >= 0; i--) {
+        for(i = terminalRows - 1; i >= 0; --i) {
             cursorPos_move(0, i);
             cout << text;
             Sleep(k);
         };
 
         Sleep(150);
-        for(i = terminalRows - 1; i >= 0; i--) {
+        for(i = terminalRows - 1; i >= 0; --i) {
             cursorPos_move(0, i);
             cout << text2;
             Sleep(k);
@@ -1070,7 +1070,7 @@ void exitProgram() {
 string getRoad() {
     int i;
     string text = "[";
-    for(i = 0; i < terminalColumns - 2; i++) {
+    for(i = 0; i < terminalColumns - 2; ++i) {
         text = text + "/";
     };
     text = text + "]";
@@ -1078,10 +1078,13 @@ string getRoad() {
 };
 
 string getOutput(string output[], int sizeOutput) {
+    if (output == NULL) {
+        return "";
+    };
     int i;
     int k = terminalRows - 2;
     string fullOutput = "";
-    for(i = 0; i < sizeOutput; i++) {
+    for(i = 0; i < sizeOutput; ++i) {
         fullOutput = fullOutput + output[i];
         if (i != sizeOutput - 1) {
             fullOutput = fullOutput + "\n";
@@ -1091,12 +1094,15 @@ string getOutput(string output[], int sizeOutput) {
 };
 
 void wipeOutput(string output[], int sizeOutput) {
+    if (output == NULL) {
+        return;
+    };
     string lineBlank = "";
     int i;
-    for(i = 0; i < terminalColumns; i++) {
+    for(i = 0; i < terminalColumns; ++i) {
         lineBlank = lineBlank + " ";
     };
-    for(i = 0; i < sizeOutput; i++) {
+    for(i = 0; i < sizeOutput; ++i) {
         output[i] = lineBlank;
     };
     return;
@@ -1109,7 +1115,7 @@ void showBackground(string output[], int countStart, int maxRow) {
     for(row = 0; row < sizeBackground; row++) {
         count = countStart;
         text = "";
-        for(i = 0; i < terminalColumns; i++) {
+        for(i = 0; i < terminalColumns; ++i) {
             if (output == NULL) { // print directly (slow performance)
                 text = text + backGround[row][count];
             } else { // add to Output array
@@ -1154,9 +1160,9 @@ void loadingFrame(int progress, bool isShowBird) {
     int sizeColumn = 0;
 
     color(LIGHTCYAN);
-    for(i = 0; i < terminalRows - 4; i++) {
+    for(i = 0; i < terminalRows - 4; ++i) {
         if(i == terminalRows-5) {
-            for(j = 0; j < terminalColumns; j++) {
+            for(j = 0; j < terminalColumns; ++j) {
                 if(j == terminalColumns - 15) {
 
                     cursorPos_move(sizeColumn, sizeRow);
@@ -1185,10 +1191,10 @@ void loadingFrame(int progress, bool isShowBird) {
             cout << " LOADING";
 
             text = "";
-            for(k=0; k < tmp_int[0]; k++) {
+            for(k=0; k < tmp_int[0]; ++k) {
                 text = text + ".";
             };
-            for(k=0; k < 4 - tmp_int[0]; k++) {
+            for(k=0; k < 4 - tmp_int[0]; ++k) {
                 text = text + " ";
             };
             cout << text + "\n";
@@ -1241,11 +1247,11 @@ string menuText(string text[], int size, int choose) {
     string lineSpace = "";
     int i;
 
-    for(i = 0; i < ((terminalColumns - text[0].length()) / 2) - 6; i++) {
+    for(i = 0; i < ((terminalColumns - text[0].length()) / 2) - 6; ++i) {
         lineSpace = lineSpace + " ";
     };
     
-    for(i = 0; i < size; i++) {
+    for(i = 0; i < size; ++i) {
         if(i == choose) {
             finalString = finalString + lineSpace + "==> | " + text[i] + " | <==" + "\n";
         } else {
@@ -1339,7 +1345,7 @@ bool setKeymap(int value, int key, bool isTwoChar) {
             return 1;
         };
     } else if (key > 7) {
-        for(i = 0; i < sizeof(keyAllow) / sizeof(keyAllow[0]); i++) {
+        for(i = 0; i < sizeof(keyAllow) / sizeof(keyAllow[0]); ++i) {
             if (key == keyAllow[i]) {
                 keymapData[value][0] = 0;
                 keymapData[value][1] = key;
@@ -1374,7 +1380,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
             "           |_|  |_|   |__/                  ", \
             "" \
         };
-        for(i = 0; i < (logo[4].length() - version_code.length() - 1) - 2; i++) {
+        for(i = 0; i < (logo[4].length() - version_code.length() - 1) - 2; ++i) {
             text = text + logo[4][i];
         };
         logo[4] = text + "v" + version_code;
@@ -1394,7 +1400,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
 
     int padding = terminalRows - 7 - sizeMenu - titleMenuSize;
 
-    for(i=0; i <= padding; i++) {
+    for(i=0; i <= padding; ++i) {
         if(i == 3) {
             text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, *chooseMenu);
         } else if (i == padding - 1) {
@@ -1438,12 +1444,12 @@ void credit() {
     
     while(true) {
         text = "";
-        for(i=0; i<terminalRows - count; i++) {
+        for(i=0; i<terminalRows - count; ++i) {
             if (i == terminalRows - 1 - count) {
                 if (count - 1 < line) {
                     tmp = "";
-                    for(k=0; k<count; k++) {
-                        for(j=0; j < (terminalColumns - credit_info[k].length()) / 2; j++) {
+                    for(k=0; k<count; ++k) {
+                        for(j=0; j < (terminalColumns - credit_info[k].length()) / 2; ++j) {
                             tmp = tmp + " ";
                         };
                          tmp = tmp + credit_info[k] + "\n";
@@ -1461,7 +1467,7 @@ void credit() {
             color(MAGENTA);
             cout << "\n\n";
             tmp = ">> Press any key to exit <<";
-            for(i=0; i < (terminalColumns - tmp.length()) / 2; i++) {
+            for(i=0; i < (terminalColumns - tmp.length()) / 2; ++i) {
                 cout << " ";
             };
             cout << tmp;
@@ -1519,7 +1525,7 @@ void changeKeymapping(int value) {
     bottomKeymap("");
     flushStdin();
     __getch(p);
-    for(i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); i++) {
+    for(i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); ++i) {
         if((p[0] == keymapData[i][0]) && (p[1] == keymapData[i][1])) {
             j = 0;
             break;
@@ -1566,19 +1572,19 @@ void keymappingSettings() {
             return;
         };
         
-        for(i = 0; i < sizeMenu; i++) {
+        for(i = 0; i < sizeMenu; ++i) {
             k = keymapData[i][1];
             if (keymapData[i][0]) {
                 k = k + 500;
             };
             text = "(" + to_string(k) + ")";
             k = text.length();
-            for(j = 0; j < 5 - k; k++) {
+            for(j = 0; j < 5 - k; ++k) {
                 text = text + " ";
             };
             text = text + " '" + getNameKey(keymapData[i][1], keymapData[i][0]) + "'";
             k = text.length();
-            for(j = 0; j < 13 - k; j++) {
+            for(j = 0; j < 13 - k; ++j) {
                 text = text + " ";
             };
             
@@ -1596,7 +1602,7 @@ void stringToOutput(string str, string output[], int sizeOutput) {
     int row = 0;
     int i; 
     int column = 0;
-    for(i = 0; i < size; i++) {
+    for(i = 0; i < size; ++i) {
         if (row >= sizeOutput) {
             return;
         };
@@ -1611,7 +1617,7 @@ void stringToOutput(string str, string output[], int sizeOutput) {
     return;
 };
 
-void showBird(string output[], int countAnimation[], int sizeInAnimation, int skinIndex, int countGoUp) {
+void showBird(string output[], int countAnimation[2], int sizeInAnimation, int skinIndex, int countGoUp) {
     int index;
     if (countAnimation == NULL) {
         index = 0;
@@ -1654,15 +1660,15 @@ void brightnessSettings() {
         string text;
         string tmp;
         string lineSpace = "";
-        for(j = 0; j < (terminalColumns - sizeBar) / 2; j++) {
+        for(j = 0; j < (terminalColumns - sizeBar) / 2; ++j) {
             lineSpace = lineSpace + " ";
         };
         string perProcess = "";
-        for(i = 0; i < (sizeBar / max); i++) {
+        for(i = 0; i < (sizeBar / max); ++i) {
             perProcess = perProcess + "=";
         };
         string blankPerProcess = "";
-        for(i = 0; i < (sizeBar / max); i++) {
+        for(i = 0; i < (sizeBar / max); ++i) {
             blankPerProcess = blankPerProcess + " ";
         };
         while(true) {
@@ -1670,10 +1676,10 @@ void brightnessSettings() {
                 return;
             };
             text = "";
-            for(i = 0; i < terminalRows - 4; i++) {
+            for(i = 0; i < terminalRows - 4; ++i) {
                 if ((terminalRows / 2) - 2 == i) {
                     text = text + lineSpace + " ";
-                    for(j = 0; j < sizeBar; j++) {
+                    for(j = 0; j < sizeBar; ++j) {
                         text = text + "_";
                     };
                     text = text + "\n";
@@ -1688,10 +1694,10 @@ void brightnessSettings() {
 
                     text = text + "[";
 
-                    for(j = 0; j < currentBrightness; j++) {
+                    for(j = 0; j < currentBrightness; ++j) {
                         text = text + perProcess;
                     };
-                    for(j = 0; j < max - currentBrightness; j++) {
+                    for(j = 0; j < max - currentBrightness; ++j) {
                         text = text + blankPerProcess;
                     };
 
@@ -1702,7 +1708,7 @@ void brightnessSettings() {
 
                     text = text + "\n" + lineSpace + " ";
 
-                    for(j = 0; j < sizeBar; j++) {
+                    for(j = 0; j < sizeBar; ++j) {
                         text = text + "`";
                     };
                     text = text + "\n";
@@ -1757,7 +1763,7 @@ void highScore() {
     int i;
     string menu[sizelistHighScore];
     int sizeMenu = sizeof(menu) / sizeof(menu[0]);
-    for(i = 0; i < sizeMenu; i++) {
+    for(i = 0; i < sizeMenu; ++i) {
         menu[i] = to_string(listHighScore[i]);
     };
     int choose = 0;
@@ -1844,7 +1850,7 @@ void changeSkin() {
         space = space + "  ";
     };
 
-    for(i = 0; i < sizeBirdAnimation; i++) {
+    for(i = 0; i < sizeBirdAnimation; ++i) {
         menu[i] = "skin_" + to_string(i + 1) + space;
     };
     menu[sizeBirdAnimation] = " Back ";
@@ -2028,7 +2034,7 @@ void configError(int key) {
     thread lockSizeTer(lockSizeTerminal);
     int j;
     int size = sizeof(keymapData) / sizeof(keymapData[0]);
-    for(j = 0; j < size; j++) {
+    for(j = 0; j < size; ++j) {
         writeConfig("key" + to_string(j), "-1");
     };
     clearTerminal();
@@ -2046,7 +2052,7 @@ void loadConfig() {
         int i, j, k;
         int size = sizeof(keymapData) / sizeof(keymapData[0]);
         int newKeymapData[size][2];
-        for(i = 0; i < sizeof(newKeymapData) / sizeof(newKeymapData[0]); i++) {
+        for(i = 0; i < sizeof(newKeymapData) / sizeof(newKeymapData[0]); ++i) {
             newKeymapData[i][1] = -1;
             newKeymapData[i][0] = 0;
         };
@@ -2065,7 +2071,7 @@ void loadConfig() {
         if (!setSkin(readConfig("skin"))) {
             writeConfig("skin", "0");  
         };
-        for(i = 0; i < size; i++) {
+        for(i = 0; i < size; ++i) {
             isTwoChar = false;
             j = readConfig("key" + to_string(i));
             if(j > 500) {
@@ -2073,7 +2079,7 @@ void loadConfig() {
                 isTwoChar = true;
             };
             if (j > 7) {
-                for(k = 0; k < size; k++) {
+                for(k = 0; k < size; ++k) {
                     if((j == newKeymapData[k][1]) && (isTwoChar == newKeymapData[k][0])) {
                         configError(i);
                     };
@@ -2087,8 +2093,8 @@ void loadConfig() {
             };
         };
         // check keymap after set
-        for(i = 0; i < size; i++) {
-            for(j = 0; j < size; j++) {
+        for(i = 0; i < size; ++i) {
+            for(j = 0; j < size; ++j) {
                 if(i == j) {
                     continue;
                 };
@@ -2105,7 +2111,7 @@ void loadConfig() {
 
 void loadHighScore() {
     int i;
-    for(i = 0; i < sizelistHighScore; i++) {
+    for(i = 0; i < sizelistHighScore; ++i) {
         listHighScore[i] = 0;
     };
 
@@ -2136,10 +2142,10 @@ void loadHighScore() {
     int maxIndex;
     int j;
     int max;
-    for(i = sizelistHighScore - 1; i >= 0 ; i--) {
+    for(i = sizelistHighScore - 1; i >= 0 ; --i) {
         maxIndex = 0;
         max = tmpList[maxIndex];
-        for(j = 1; j < countLine; j++) {
+        for(j = 1; j < countLine; ++j) {
             if (max < tmpList[j]) {
                 max = tmpList[j];
                 maxIndex = j;
@@ -2158,13 +2164,13 @@ int getHighScore(int currentScore) {
     int i;
     int j, k, l;
     j = listHighScore[0];
-    for(i = 1; i < sizelistHighScore; i++) {
+    for(i = 1; i < sizelistHighScore; ++i) {
         if (j < listHighScore[i]) {
             j = listHighScore[i];
             k = listHighScore[i];
         };
     };
-    for(i = 0; i < sizelistHighScore; i++) {
+    for(i = 0; i < sizelistHighScore; ++i) {
         l = listHighScore[i] - currentScore;
 
         if (l > 0 && l < k) {
@@ -2176,6 +2182,9 @@ int getHighScore(int currentScore) {
 };
 
 void showHighScore(string output[], int highScore, bool isHigher) {
+    if (output == NULL) {
+        return;
+    };
     if (highScore > 0) {
         string text;
         string highScore_str;
@@ -2191,7 +2200,7 @@ void showHighScore(string output[], int highScore, bool isHigher) {
         int j = terminalColumns - highScore_length - 6;
         
         text = "+-";
-        for(i = 0; i < highScore_length; i++) {
+        for(i = 0; i < highScore_length; ++i) {
             text = text + "-";
         };
         text = text + "-+";
@@ -2202,15 +2211,15 @@ void showHighScore(string output[], int highScore, bool isHigher) {
             i = 0;
         };
 
-        for(k = 0; k < text.length(); k++) {
+        for(k = 0; k < text.length(); ++k) {
             output[3 - i][j + k] = text[k];
         };
         
-        for(k = 0; k < highScore_str.length(); k++) {
+        for(k = 0; k < highScore_str.length(); ++k) {
             output[4 - i][j + k] = highScore_str[k];
         };
 
-        for(k = 0; k < text.length(); k++) {
+        for(k = 0; k < text.length(); ++k) {
             output[5 - i][j + k] = text[k];
         };
     };
@@ -2218,6 +2227,9 @@ void showHighScore(string output[], int highScore, bool isHigher) {
 };
 
 void showScore(string output[], int score, int higherScore, bool isHigher) {
+    if (output == NULL) {
+        return;
+    };
     showHighScore(output, higherScore, isHigher);
     if (!isHigher) {
         string text;
@@ -2228,20 +2240,20 @@ void showScore(string output[], int score, int higherScore, bool isHigher) {
         int j = terminalColumns - score_length - 6;
         
         text = "+-";
-        for(i = 0; i < score_length; i++) {
+        for(i = 0; i < score_length; ++i) {
             text = text + "-";
         };
         text = text + "-+";
 
-        for(k = 0; k < text.length(); k++) {
+        for(k = 0; k < text.length(); ++k) {
             output[1][j + k] = text[k];
         };
 
-        for(k = 0; k < score_str.length(); k++) {
+        for(k = 0; k < score_str.length(); ++k) {
             output[2][j + k] = score_str[k];
         };
 
-        for(k = 0; k < text.length(); k++) {
+        for(k = 0; k < text.length(); ++k) {
             output[3][j + k] = text[k];
         };
     };
@@ -2257,20 +2269,20 @@ void showWall(string output[], int column, int up, int down) {
 
     // up
     text = "|  |";
-    for(i = 0; i < up - 2; i++) {
-        for(k = 0; k < text.length(); k++) {
+    for(i = 0; i < up - 2; ++i) {
+        for(k = 0; k < text.length(); ++k) {
             output[i][column + k] = text[k]; 
         };
     };
     if (up - 2 >= 0) {
         text = "|__|";
-        for(k = 0; k < text.length(); k++) {
+        for(k = 0; k < text.length(); ++k) {
             output[up - 2][column + k] = text[k]; 
         };
     };
     if (up - 1 >= 0) {
         text = "|____|";
-        for(k = 0; k < text.length(); k++) {
+        for(k = 0; k < text.length(); ++k) {
             output[up - 1][column + k - 1] = text[k]; 
         };
     };
@@ -2278,26 +2290,29 @@ void showWall(string output[], int column, int up, int down) {
     // down
     text = "|  |";
     j = terminalRows - 3;
-    for(i = down + 3; i < j; i++) {
-        for(k = 0; k < text.length(); k++) {
+    for(i = down + 3; i < j; ++i) {
+        for(k = 0; k < text.length(); ++k) {
             output[i][column + k] = text[k]; 
         };
     };
     text = "|````|";
-    for(k = 0; k < text.length(); k++) {
+    for(k = 0; k < text.length(); ++k) {
         output[down + 1][column + k - 1] = text[k]; 
     };
     text = "|``|";
-    for(k = 0; k < text.length(); k++) {
+    for(k = 0; k < text.length(); ++k) {
         output[down + 2][column + k] = text[k]; 
     };
     return;
 };
 
 void showAllWall(string output[], int *nextWall, int *score, int countWall) {
+    if (output == NULL) {
+        return;
+    };
     int i, j;
 
-    for(i = 0; i < sizelistWall; i++) {
+    for(i = 0; i < sizelistWall; ++i) {
         if ((listWall[i][0] > -1) && (listWall[i][0] < terminalColumns - 3)) {
             // display Wall
             showWall(output, listWall[i][0], listWall[i][1], listWall[i][2]);
@@ -2306,7 +2321,7 @@ void showAllWall(string output[], int *nextWall, int *score, int countWall) {
             };
         } else if ((listWall[i][1] > -1) && (gameStarted)) {
             // remove Wall cannot display
-            for(j = 0; j < 3; j++) {
+            for(j = 0; j < 3; ++j) {
                 listWall[i][j] = -1;
             };
             *nextWall = i + 1;
@@ -2325,7 +2340,7 @@ void showAllWall(string output[], int *nextWall, int *score, int countWall) {
 bool gameOver(int score, int y, int minY, int maxY) {
     if(!settingsData[3]) {
         int i;
-        for(i = sizelistHighScore - 1; i >= 0; i--) {
+        for(i = sizelistHighScore - 1; i >= 0; --i) {
             if (score > listHighScore[i]) {
                 writeFile(scoreFileName, readFile(scoreFileName) + to_string(score) + "\n");
                 listHighScore[i] = score;
@@ -2351,8 +2366,8 @@ bool gameOver(int score, int y, int minY, int maxY) {
 
 void resetWall() {
     int i, j;
-    for(i = 0; i < sizelistWall; i++) {
-        for(j = 0; j < sizeof(listWall[i]) / sizeof(listWall[i][0]); j++) {
+    for(i = 0; i < sizelistWall; ++i) {
+        for(j = 0; j < sizeof(listWall[i]) / sizeof(listWall[i][0]); ++j) {
             listWall[i][j] = -2;
         };
     };
@@ -2405,38 +2420,219 @@ void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
     return;
 };
 
+void showFirework(string output[], int firework[3]) {
+    if (output == NULL) {
+        return;
+    };
+    
+    // firework[0] -> Column | firework[1] -> Row | firework[2] -> where firework BUMMM
+    if (firework[0] == -1) {    // define locate firework appear
+        if ((rand() % 4) == 2) {
+            do { // Column
+                firework[0] = rand() % (terminalColumns - 1); // right
+            } while (firework[0] < 1); // left
+
+            firework[1] = terminalRows - 3; // Row
+            firework[2] = (rand() % ((firework[1] / 2) + 2)); // BUMMM
+        } else {
+            return;
+        };
+    };
+
+    if (firework[2] < -1) {
+        switch(firework[2]) {
+            //
+            //
+            //   `.:.`
+            //  ---O---
+            //   .`:`.
+            //
+            //
+            case -6:
+            case -7:
+            case -8:
+            case -9:
+                // left
+                if ((firework[0] - 2) > -1) {
+                    output[firework[1]][firework[0] - 2] = '-';
+                };
+                if ((firework[0] + 2) <= terminalColumns) {
+                    output[firework[1]][firework[0] + 2] = '-';
+                };
+
+                // right
+                if ((firework[0] - 3) > -1) {
+                    output[firework[1]][firework[0] - 3] = '-';
+                };
+                if ((firework[0] + 3) <= terminalColumns) {
+                    output[firework[1]][firework[0] + 3] = '-';
+                };
+
+                if ((firework[1] - 1) > -1) {
+                    // up
+                    output[firework[1] - 1][firework[0]] = ':';
+
+                    // up left
+                    if ((firework[0] - 2) > -1) {
+                        output[firework[1] - 1][firework[0] - 2] = '`';
+                    };
+                    if ((firework[0] - 1) > -1) {
+                        output[firework[1] - 1][firework[0] - 1] = '.';
+                    };
+                    
+                    // up right
+                    if ((firework[0] + 1) <= terminalColumns) {
+                        output[firework[1] - 1][firework[0] + 1] = '.';
+                    };
+                    if ((firework[0] + 2) <= terminalColumns) {
+                        output[firework[1] - 1][firework[0] + 2] = '`';
+                    };
+                };
+
+                if (firework[1] + 1 <= terminalRows) {
+                    // down
+                    output[firework[1] + 1][firework[0]] = ':';
+
+                    // down left
+                    if ((firework[0] - 2) > -1) {
+                        output[firework[1] + 1][firework[0] - 2] = '.';
+                    };
+                    if ((firework[0] - 1) > -1) {
+                        output[firework[1] + 1][firework[0] - 1] = '`';
+                    };
+
+                    // down right
+                    if ((firework[0] + 1) <= terminalColumns) {
+                        output[firework[1] + 1][firework[0] + 1] = '`';
+                    };
+                    if ((firework[0] + 2) <= terminalColumns) {
+                        output[firework[1] + 1][firework[0] + 2] = '.';
+                    };
+                };
+            case -4:
+            case -5:
+                // left
+                if ((firework[0] - 1) > -1) {
+                    output[firework[1]][firework[0] - 1] = '-';
+                };
+
+                // right
+                if ((firework[0] + 1) <= terminalColumns) {
+                    output[firework[1]][firework[0] + 1] = '-';
+                };
+
+                if (firework[2] > -6) {
+                    if ((firework[1] - 1) > -1) {
+                        // up
+                        output[firework[1] - 1][firework[0]] = '.';
+
+                        // up left
+                        if ((firework[0] - 1) > -1) {
+                            output[firework[1] - 1][firework[0] - 1] = '.';
+                        };
+
+                        // up right
+                        if ((firework[0] + 1) <= terminalColumns) {
+                            output[firework[1] - 1][firework[0] + 1] = '.';
+                        };
+                    };
+
+                    if ((firework[1] + 1) <= terminalRows) {
+                        // down
+                        output[firework[1] + 1][firework[0]] = '`';
+
+                        // down left
+                        if ((firework[0] - 1) > -1) {
+                            output[firework[1] + 1][firework[0] - 1] = '`';
+                        };
+                        // down right
+                        if ((firework[0] - 1) > -1) {
+                            output[firework[1] + 1][firework[0] + 1] = '`';
+                        };
+                    };
+                };
+            case -2:
+            case -3:
+                // middle
+                output[firework[1]][firework[0]] = 'O';
+        };
+
+        firework[2] = firework[2] - 1;
+        if (firework[2] <= -10) {
+            firework[0] = -1;
+        };
+        return;
+    };
+
+    output[firework[1]][firework[0]] = '|';
+    if (firework[1] <= firework[2]) {
+            firework[2] = -2;
+    } else {
+        firework[1] = firework[1] - 1;
+        if (firework[1] < 0) {
+            firework[0] = -1;
+        };
+    };
+
+    return;
+};
+
 void flappyBird() { 
+    int i, j;
     isInGame = true;
-    int i;
-    int minY = 0;
-    int maxY = 0;
-    string output[terminalRows - 2];
-    int sizeOutput = sizeof(output) / sizeof(output[0]);
     bool isOver = 0;
     gameStarted = false;
-    bool highScoreIsScore = 0;
+    
+    int x = 0;
+    int y = 0;
+    int minY = 0;
+    int maxY = 0;
+    int oldX = x;
+    int choose = 0;
+    int maxUp = terminalRows / 4;
+    
+    // background
     int countStart = rand() % sizeBackground;
+    
+    // bird
+    int countAnimation[2] = {1, 0};
+    int sizeBird = sizeof(skinFlyAnimation[settingsData[4]]) / sizeof(skinFlyAnimation[settingsData[4]][0]);
+    int sizeInAnimation = sizeof(skinFlyAnimation[settingsData[4]][countAnimation[0]]) / sizeof(skinFlyAnimation[settingsData[4]][countAnimation[0]][0]);
+
+    // wall
     int nextWall = 0;
     int countWall = 0;
-    int wallCreateDistance = 19 + getResolutionValue();
-    for(i = 0; i < getResolutionValue(); i++) {
+    int wallCreateDistance = 19;
+    for(i = 0; i < getResolutionValue(); ++i) {
         wallCreateDistance = wallCreateDistance + 5;
     };
     int distance = wallCreateDistance - 4;
-    int countAnimation[2] = {1, 0};
+
+    // road
+    string lineMap = getRoad();
+    
+    // score
     int score = 0;
     int highScore_ = getHighScore(score);
-    int x = 0;
-    int y = 0;
-    int oldX = x;
-    int choose = 0;
-    int sizeBird = sizeof(skinFlyAnimation[settingsData[4]]) / sizeof(skinFlyAnimation[settingsData[4]][0]);
-    int maxUp = terminalRows / 4;
-    int sizeInAnimation = sizeof(skinFlyAnimation[settingsData[4]][countAnimation[0]]) / sizeof(skinFlyAnimation[settingsData[4]][countAnimation[0]][0]);
+    bool highScoreIsScore = 0;
+
+    // output data
+    string output[terminalRows - 2];
+    int sizeOutput = sizeof(output) / sizeof(output[0]);
     string text;
     string outputGame;
+
+    // firework
+    int totalFirework = 4;
+    int fireworkData[totalFirework][3];
+    for(i = 0; i < totalFirework; ++i) {
+        for(j = 0; j < 3; ++j) {
+            fireworkData[i][j] = -1;
+        };
+    };
+
+    // prepare
     resetWall();
-    string lineMap = getRoad();
     color(settingsData[2]);
     showChangeScene();
     flushStdin();
@@ -2569,6 +2765,11 @@ void flappyBird() {
         text = text + " | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> PAUSE | X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";
         wipeOutput(output, sizeOutput);
         showBackground(output, countStart, terminalRows - 3);
+        if (gameStarted) {
+            for(i = 0; i < totalFirework; ++i) {
+                showFirework(output, fireworkData[i]);
+            };
+        };
         showAllWall(output, &nextWall, &score, countWall);
         showBird(output, countAnimation, sizeInAnimation, settingsData[4], y);
         showScore(output, score, highScore_, highScoreIsScore);
@@ -2804,7 +3005,7 @@ void checkARG(int argc, char const *argv[]) {
         string tmp;
         string text = "";
         text = text + ">> Using debug arguments can affect performance and experience!\n";
-        for(i = 1; i < argc; i++) {
+        for(i = 1; i < argc; ++i) {
             arg = "";
             tmp = "INVALID";
             j = 0;
@@ -2887,7 +3088,7 @@ void checkTerminalMode() {
     int center = (terminalRows / 2) - 7;
 
     text = "";
-    for(j = 0; j < terminalColumns; j++) {
+    for(j = 0; j < terminalColumns; ++j) {
         text = text + " ";
     };
 
@@ -2895,7 +3096,7 @@ void checkTerminalMode() {
     for(row = 0; row < 5; row++) {
         text2 = text;
         i = (terminalColumns / 2) - 5;
-        for(j = 0; j < 10; j++) {
+        for(j = 0; j < 10; ++j) {
             text2[i + j] = ':';
         };
         
