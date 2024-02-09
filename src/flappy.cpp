@@ -330,16 +330,6 @@ void anyKey() {
     return;
 };
 
-void resetKeymapData() {
-    int i, j;
-    for(i = 0; i < sizeof(defaultKeymapData) / sizeof(defaultKeymapData[0]); i++) {
-        for(j = 0; j < sizeof(defaultKeymapData[0]) / sizeof(defaultKeymapData[0][0]); j++) {
-            keymapData[i][j] = defaultKeymapData[i][j];
-        };
-    };
-    return;
-};
-
 void playSound(string file, bool isSFX) {  // Windows API
     if (settingsData[8]) {
         if (isSFX) {
@@ -414,6 +404,19 @@ void writeConfig(string key, string value) {
     return;
 };
 
+void resetKeymapData(bool isWriteConfig) {
+    int i, j;
+    for(i = 0; i < sizeof(defaultKeymapData) / sizeof(defaultKeymapData[0]); i++) {
+        for(j = 0; j < sizeof(defaultKeymapData[0]) / sizeof(defaultKeymapData[0][0]); j++) {
+            keymapData[i][j] = defaultKeymapData[i][j];
+            if (isWriteConfig) {
+                writeConfig("key" + to_string(i), "-1");
+            };
+        };
+    };
+    return;
+};
+
 void titleTerminal(string name) {
     SetConsoleTitle((LPCTSTR)name.c_str());
     return;
@@ -445,6 +448,9 @@ void bottomKeymap(string text) {
     i = text.length();
     for(j = 0; j < terminalColumns - i; ++j) {
         text = text + ' ';
+    };
+    while (text.length() > terminalColumns) {
+        text.pop_back();
     };
     cursorPos_move(0, terminalRows - 2);
     color(WHITE);
@@ -3359,10 +3365,12 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
         } else if ((p[1] == 134) && (p[0])) {    // F12
             switch(type_menu) {
                 case -2:
-                    resetKeymapData();
-                    showBoxText("Reset completed", true);
-                    bottomKeymap("Press any key to continue!");
-                    anyKey();
+                    if (showYesorNo("Do you want to reset?")) {
+                        resetKeymapData(true);
+                        showBoxText("Reset completed", true);
+                        bottomKeymap("Press any key to continue!");
+                        anyKey();
+                    };
                     break;
             };
         } else {
@@ -3514,7 +3522,7 @@ int main(int argc, char const *argv[]) {
     checkTerminalMode();
 
     configureTerminal();
-    resetKeymapData();
+    resetKeymapData(false);
     loadConfig();
     clearTerminal();
     resizeTerminal(terminalColumns, terminalRows);
