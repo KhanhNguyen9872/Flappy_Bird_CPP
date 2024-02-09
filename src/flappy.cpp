@@ -1842,13 +1842,17 @@ void showWall(string output[], int skinValue, int column, int up, int down) {
     text = skinWall[skinValue][0];
     for(i = 0; i < up - 2; ++i) {
         for(k = 0; k < text.length(); ++k) {
-            output[i][column + k] = text[k]; 
+            if ((column + k) <= terminalColumns) {
+                output[i][column + k] = text[k]; 
+            };
         };
     };
     if (up - 2 >= 0) {
         text = skinWall[skinValue][1];
         for(k = 0; k < text.length(); ++k) {
-            output[up - 2][column + k] = text[k]; 
+            if (((up - 2) >= 0) && ((column + k) <= terminalColumns))  {
+                output[up - 2][column + k] = text[k]; 
+            };
         };
     };
     if (up - 1 >= 0) {
@@ -1863,16 +1867,22 @@ void showWall(string output[], int skinValue, int column, int up, int down) {
     j = terminalRows - 3;
     for(i = down + 3; i < j; ++i) {
         for(k = 0; k < text.length(); ++k) {
-            output[i][column + k] = text[k]; 
+            if ((column + k) <= terminalColumns) {
+                output[i][column + k] = text[k]; 
+            };
         };
     };
     text = skinWall[skinValue][3];
     for(k = 0; k < text.length(); ++k) {
-        output[down + 1][column + k - 1] = text[k]; 
+        if (((down + 1) < j) && ((column + k - 1) <= terminalColumns)) {
+            output[down + 1][column + k - 1] = text[k]; 
+        };
     };
     text = skinWall[skinValue][4];
     for(k = 0; k < text.length(); ++k) {
-        output[down + 2][column + k] = text[k]; 
+        if (((down + 2) < j) && ((column + k) <= terminalColumns)) {
+            output[down + 2][column + k] = text[k];
+        };
     };
     return;
 };
@@ -1882,7 +1892,8 @@ void previewSkin(int index, bool isSkinBird) {
     int choose = 0;
     int countAnimation[2] = {1, 0};
     int sizeInAnimation;
-    int j = 0;
+    int j = 5, k = 0;
+    bool r = false;
     if (isSkinBird) {
         sizeInAnimation = sizeof(skinFlyAnimation[index][countAnimation[0]]) / sizeof(skinFlyAnimation[index][countAnimation[0]][0]);
     };
@@ -1909,10 +1920,26 @@ void previewSkin(int index, bool isSkinBird) {
         };
 
         if (isSkinBird) {
-            showBird(output, countAnimation, sizeInAnimation, index, 0);
+            showBird(output, countAnimation, sizeInAnimation, index, k);
+            if (k <= -2) {
+                k = k + 2;
+            } else {
+                k = k - 1;
+            };
         } else {
-            j = i - 9;
-            showWall(output, index, 10, 5, j);
+            k = j + 6;
+            showWall(output, index, 12, j, k);
+            if (r) {
+                j = j + 1;
+            } else {
+                j = j - 1;
+            };
+            if (j <= 0) {
+                r = true;
+            };
+            if ((k + 3) >= i) {
+                r = false;
+            };
         };
         output[i - 1] = road;
         finalOutput = getOutput(output, i);
@@ -2563,7 +2590,7 @@ void addWall(int *countWall) {
         return;
     };
     listWall[*countWall][0] = terminalColumns - 4;
-    listWall[*countWall][1] = (rand() % (terminalRows - 11)) + 1; //up
+    listWall[*countWall][1] = (rand() % (terminalRows - 9)); //up
     listWall[*countWall][2] = listWall[*countWall][1] + 6; // down
 
     *countWall = *countWall + 1;
