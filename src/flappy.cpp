@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <winsock2.h>
 #include <windows.h>
 #include <string>
 #include <conio.h>
@@ -12,6 +13,7 @@
 #include <sstream>
 
 #pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "ws2_32.lib")
 
 #define configFileName  ".\\flappy.conf"
 #define scoreFileName   ".\\score.txt"
@@ -2261,6 +2263,165 @@ void mainMenu() {
     return;
 };
 
+void startOptions() {
+    string menu[3] = {
+        "  Offline ",
+        "  Online  ",
+        "   Back   "
+    };
+    int sizeMenu = sizeof(menu)/sizeof(menu[0]);
+    int choose = 0;
+    flushStdin();
+    while(true) {
+        if (choose == -1) {
+            flushStdin();
+            return;
+        };
+        showMenu("| Start game |", menu, sizeMenu, &choose, "");
+        inputMenu(&choose, sizeMenu - 1, -8);
+        Sleep(100);
+    };
+    return;
+};
+
+void connectIP(string ip) {
+    errorBox("Unavailable", "", true);
+    return;
+};
+
+void boxInputIP() {
+    int p[2] = {-1, -1};
+    int i, j;
+    int column = 20;
+    int row = (terminalRows / 2) - 5;  // (8 / 2) - 1
+    int sizeBox = terminalColumns - (column * 2);
+    string text;
+    string output[terminalRows - 2];
+    string fullOutput;
+    string nameKey;
+    string userInput = "";
+    int sizeOutput = sizeof(output) / sizeof(output[0]);
+    int indexCursor = 0;
+    flushStdin();
+    while(true) {
+        if ((!p[0]) && (p[1] == 27)) {
+            clearTerminal();
+            flushStdin();
+            return;
+        };
+        wipeOutput(output, sizeOutput);
+        // 1
+        for(i = 0; i < sizeBox; i++) {
+            output[row][column + i] = '_';
+        };
+        // 2
+        output[row + 1][column - 1] = '|';
+        
+        output[row + 1][terminalColumns - column] = '|';
+        output[row + 1][terminalColumns - column + 1] = '\\';
+        // 3
+        output[row + 2][column - 1] = '|';
+        text = "IP Online";
+        for(i = 0; i < text.length(); i++) {
+            output[row + 2][column + (i + 4) - 1] = text[i];
+        };
+        output[row + 2][terminalColumns - column] = '|';
+        output[row + 2][terminalColumns - column + 1] = '\\';
+        // 4
+        output[row + 3][column - 1] = '|';
+        for(i = 0; i < sizeBox - 6; i++) {
+            output[row + 3][column + i + 3] = '_';
+        };
+        output[row + 3][terminalColumns - column] = '|';
+        output[row + 3][terminalColumns - column + 1] = '\\';
+        // 5
+        output[row + 4][column - 1] = '|';
+        output[row + 4][column + 2] = '|';
+        text = userInput;
+        while (text.length() > (sizeBox - 7)) {
+            text.erase(0, 1);
+        };
+        for(i = 0; i < text.length(); i++) {
+            output[row + 4][column + 3 + i] = text[i];
+        };
+        output[row + 4][column + 3 + indexCursor] = '_';
+        output[row + 4][terminalColumns - column - 3] = '|';
+        output[row + 4][terminalColumns - column] = '|';
+        output[row + 4][terminalColumns - column + 1] = '\\';
+        // 6
+        output[row + 5][column - 1] = '|';
+        for(i = 0; i < sizeBox - 6; i++) {
+            output[row + 5][column + i + 3] = '`';
+        };
+        output[row + 5][terminalColumns - column] = '|';
+        output[row + 5][terminalColumns - column + 1] = '\\';
+        // 7
+        output[row + 6][column - 1] = '|';
+        for(i = 0; i < sizeBox; i++) {
+            output[row + 6][column + i] = '_';
+        };
+        output[row + 6][column + sizeBox] = '|';
+        output[row + 6][column + sizeBox + 1] = '\\';
+        // 8
+        for(i = 0; i < sizeBox + 2; i++) {
+            output[row + 7][column + i] = '\\';
+        };
+
+        // output
+        fullOutput = getOutput(output, sizeOutput);
+        cursorPos_up();
+        cout << fullOutput;
+        bottomKeymap("| [ESC] -> Back | [ENTER] -> Connect |");
+        // input
+        if (_kbhit()) {
+            __getch(p);
+            if (!p[0]) {
+                switch(p[1]) {
+                    case 8: // backspace
+                        if (userInput.length() > 0) {
+                            // userInput.erase(indexCursor, indexCursor + 1);
+                            // indexCursor = indexCursor - 1;
+                            if (indexCursor >= (userInput.length())) {
+                                indexCursor = indexCursor - 1;
+                            };
+                            userInput.pop_back();
+                        };
+                        break;
+                    case 13: // enter
+                        connectIP(userInput);
+                        break;
+                    default:
+                        nameKey = getNameKey(p[1], p[0]);
+                        if (nameKey.length() == 1) {
+                            if (userInput.length() <= 100) {
+                                userInput = userInput + nameKey;
+                                if (text.length() < (sizeBox - 7)) {
+                                    indexCursor = indexCursor + 1;
+                                };
+                            };
+                        };
+                        break;
+                };
+            } else {
+                // switch(p[1]) {
+                //     case 75:
+                //         if (indexCursor > 0) {
+                //             indexCursor = indexCursor - 1;
+                //         };
+                //         break;
+                //     case 77:
+                //         if (indexCursor < userInput.length()) {
+                //             indexCursor = indexCursor + 1;
+                //         };
+                //         break;
+                // };
+            }
+        };
+        Sleep(25);
+    };
+    return;
+};
+
 void configError(int key) {
     resizeTerminal(terminalColumns, terminalRows);
     thread lockSizeTer(lockSizeTerminal);
@@ -3071,6 +3232,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
         __getch(p);
         if ((p[1] == keymapData[0][1]) && (p[0] == keymapData[0][0])) /* UP */ {
             switch (type_menu) {
+                case -8: // startOptions
                 case -4: // pausedMenu
                 case -2: // keymappingSettings
                 case 0:  // mainMenu
@@ -3109,6 +3271,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if ((p[1] == keymapData[1][1]) && (p[0] == keymapData[1][0])) /* DOWN */ {
             switch (type_menu) {
+                case -8:
                 case -4:
                 case -2:
                 case 0:
@@ -3129,6 +3292,20 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if ((p[1] == keymapData[6][1]) && (p[0] == keymapData[6][0])) /* ENTER */ {
             switch(type_menu) {
+                case -8:
+                    switch(*chooseMenu) {
+                        case 0:
+                            flappyBird();
+                            *chooseMenu = -1;
+                            break;
+                        case 1:
+                            boxInputIP();
+                            break;
+                        case 2:
+                            *chooseMenu = -1;
+                            break;
+                    };
+                    break;
                 case -7:
                 case -6:
                 case -5:
@@ -3162,7 +3339,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 0:
                     switch(*chooseMenu) {
                         case 0:
-                            flappyBird();
+                            startOptions();
                             break;
                         case 1:
                             highScore();
@@ -3329,6 +3506,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
         } else if ((p[1] == keymapData[4][1]) && (p[0] == keymapData[4][0])) /* ESC */ {
             switch(type_menu) {
+                case -8:
                 case -7:
                 case -6:
                 case -5:
