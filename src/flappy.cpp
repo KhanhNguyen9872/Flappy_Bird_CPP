@@ -39,7 +39,7 @@
 using namespace std;
 
 string version_code = "1.0.0";
-char keymapData[7][2] = {
+char defaultKeymapData[7][2] = {
     {0, 119},    // UP       'w'
     {0, 115},    // DOWN     's'
     {0, 97},    // LEFT      'a'
@@ -48,6 +48,7 @@ char keymapData[7][2] = {
     {0, 32},   // SPACE      ' '
     {0, 13}     // ENTER     '\r'
 };
+char keymapData[7][2];
 
 int listHighScore[7];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
@@ -329,6 +330,16 @@ void anyKey() {
     return;
 };
 
+void resetKeymapData() {
+    int i, j;
+    for(i = 0; i < sizeof(defaultKeymapData) / sizeof(defaultKeymapData[0]); i++) {
+        for(j = 0; j < sizeof(defaultKeymapData[0]) / sizeof(defaultKeymapData[0][0]); j++) {
+            keymapData[i][j] = defaultKeymapData[i][j];
+        };
+    };
+    return;
+};
+
 void playSound(string file, bool isSFX) {  // Windows API
     if (settingsData[8]) {
         if (isSFX) {
@@ -459,7 +470,7 @@ void errorBox(string output, string bottom, bool isBlur) {
     int sizeRow;
 
     if(bottom == "") {
-        bottom = "Press any key to continue";
+        bottom = "Press any key to continue!";
     };
     
     for(i = 0; i < (terminalColumns - boxSize) / 2; ++i) {
@@ -1386,7 +1397,7 @@ bool setKeymap(int value, int key, bool isTwoChar) {
     return 0;
 };
 
-void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
+void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, string addTextBottom) {
     //   ___ _                       ___ _        _ 
     //  | __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |
     //  | _|| / _` | '_ \ '_ \ || | | _ \ | '_/ _` |
@@ -1438,7 +1449,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu) {
     color(settingsData[2]);
     clearTerminal();
     cout << text;
-    bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
+    bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK | " + addTextBottom);
     return;
 };
 
@@ -1615,7 +1626,7 @@ void keymappingSettings() {
             
             menu[i] = text + "  -->  " + template_menu[i];
         };
-        showMenu("| Keymapping Settings |", menu, sizeMenu, &choose);
+        showMenu("| Keymapping Settings |", menu, sizeMenu, &choose, "[F12] -> RESET |");
         inputMenu(&choose, sizeMenu - 1, -2);
         Sleep(100);
     };
@@ -1779,7 +1790,7 @@ void resolutionSettings() {
             return;
         };
         titleMenu = "| Current resolution: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " |";
-        showMenu(titleMenu, menu, sizeMenu, &choose);
+        showMenu(titleMenu, menu, sizeMenu, &choose, "");
         inputMenu(&choose, sizeMenu - 1, 3);
         Sleep(100);
     };
@@ -1799,7 +1810,7 @@ void highScore() {
             flushStdin();
             return;
         };
-        showMenu("| High score |", menu, sizeMenu, &choose);
+        showMenu("| High score |", menu, sizeMenu, &choose, "");
         bottomKeymap("| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |");
         inputMenu(&choose, sizeMenu - 1, 4);
         Sleep(100);
@@ -2003,7 +2014,7 @@ void changeSkin(bool isSkinBird) {
         } else {
             j = settingsData[15] + 1;
         };
-        showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, &choose);
+        showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, &choose, "");
         inputMenu(&choose, size, inputCase);
         Sleep(100);
     };
@@ -2029,7 +2040,7 @@ void optionsSkin() {
             return;
         };
 
-        showMenu("| Change Skin |", menu, sizeMenu, &choose);
+        showMenu("| Change Skin |", menu, sizeMenu, &choose, "");
         inputMenu(&choose, sizeMenu - 1, 8);
         Sleep(100);
     };
@@ -2079,7 +2090,7 @@ void moreSettingsMenu() {
             menu[3][14] = ' ';
         };
 
-        showMenu("| Settings |", menu, sizeMenu, &choose);
+        showMenu("| Settings |", menu, sizeMenu, &choose, "");
         inputMenu(&choose, sizeMenu - 1, 7);
         Sleep(100);
     };
@@ -2116,7 +2127,7 @@ void settingsMenu() {
             menu[1][9] = ' ';
         };
 
-        showMenu("| Settings |", menu, sizeMenu, &choose);
+        showMenu("| Settings |", menu, sizeMenu, &choose, "");
         inputMenu(&choose, sizeMenu - 1, 1);
         Sleep(100);
     };
@@ -2168,7 +2179,7 @@ int pausedMenu(bool isShowPauseInGame) {
         if (choose == -3) {
             return 2;
         };
-        showMenu("| Paused |", menu, sizeMenu, &choose);
+        showMenu("| Paused |", menu, sizeMenu, &choose, "");
         inputMenu(&choose, sizeMenu - 1, -4);
         Sleep(100);
     };
@@ -2214,7 +2225,7 @@ void moreOptions() {
             flushStdin();
             return;
         };
-        showMenu("", menu, sizeMenu, &choose);
+        showMenu("", menu, sizeMenu, &choose, "");
         inputMenu(&choose, sizeMenu - 1, 6);
         Sleep(100);
     };
@@ -2237,7 +2248,7 @@ void mainMenu() {
     playSound(soundMainmenu, false);
     flushStdin();
     while(true) {
-        showMenu("", menu, sizeMenu, &chooseMenu);
+        showMenu("", menu, sizeMenu, &chooseMenu, "");
         inputMenu(&chooseMenu, sizeMenu - 1, 0);
         Sleep(100);
     };
@@ -3345,6 +3356,15 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     showTip("");
                     break;
             };
+        } else if ((p[1] == 134) && (p[0])) {    // F12
+            switch(type_menu) {
+                case -2:
+                    resetKeymapData();
+                    showBoxText("Reset completed", true);
+                    bottomKeymap("Press any key to continue!");
+                    anyKey();
+                    break;
+            };
         } else {
             return;
         };
@@ -3494,6 +3514,7 @@ int main(int argc, char const *argv[]) {
     checkTerminalMode();
 
     configureTerminal();
+    resetKeymapData();
     loadConfig();
     clearTerminal();
     resizeTerminal(terminalColumns, terminalRows);
