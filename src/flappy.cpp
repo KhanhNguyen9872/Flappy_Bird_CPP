@@ -2057,12 +2057,12 @@ void optionsSkin() {
 
 void moreSettingsMenu() {
     string menu[6] = {
-        "   Auto mode [ ]   ",
-        " Show firework [ ] ",
-        "Show background [ ]",
-        "    Show X/Y [ ]   ",
-        "Number firework [ ]",
-        "       Back        "
+        "    Auto mode [ ]   ",
+        "  Show firework [ ] ",
+        " Show background [ ]",
+        "     Show X/Y [ ]   ",
+        "",
+        "        Back        "
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int choose = 0;
@@ -2072,30 +2072,34 @@ void moreSettingsMenu() {
             return;
         };
 
-        menu[4][17] = to_string(settingsData[16])[0];
+        if (settingsData[16] > 9) {
+            menu[4] = "Number firework [" + to_string(settingsData[16]) + "]";
+        } else {
+            menu[4] = " Number firework [" + to_string(settingsData[16]) + "]";
+        };
 
         if (settingsData[3]) {
-            menu[0][14] = 'X';
+            menu[0][15] = 'X';
         } else {
-            menu[0][14] = ' ';
+            menu[0][15] = ' ';
         };
 
         if (settingsData[12]) {
-            menu[1][16] = 'X';
+            menu[1][17] = 'X';
         } else {
-            menu[1][16] = ' ';
+            menu[1][17] = ' ';
         };
 
         if (settingsData[13]) {
-            menu[2][17] = 'X';
+            menu[2][18] = 'X';
         } else {
-            menu[2][17] = ' ';
+            menu[2][18] = ' ';
         };
 
         if (settingsData[14]) {
-            menu[3][14] = 'X';
+            menu[3][15] = 'X';
         } else {
-            menu[3][14] = ' ';
+            menu[3][15] = ' ';
         };
 
         showMenu("| Settings |", menu, sizeMenu, &choose, "");
@@ -2285,21 +2289,27 @@ void startOptions() {
 };
 
 void connectIP(string ip) {
-    errorBox("Unavailable", "", true);
+    errorBox(ip, "", true);
     return;
 };
 
-void boxInputIP() {
+string showBoxInput(string title, string ex, string _bottomKeymap, int max_size, bool onlyInteger) {
+    int sizeEx = ex.length();
+    if(sizeEx > 0) {
+        sizeEx = sizeEx + 2;
+    };
+    string errorStr = "";
     int p[2] = {-1, -1};
     int i, j;
     int column = 20;
-    int row = (terminalRows / 2) - 5;  // (8 / 2) - 1
+    int row;  // (8 / 2) - 1
     int sizeBox = terminalColumns - (column * 2);
     string text;
     string output[terminalRows - 2];
     string fullOutput;
     string nameKey;
     string userInput = "";
+    int lengthUserInput = 0;
     int sizeOutput = sizeof(output) / sizeof(output[0]);
     int indexCursor = 0;
     flushStdin();
@@ -2307,121 +2317,229 @@ void boxInputIP() {
         if ((!p[0]) && (p[1] == 27)) {
             clearTerminal();
             flushStdin();
-            return;
+            return "";
         };
+        row = (terminalRows / 2) - 5;
         wipeOutput(output, sizeOutput);
+        lengthUserInput = userInput.length();
         // 1
         for(i = 0; i < sizeBox; i++) {
             output[row][column + i] = '_';
         };
         // 2
-        output[row + 1][column - 1] = '|';
+        row = row + 1;
+        output[row][column - 1] = '|';
         
-        output[row + 1][terminalColumns - column] = '|';
-        output[row + 1][terminalColumns - column + 1] = '\\';
-        // 3
-        output[row + 2][column - 1] = '|';
-        text = "IP Online";
+        output[row][terminalColumns - column] = '|';
+        output[row][terminalColumns - column + 1] = '\\';
+        // 3 - show title
+        row = row + 1;
+        output[row][column - 1] = '|';
+        text = title;
         for(i = 0; i < text.length(); i++) {
-            output[row + 2][column + (i + 4) - 1] = text[i];
+            output[row][column + (i + 4) - 1] = text[i];
         };
-        output[row + 2][terminalColumns - column] = '|';
-        output[row + 2][terminalColumns - column + 1] = '\\';
-        // 4
-        output[row + 3][column - 1] = '|';
-        for(i = 0; i < sizeBox - 6 - 8; i++) {
-            output[row + 3][column + i + 3 + 8] = '_'; // 8 = + "tcp://" length + 1
+        output[row][terminalColumns - column] = '|';
+        output[row][terminalColumns - column + 1] = '\\';
+        // 4 
+        row = row + 1;
+        output[row][column - 1] = '|';
+        for(i = 0; i < sizeBox - 6 - sizeEx; i++) {
+            output[row][column + i + 3 + sizeEx] = '_';
         };
-        output[row + 3][terminalColumns - column] = '|';
-        output[row + 3][terminalColumns - column + 1] = '\\';
-        // 5
-        output[row + 4][column - 1] = '|';
-        text = "tcp://";
-        for(i = 0; i < text.length(); i++) {
-            output[row + 4][column + 3 + i] = text[i];
+        output[row][terminalColumns - column] = '|';
+        output[row][terminalColumns - column + 1] = '\\';
+        // 5 - show input
+        row = row + 1;
+        output[row][column - 1] = '|';
+        for(i = 0; i < ex.length(); i++) {
+            output[row][column + 3 + i] = ex[i];
         };
-        output[row + 4][column + 3 + text.length() + 1] = '|';
+        if (ex.length() > 0) {
+            output[row][column + 3 + ex.length() + 1] = '|';
+        } else {
+            output[row][column + 2] = '|';
+        };
         text = userInput;
-        while (text.length() > (sizeBox - 7 - 8)) {
+        while (text.length() > (sizeBox - 7 - sizeEx)) {
             text.erase(0, 1);
         };
         for(i = 0; i < text.length(); i++) {
-            output[row + 4][column + 3 + i + 8] = text[i]; // 8 = + "tcp://" length + 1
+            output[row][column + 3 + i + sizeEx] = text[i];
         };
-        output[row + 4][column + 3 + indexCursor + 8] = '_'; // 8 = + "tcp://" length + 1
-        output[row + 4][terminalColumns - column - 3] = '|';
-        output[row + 4][terminalColumns - column] = '|';
-        output[row + 4][terminalColumns - column + 1] = '\\';
+        output[row][terminalColumns - column - 3] = '|';
+        output[row][terminalColumns - column] = '|';
+        output[row][terminalColumns - column + 1] = '\\';
         // 6
-        output[row + 5][column - 1] = '|';
-        for(i = 0; i < sizeBox - 6 - 8; i++) {
-            output[row + 5][column + i + 3 + 8] = '`'; // 8 = + "tcp://" length + 1
+        row = row + 1;
+        output[row][column - 1] = '|';
+        for(i = 0; i < sizeBox - 6 - sizeEx; i++) {
+            output[row][column + i + 3 + sizeEx] = '`'; 
         };
-        output[row + 5][terminalColumns - column] = '|';
-        output[row + 5][terminalColumns - column + 1] = '\\';
+        output[row][column + 3 + indexCursor + sizeEx] = '^';
+        output[row][terminalColumns - column] = '|';
+        output[row][terminalColumns - column + 1] = '\\';
+        // errorStr
+        if (errorStr != "") {
+            row = row + 1;
+            output[row][column - 1] = '|';
+            output[row][column + sizeBox] = '|';
+            output[row][column + sizeBox + 1] = '\\';
+
+            errorStr = "> " + errorStr;
+            for(i = 0; i < errorStr.length(); i++) {
+                output[row][column + i + 3] = errorStr[i];
+            };
+            errorStr = "";
+        };
         // 7
-        output[row + 6][column - 1] = '|';
+        row = row + 1;
+        output[row][column - 1] = '|';
+        output[row][column + sizeBox] = '|';
+        output[row][column + sizeBox + 1] = '\\';
         for(i = 0; i < sizeBox; i++) {
-            output[row + 6][column + i] = '_';
+            output[row][column + i] = '_';
         };
-        output[row + 6][column + sizeBox] = '|';
-        output[row + 6][column + sizeBox + 1] = '\\';
         // 8
+        row = row + 1;
         for(i = -1; i < sizeBox + 2; i++) {
-            output[row + 7][column + i] = '\\';
+            output[row][column + i] = '\\';
         };
 
         // output
         fullOutput = getOutput(output, sizeOutput);
         cursorPos_up();
         cout << fullOutput;
-        bottomKeymap("| [ESC] -> Back | [ENTER] -> Connect |");
+        bottomKeymap(_bottomKeymap);
         // input
         // if (_kbhit()) {
             __getch(p);
             if (!p[0]) {
                 switch(p[1]) {
                     case 8: // backspace
-                        if (userInput.length() > 0) {
-                            // userInput.erase(indexCursor, indexCursor + 1);
-                            // indexCursor = indexCursor - 1;
-                            if (indexCursor >= (userInput.length())) {
+                        if (lengthUserInput > 0) {
+                            if (indexCursor > (sizeBox - 7 - sizeEx)) {
+                                userInput.pop_back();
+                            } else {
+                                text = "";
+                                for(i = 0; i < lengthUserInput; ++i) {
+                                    if (lengthUserInput > (sizeBox - 7 - sizeEx)) {
+                                        if (i == (lengthUserInput - (sizeBox - 7 - sizeEx) + (indexCursor - 1))) {
+                                            continue;
+                                        };
+                                    } else {
+                                        if (i == (indexCursor - 1)) {
+                                            continue;
+                                        };
+                                    };
+                                    text = text + userInput[i];  
+                                };
+                                userInput = text;
+                            };
+                            if ((indexCursor > 0) && (lengthUserInput <= (sizeBox - 7 - sizeEx))) {
                                 indexCursor = indexCursor - 1;
                             };
-                            userInput.pop_back();
                         };
                         break;
                     case 13: // enter
-                        connectIP(userInput);
-                        break;
+                        if (lengthUserInput > 0) {
+                            return userInput;
+                        } else {
+                            errorStr = "Empty input";
+                        };
                     default:
                         nameKey = getNameKey(p[1], p[0]);
                         if (nameKey.length() == 1) {
-                            if (userInput.length() <= 100) {
-                                userInput = userInput + nameKey;
-                                if (text.length() < (sizeBox - 7 - 8)) {
-                                    indexCursor = indexCursor + 1;
+                            if ((max_size == -1) || (lengthUserInput < max_size)) {
+                                if (onlyInteger) {
+                                    if (((p[1] >= '0') && (p[1] <= '9')) || (p[1] == '-')) {
+                                        if (indexCursor <= 0) {
+                                            userInput = nameKey + userInput;
+                                        } else if (indexCursor > (sizeBox - 7 - sizeEx)) {
+                                            userInput = userInput + nameKey;
+                                        } else {
+                                            text = "";
+                                            for(i = 0; i < lengthUserInput; ++i) {
+                                                text = text + userInput[i];
+                                                if (lengthUserInput > (sizeBox - 7 - sizeEx)) {
+                                                    if (i == (lengthUserInput - (sizeBox - 7 - sizeEx) + (indexCursor - 1))) {
+                                                        text = text + nameKey;
+                                                    };
+                                                } else {
+                                                    if (i == (indexCursor - 1)) {
+                                                        text = text + nameKey;
+                                                    };
+                                                };
+                                            };
+                                            userInput = text;
+                                        };
+                                        if (lengthUserInput <= (sizeBox - 8 - sizeEx)) {
+                                            indexCursor = indexCursor + 1;
+                                        };
+                                    } else {    // only accept integer
+                                        errorStr = "Only accept integer number [0-9]";
+                                    };
+                                } else {
+                                    if (indexCursor <= 0) {
+                                        userInput = nameKey + userInput;
+                                    } else if (indexCursor > (sizeBox - 8 - sizeEx)) {
+                                        userInput = userInput + nameKey;
+                                    } else {
+                                        text = "";
+                                        for(i = 0; i < lengthUserInput; ++i) {
+                                            text = text + userInput[i];
+                                            if (lengthUserInput > (sizeBox - 7 - sizeEx)) {
+                                                if (i == (lengthUserInput - (sizeBox - 7 - sizeEx) + (indexCursor - 1))) {
+                                                    text = text + nameKey;
+                                                };
+                                            } else {
+                                                if (i == (indexCursor - 1)) {
+                                                    text = text + nameKey;
+                                                };
+                                            };
+                                        };
+                                        userInput = text;
+                                    };
+                                    if (lengthUserInput <= (sizeBox - 8 - sizeEx)) {
+                                        indexCursor = indexCursor + 1;
+                                    };
                                 };
+                            } else {    // input max size
+                                errorStr = "Max length: " + to_string(max_size) + " character";
                             };
                         };
                         break;
                 };
             } else {
-                // switch(p[1]) {
-                //     case 75:
-                //         if (indexCursor > 0) {
-                //             indexCursor = indexCursor - 1;
-                //         };
-                //         break;
-                //     case 77:
-                //         if (indexCursor < userInput.length()) {
-                //             indexCursor = indexCursor + 1;
-                //         };
-                //         break;
-                // };
+                switch(p[1]) {
+                    case 75: // left
+                        if (indexCursor > 0) {
+                            indexCursor = indexCursor - 1;
+                        };
+                        break;
+                    case 77: // right
+                        if ((indexCursor < lengthUserInput) && (indexCursor <= (sizeBox - 8 - sizeEx))) {
+                            indexCursor = indexCursor + 1;
+                        };
+                        break;
+                };
             };
         // };
         // Sleep(25);
+    };
+    return NULL;
+};
+
+void boxInputIP() {
+    string ip = "";
+    while(true) {
+        ip = showBoxInput("IP Online", "tcp://", "| [ESC] -> Back | [ENTER] -> Connect | [<- / ->] Move | [BACKS] -> Delete |", 50, false);
+        if (ip == "") {
+            flushStdin();
+            return;
+        } else {
+            connectIP(ip);
+        };
     };
     return;
 };
@@ -2483,7 +2601,7 @@ void loadConfig() {
             settingsData[12] = false;
         };
         i = readConfig("totalfirework");
-        if ((i > 0) && (i < 10)) {
+        if ((i > 0) && (i < 51)) {
             settingsData[16] = i;
         } else {
             writeConfig("totalfirework", to_string(settingsData[16]));
@@ -3467,14 +3585,19 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                                 errorBox("Unavailable in game", "You must return to main menu first!", true);
                             } else {
                                 if (settingsData[13]) {
-                                    int p[2];
-                                    showBoxText("Input number of firework [1-9]", true);
-                                    __getch(p);
-                                    if ((!p[0]) && (p[1] >= '1') && (p[1] <= '9')) {
-                                        settingsData[16] = p[1] - 48;
+                                    int num;
+                                    string p = "";
+                                    
+                                    p = showBoxInput("Number of firework [1 - 50]", "", "| [ESC] -> Back | [ENTER] -> Save | [<- / ->] Move cursor | [BACKS] -> Delete |" , 2, true);
+                                    if (p == "") {
+                                        return;
+                                    };
+                                    num = stoi(p);
+                                    if ((num > 0) && (num < 51)) {
+                                        settingsData[16] = num;
                                         writeConfig("totalfirework", to_string(settingsData[16]));
                                     } else {
-                                        errorBox("Wrong number", "Number must be from 1 to 9", true);
+                                        errorBox("Wrong number", "", true);
                                         break;
                                     };
                                 } else {
