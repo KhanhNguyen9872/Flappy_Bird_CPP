@@ -2329,29 +2329,33 @@ void boxInputIP() {
         output[row + 2][terminalColumns - column + 1] = '\\';
         // 4
         output[row + 3][column - 1] = '|';
-        for(i = 0; i < sizeBox - 6; i++) {
-            output[row + 3][column + i + 3] = '_';
+        for(i = 0; i < sizeBox - 6 - 8; i++) {
+            output[row + 3][column + i + 3 + 8] = '_'; // 8 = + "tcp://" length + 1
         };
         output[row + 3][terminalColumns - column] = '|';
         output[row + 3][terminalColumns - column + 1] = '\\';
         // 5
         output[row + 4][column - 1] = '|';
-        output[row + 4][column + 2] = '|';
-        text = userInput;
-        while (text.length() > (sizeBox - 7)) {
-            text.erase(0, 1);
-        };
+        text = "tcp://";
         for(i = 0; i < text.length(); i++) {
             output[row + 4][column + 3 + i] = text[i];
         };
-        output[row + 4][column + 3 + indexCursor] = '_';
+        output[row + 4][column + 3 + text.length() + 1] = '|';
+        text = userInput;
+        while (text.length() > (sizeBox - 7 - 8)) {
+            text.erase(0, 1);
+        };
+        for(i = 0; i < text.length(); i++) {
+            output[row + 4][column + 3 + i + 8] = text[i]; // 8 = + "tcp://" length + 1
+        };
+        output[row + 4][column + 3 + indexCursor + 8] = '_'; // 8 = + "tcp://" length + 1
         output[row + 4][terminalColumns - column - 3] = '|';
         output[row + 4][terminalColumns - column] = '|';
         output[row + 4][terminalColumns - column + 1] = '\\';
         // 6
         output[row + 5][column - 1] = '|';
-        for(i = 0; i < sizeBox - 6; i++) {
-            output[row + 5][column + i + 3] = '`';
+        for(i = 0; i < sizeBox - 6 - 8; i++) {
+            output[row + 5][column + i + 3 + 8] = '`'; // 8 = + "tcp://" length + 1
         };
         output[row + 5][terminalColumns - column] = '|';
         output[row + 5][terminalColumns - column + 1] = '\\';
@@ -2363,7 +2367,7 @@ void boxInputIP() {
         output[row + 6][column + sizeBox] = '|';
         output[row + 6][column + sizeBox + 1] = '\\';
         // 8
-        for(i = 0; i < sizeBox + 2; i++) {
+        for(i = -1; i < sizeBox + 2; i++) {
             output[row + 7][column + i] = '\\';
         };
 
@@ -2373,7 +2377,7 @@ void boxInputIP() {
         cout << fullOutput;
         bottomKeymap("| [ESC] -> Back | [ENTER] -> Connect |");
         // input
-        if (_kbhit()) {
+        // if (_kbhit()) {
             __getch(p);
             if (!p[0]) {
                 switch(p[1]) {
@@ -2395,7 +2399,7 @@ void boxInputIP() {
                         if (nameKey.length() == 1) {
                             if (userInput.length() <= 100) {
                                 userInput = userInput + nameKey;
-                                if (text.length() < (sizeBox - 7)) {
+                                if (text.length() < (sizeBox - 7 - 8)) {
                                     indexCursor = indexCursor + 1;
                                 };
                             };
@@ -2415,9 +2419,9 @@ void boxInputIP() {
                 //         };
                 //         break;
                 // };
-            }
-        };
-        Sleep(25);
+            };
+        // };
+        // Sleep(25);
     };
     return;
 };
