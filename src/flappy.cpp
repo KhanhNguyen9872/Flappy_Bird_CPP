@@ -2354,7 +2354,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         // 0
         row = row + 1;
         output[row][column - 1] = '|';
-        text = "Length: " + to_string(lengthUserInput) + " | " + to_string(secondIndexCursor);
+        text = "Length: " + to_string(lengthUserInput);
         for(i = 0; i < text.length(); ++i) {
             output[row][column + 1 + i] = text[i];
         };
@@ -2532,8 +2532,9 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                                     } else {
                                         text = "";
                                         for(i = 0; i < lengthUserInput; ++i) {
+                                            text = text + userInput[i];
                                             if (lengthUserInput > (sizeShowInput + 1)) {
-                                                if (i == (lengthUserInput - (sizeShowInput + 1) + indexCursor - secondIndexCursor)) {
+                                                if (i == (lengthUserInput - (sizeShowInput + 1) + (indexCursor - 1) - secondIndexCursor)) {
                                                     text = text + nameKey;
                                                 };
                                             } else {
@@ -2541,7 +2542,6 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                                                     text = text + nameKey;
                                                 };
                                             };
-                                            text = text + userInput[i];
                                         };
                                         userInput = text;
                                     };
