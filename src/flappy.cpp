@@ -408,8 +408,8 @@ void writeConfig(string key, string value) {
 
 void resetKeymapData(bool isWriteConfig) {
     int i, j;
-    for(i = 0; i < sizeof(defaultKeymapData) / sizeof(defaultKeymapData[0]); i++) {
-        for(j = 0; j < sizeof(defaultKeymapData[0]) / sizeof(defaultKeymapData[0][0]); j++) {
+    for(i = 0; i < sizeof(defaultKeymapData) / sizeof(defaultKeymapData[0]); ++i) {
+        for(j = 0; j < sizeof(defaultKeymapData[0]) / sizeof(defaultKeymapData[0][0]); ++j) {
             keymapData[i][j] = defaultKeymapData[i][j];
             if (isWriteConfig) {
                 writeConfig("key" + to_string(i), "-1");
@@ -485,6 +485,15 @@ void errorBox(string output, string bottom, bool isBlur) {
         sizeColumn = sizeColumn + 1;
     };
     string text;
+
+    j = output.length();
+    if (j > 20) {
+        text = "";
+        for(i = 0; i < 20; ++i) {
+            text = text + output[i];
+        };
+        output = text; 
+    };
 
     if (isBlur) {
         showBlur();
@@ -849,6 +858,13 @@ void showBoxText(string text, bool isBlur) {
     int sizeRow = 0;
     int i, j;
     string tmp;
+    if (text.length() > (terminalColumns - 16)) {
+        tmp = "";
+        for(i = 0; i < (terminalColumns - 16); ++i) {
+            tmp = tmp + text[i];  
+        };
+        text = tmp;
+    };
     for(i = 0; i < (terminalColumns - text.length()) / 2; ++i) {
         sizeColumn = sizeColumn + 1;
     };
@@ -2009,7 +2025,7 @@ void changeSkin(bool isSkinBird) {
     };
     j = j - 6;
     menu[size] = " Back ";
-    for(i = 0; i < j; i++) {
+    for(i = 0; i < j; ++i) {
         menu[size] = menu[size] + ' ';
     };
     while(true) {
@@ -2301,17 +2317,21 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
     string errorStr = "";
     int p[2] = {-1, -1};
     int i, j;
+    int sizeShowInput;
     int column = 20;
     int row;  // (8 / 2) - 1
     int sizeBox = terminalColumns - (column * 2);
     string text;
+    string text2;
     string output[terminalRows - 2];
     string fullOutput;
     string nameKey;
     string userInput = "";
+    string road = getRoad();
     int lengthUserInput = 0;
     int sizeOutput = sizeof(output) / sizeof(output[0]);
     int indexCursor = 0;
+    int secondIndexCursor = 0;
     flushStdin();
     while(true) {
         if ((!p[0]) && (p[1] == 27)) {
@@ -2319,24 +2339,46 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
             flushStdin();
             return "";
         };
-        row = (terminalRows / 2) - 5;
+        sizeShowInput = (sizeBox - 8 - sizeEx);
+        row = (terminalRows / 2) - 6;
         wipeOutput(output, sizeOutput);
+        if (settingsData[13]) {
+            showBackground(output, 0, terminalRows - 3);
+            output[sizeOutput - 1] = road;
+        };
         lengthUserInput = userInput.length();
-        // 1
-        for(i = 0; i < sizeBox; i++) {
+        // -1
+        for(i = 0; i < sizeBox; ++i) {
             output[row][column + i] = '_';
         };
-        // 2
+        // 0
         row = row + 1;
         output[row][column - 1] = '|';
-        
+        text = "Length: " + to_string(lengthUserInput) + " | " + to_string(secondIndexCursor);
+        for(i = 0; i < text.length(); ++i) {
+            output[row][column + 1 + i] = text[i];
+        };
         output[row][terminalColumns - column] = '|';
         output[row][terminalColumns - column + 1] = '\\';
+        // 1
+        row = row + 1;
+        output[row][column - 1] = '|';
+        for(i = 0; i < sizeBox; ++i) {
+            output[row][column + i] = '`';
+        };
+        output[row][terminalColumns - column] = '|';
+        output[row][terminalColumns - column + 1] = '\\';
+        // 2
+        // row = row + 1;
+        // output[row][column - 1] = '|';
+        
+        // output[row][terminalColumns - column] = '|';
+        // output[row][terminalColumns - column + 1] = '\\';
         // 3 - show title
         row = row + 1;
         output[row][column - 1] = '|';
         text = title;
-        for(i = 0; i < text.length(); i++) {
+        for(i = 0; i < text.length(); ++i) {
             output[row][column + (i + 4) - 1] = text[i];
         };
         output[row][terminalColumns - column] = '|';
@@ -2344,7 +2386,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         // 4 
         row = row + 1;
         output[row][column - 1] = '|';
-        for(i = 0; i < sizeBox - 6 - sizeEx; i++) {
+        for(i = 0; i < sizeBox - 6 - sizeEx; ++i) {
             output[row][column + i + 3 + sizeEx] = '_';
         };
         output[row][terminalColumns - column] = '|';
@@ -2352,7 +2394,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         // 5 - show input
         row = row + 1;
         output[row][column - 1] = '|';
-        for(i = 0; i < ex.length(); i++) {
+        for(i = 0; i < ex.length(); ++i) {
             output[row][column + 3 + i] = ex[i];
         };
         if (ex.length() > 0) {
@@ -2361,10 +2403,19 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
             output[row][column + 2] = '|';
         };
         text = userInput;
-        while (text.length() > (sizeBox - 7 - sizeEx)) {
+        j = secondIndexCursor;
+        if (j > 0) {
+            text2 = "";
+            for(i = 0; i < text.length() - j; ++i) {
+                text2 = text2 + text[i];
+            };
+            text = text2;
+            j = 0;
+        };
+        while (text.length() > (sizeShowInput + 1)) {
             text.erase(0, 1);
         };
-        for(i = 0; i < text.length(); i++) {
+        for(i = 0; i < text.length(); ++i) {
             output[row][column + 3 + i + sizeEx] = text[i];
         };
         output[row][terminalColumns - column - 3] = '|';
@@ -2373,7 +2424,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         // 6
         row = row + 1;
         output[row][column - 1] = '|';
-        for(i = 0; i < sizeBox - 6 - sizeEx; i++) {
+        for(i = 0; i < sizeBox - 6 - sizeEx; ++i) {
             output[row][column + i + 3 + sizeEx] = '`'; 
         };
         output[row][column + 3 + indexCursor + sizeEx] = '^';
@@ -2387,7 +2438,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
             output[row][column + sizeBox + 1] = '\\';
 
             errorStr = "> " + errorStr;
-            for(i = 0; i < errorStr.length(); i++) {
+            for(i = 0; i < errorStr.length(); ++i) {
                 output[row][column + i + 3] = errorStr[i];
             };
             errorStr = "";
@@ -2397,12 +2448,12 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         output[row][column - 1] = '|';
         output[row][column + sizeBox] = '|';
         output[row][column + sizeBox + 1] = '\\';
-        for(i = 0; i < sizeBox; i++) {
+        for(i = 0; i < sizeBox; ++i) {
             output[row][column + i] = '_';
         };
         // 8
         row = row + 1;
-        for(i = -1; i < sizeBox + 2; i++) {
+        for(i = -1; i < sizeBox + 2; ++i) {
             output[row][column + i] = '\\';
         };
 
@@ -2418,13 +2469,21 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                 switch(p[1]) {
                     case 8: // backspace
                         if (lengthUserInput > 0) {
-                            if (indexCursor > (sizeBox - 7 - sizeEx)) {
+                            if (indexCursor > (sizeShowInput + 1)) {
                                 userInput.pop_back();
                             } else {
                                 text = "";
                                 for(i = 0; i < lengthUserInput; ++i) {
-                                    if (lengthUserInput > (sizeBox - 7 - sizeEx)) {
-                                        if (i == (lengthUserInput - (sizeBox - 7 - sizeEx) + (indexCursor - 1))) {
+                                    if (lengthUserInput > (sizeShowInput + 1)) {
+                                        if (i == (lengthUserInput - (sizeShowInput + 1) + (indexCursor - 1) - secondIndexCursor)) {
+                                            if (i == 0) {
+                                                indexCursor = 0;
+                                                secondIndexCursor = secondIndexCursor - 1;
+                                            };
+                                            if (secondIndexCursor == (lengthUserInput - (sizeShowInput + 1))) {
+                                                indexCursor = indexCursor - 1;
+                                                secondIndexCursor = secondIndexCursor - 1;
+                                            };
                                             continue;
                                         };
                                     } else {
@@ -2436,7 +2495,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                                 };
                                 userInput = text;
                             };
-                            if ((indexCursor > 0) && (lengthUserInput <= (sizeBox - 7 - sizeEx))) {
+                            if ((indexCursor > 0) && (lengthUserInput <= (sizeShowInput + 1))) {
                                 indexCursor = indexCursor - 1;
                             };
                         };
@@ -2448,48 +2507,33 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                             errorStr = "Empty input";
                         };
                     default:
-                        nameKey = getNameKey(p[1], p[0]);
-                        if (nameKey.length() == 1) {
+                        if ((p[1] == 32) && (!p[0])) {
+                            nameKey = ' ';
+                        } else {
+                            nameKey = getNameKey(p[1], p[0]);
+                        };
+                        if (nameKey.length() == 1) { // get one char or space (32)
                             if ((max_size == -1) || (lengthUserInput < max_size)) {
+                                i = false;
                                 if (onlyInteger) {
                                     if (((p[1] >= '0') && (p[1] <= '9')) || (p[1] == '-')) {
-                                        if (indexCursor <= 0) {
-                                            userInput = nameKey + userInput;
-                                        } else if (indexCursor > (sizeBox - 7 - sizeEx)) {
-                                            userInput = userInput + nameKey;
-                                        } else {
-                                            text = "";
-                                            for(i = 0; i < lengthUserInput; ++i) {
-                                                text = text + userInput[i];
-                                                if (lengthUserInput > (sizeBox - 7 - sizeEx)) {
-                                                    if (i == (lengthUserInput - (sizeBox - 7 - sizeEx) + (indexCursor - 1))) {
-                                                        text = text + nameKey;
-                                                    };
-                                                } else {
-                                                    if (i == (indexCursor - 1)) {
-                                                        text = text + nameKey;
-                                                    };
-                                                };
-                                            };
-                                            userInput = text;
-                                        };
-                                        if (lengthUserInput <= (sizeBox - 8 - sizeEx)) {
-                                            indexCursor = indexCursor + 1;
-                                        };
+                                        i = true;
                                     } else {    // only accept integer
                                         errorStr = "Only accept integer number [0-9]";
                                     };
                                 } else {
-                                    if (indexCursor <= 0) {
+                                    i = true;
+                                };
+                                if (i) { // add input
+                                    if (indexCursor < 1) {
                                         userInput = nameKey + userInput;
-                                    } else if (indexCursor > (sizeBox - 8 - sizeEx)) {
+                                    } else if (indexCursor > sizeShowInput) {
                                         userInput = userInput + nameKey;
                                     } else {
                                         text = "";
                                         for(i = 0; i < lengthUserInput; ++i) {
-                                            text = text + userInput[i];
-                                            if (lengthUserInput > (sizeBox - 7 - sizeEx)) {
-                                                if (i == (lengthUserInput - (sizeBox - 7 - sizeEx) + (indexCursor - 1))) {
+                                            if (lengthUserInput > (sizeShowInput + 1)) {
+                                                if (i == (lengthUserInput - (sizeShowInput + 1) + indexCursor - secondIndexCursor)) {
                                                     text = text + nameKey;
                                                 };
                                             } else {
@@ -2497,10 +2541,19 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                                                     text = text + nameKey;
                                                 };
                                             };
+                                            text = text + userInput[i];
                                         };
                                         userInput = text;
                                     };
-                                    if (lengthUserInput <= (sizeBox - 8 - sizeEx)) {
+                                    
+                                    i = false;
+                                    if (lengthUserInput <= sizeShowInput) {
+                                        i = true;
+                                    } else if ((secondIndexCursor == (lengthUserInput - (sizeShowInput + 1))) && (indexCursor <= sizeShowInput)) {
+                                        secondIndexCursor = secondIndexCursor + 1;
+                                        i = true;
+                                    };
+                                    if (i) {
                                         indexCursor = indexCursor + 1;
                                     };
                                 };
@@ -2513,13 +2566,19 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
             } else {
                 switch(p[1]) {
                     case 75: // left
-                        if (indexCursor > 0) {
+                        if ((indexCursor == 1) && (lengthUserInput > sizeShowInput) && (secondIndexCursor < (lengthUserInput - (sizeShowInput + 1)))) {
+                            secondIndexCursor = secondIndexCursor + 1;
+                        } else if (indexCursor > 0) {
                             indexCursor = indexCursor - 1;
                         };
                         break;
                     case 77: // right
-                        if ((indexCursor < lengthUserInput) && (indexCursor <= (sizeBox - 8 - sizeEx))) {
+                        if ((indexCursor < lengthUserInput) && (indexCursor <= sizeShowInput)) {
                             indexCursor = indexCursor + 1;
+                        } else {
+                            if (secondIndexCursor > 0) {
+                                secondIndexCursor = secondIndexCursor - 1;
+                            };
                         };
                         break;
                 };
