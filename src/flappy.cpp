@@ -2476,13 +2476,13 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                                 for(i = 0; i < lengthUserInput; ++i) {
                                     if (lengthUserInput > (sizeShowInput + 1)) {
                                         if (i == (lengthUserInput - (sizeShowInput + 1) + (indexCursor - 1) - secondIndexCursor)) {
-                                            if (i == 0) {
-                                                indexCursor = 0;
-                                                secondIndexCursor = secondIndexCursor - 1;
-                                            };
-                                            if (secondIndexCursor == (lengthUserInput - (sizeShowInput + 1))) {
-                                                indexCursor = indexCursor - 1;
-                                                secondIndexCursor = secondIndexCursor - 1;
+                                            if ((i == 0) || (secondIndexCursor == (lengthUserInput - (sizeShowInput + 1)))) {
+                                                if (indexCursor > 0) {
+                                                    indexCursor = indexCursor - 1;
+                                                };
+                                                if (secondIndexCursor > 0) {
+                                                    secondIndexCursor = secondIndexCursor - 1;
+                                                };
                                             };
                                             continue;
                                         };
@@ -3880,6 +3880,8 @@ void checkTerminalMode() {
 int main(int argc, char const *argv[]) {
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
     ios_base::sync_with_stdio(true); // Enable synchronization with stdio (slower performance)
+
+    SetForegroundWindow(consoleWindow); // Windows API
 
     checkARG(argc, &*argv);
 
