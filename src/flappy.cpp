@@ -2092,7 +2092,7 @@ string getNameGameSpeed(int index) {
 
 int getValueGameSpeed(int index) {    // value is 200, 150, 100 or 50
     int valueData[5] = {
-        175, 150, 125, 100, 30
+        175, 150, 125, 100, 20
     };
     return valueData[index - 1];
 };
