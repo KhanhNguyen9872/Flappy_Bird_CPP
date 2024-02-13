@@ -55,7 +55,7 @@ char keymapData[7][2];
 int listHighScore[7];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[17] = {
+int settingsData[18] = {
     true,  // music
     true,  // sfx
     WHITE, // brightness
@@ -73,6 +73,7 @@ int settingsData[17] = {
     true,   // show X/Y
     0,      // skin wall
     4,      // number of firework 
+    2     // game speed
 };
 
 int terminalColumns, terminalRows;
@@ -2071,12 +2072,50 @@ void optionsSkin() {
     return;
 };
 
+string getNameGameSpeed(int index) {
+    switch(index) {
+        case 1:
+            return "Low ";
+        case 2:
+            return "Med ";
+        case 3:
+            return "High";
+        case 4:
+            return "Fast";
+        case 5:
+            return "TEST";
+        default:
+            break;
+    };
+    return "NULL";
+};
+
+int getValueGameSpeed(int index) {    // value is 200, 150, 100 or 50
+    int valueData[5] = {
+        175, 150, 125, 100, 30
+    };
+    return valueData[index - 1];
+};
+
+void setGameSpeed(int value) {
+    if ((value < 1) || (getNameGameSpeed(value) == "NULL")) {
+        writeConfig("speed", "2");
+        return;
+    };
+
+    settingsData[17] = value;
+    writeConfig("speed", to_string(value));
+    return;
+};
+
 void moreSettingsMenu() {
-    string menu[6] = {
+    string text;
+    string menu[7] = {
         "    Auto mode [ ]   ",
         "  Show firework [ ] ",
         " Show background [ ]",
         "     Show X/Y [ ]   ",
+        "",
         "",
         "        Back        "
     };
@@ -2118,7 +2157,13 @@ void moreSettingsMenu() {
             menu[3][15] = ' ';
         };
 
-        showMenu("| Settings |", menu, sizeMenu, &choose, "");
+        menu[5] = "  Game speed [" + getNameGameSpeed(settingsData[17]) + "] ";
+        if (choose == 5) {
+            text = "[<- / ->] Change |";
+        } else {
+            text = "";
+        };
+        showMenu("| Settings |", menu, sizeMenu, &choose, text);
         inputMenu(&choose, sizeMenu - 1, 7);
         Sleep(100);
     };
@@ -2678,11 +2723,14 @@ void loadConfig() {
         i = readConfig("showxy");
         if ((i == 0) || (i == -1)) {
             writeConfig("showxy", "2");
-        } else if (i == 1) {
+        } else if (i == 2) {
             settingsData[14] = true;
         } else {
             settingsData[14] = false;
         };
+
+        // speed
+        setGameSpeed(readConfig("speed"));
         
         for(i = 0; i < size; ++i) {
             isTwoChar = false;
@@ -3191,6 +3239,7 @@ void flappyBird() {
     int oldX = x;
     int choose = 0;
     int maxUp = terminalRows / 4;
+    int speed = getValueGameSpeed(settingsData[17]);
     
     // background
     int countStart = rand() % sizeBackground;
@@ -3203,7 +3252,7 @@ void flappyBird() {
     // wall
     int nextWall = 0;
     int countWall = 0;
-    int wallCreateDistance = 19;
+    int wallCreateDistance = 21;
     for(i = 0; i < getResolutionValue(); ++i) {
         wallCreateDistance = wallCreateDistance + 5;
     };
@@ -3239,8 +3288,8 @@ void flappyBird() {
     flushStdin();
     while(true) {
         if (choose == -1) { // return to main menu
-            resetWall();
             isInGame = false;
+            gameStarted = false;
             showChangeScene();
             disableCloseButton(false);
             playSound(soundMainmenu, false);
@@ -3398,7 +3447,7 @@ void flappyBird() {
         bottomKeymap(text);
         inputMenu(&choose, 0, -3);
         checkWall(nextWall, y, maxUp, &isOver);
-        Sleep(150);
+        Sleep(speed);
 
         if ((!checkTerminalActive()) && (!settingsData[3]) && (gameStarted)) {
             launchPaused(&choose);
@@ -3440,6 +3489,17 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                         setBrightness(*chooseMenu);
                     };
                     break;
+                case 7:
+                    switch(*chooseMenu) {
+                        case 5:
+                            if (isInGame) {
+                                errorBox("Unavailable in game", "You must return to main menu first!", true);
+                            } else {
+                                setGameSpeed(settingsData[17] - 1);
+                            };
+                            break;
+                    };
+                    break;
             };
         } else if ((p[1] == keymapData[3][1]) && (p[0] == keymapData[3][0])) /* RIGHT */ {
             switch (type_menu) {
@@ -3447,6 +3507,17 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     if(*chooseMenu <= max) {
                         *chooseMenu = *chooseMenu + 1;
                         setBrightness(*chooseMenu);
+                    };
+                    break;
+                case 7:
+                    switch(*chooseMenu) {
+                        case 5:
+                            if (isInGame) {
+                                errorBox("Unavailable in game", "You must return to main menu first!", true);
+                            } else {
+                                setGameSpeed(settingsData[17] + 1);
+                            };
+                            break;
                     };
                     break;
             };
@@ -3664,7 +3735,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                                 };
                             };
                             break;
-                        case 5:
+                        case 5: // game speed
+                            break;
+                        case 6:
                             *chooseMenu = -1;
                             break;
                     };
