@@ -1425,7 +1425,27 @@ bool setKeymap(int value, int key, bool isTwoChar) {
     return 0;
 };
 
-void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, string addTextBottom) {
+void stringToOutput(string str, string output[], int sizeOutput) {
+    int size = str.length();
+    int row = 0;
+    int i; 
+    int column = 0;
+    for(i = 0; i < size; ++i) {
+        if (row >= sizeOutput) {
+            return;
+        };
+        if (str[i] == '\n') {
+            column = 0;
+            row = row + 1;
+            continue;
+        };
+        output[row][column] = str[i];
+        column = column + 1;
+    };
+    return;
+};
+
+void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, string addTextBottom, bool isFullTextBottom) {
     //   ___ _                       ___ _        _ 
     //  | __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |
     //  | _|| / _` | '_ \ '_ \ || | | _ \ | '_/ _` |
@@ -1473,11 +1493,21 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
             text = text + "\n";
         };
     };
-    
+
+    string output[terminalRows - 2];
+    int sizeOutput = sizeof(output) / sizeof(output[0]);
+    wipeOutput(output, sizeOutput);
+    stringToOutput(text, output, sizeOutput);
+    text = getOutput(output, sizeOutput);
+
     color(settingsData[2]);
-    clearTerminal();
+    cursorPos_up();
     cout << text;
-    bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK | " + addTextBottom);
+    if (isFullTextBottom) {
+        bottomKeymap(addTextBottom);
+    } else {
+        bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK | " + addTextBottom);
+    };
     return;
 };
 
@@ -1654,29 +1684,9 @@ void keymappingSettings() {
             
             menu[i] = text + "  -->  " + template_menu[i];
         };
-        showMenu("| Keymapping Settings |", menu, sizeMenu, &choose, "[F12] -> RESET |");
+        showMenu("| Keymapping Settings |", menu, sizeMenu, &choose, "[F12] -> RESET |", false);
         inputMenu(&choose, sizeMenu - 1, -2);
         Sleep(100);
-    };
-    return;
-};
-
-void stringToOutput(string str, string output[], int sizeOutput) {
-    int size = str.length();
-    int row = 0;
-    int i; 
-    int column = 0;
-    for(i = 0; i < size; ++i) {
-        if (row >= sizeOutput) {
-            return;
-        };
-        if (str[i] == '\n') {
-            column = 0;
-            row = row + 1;
-            continue;
-        };
-        output[row][column] = str[i];
-        column = column + 1;
     };
     return;
 };
@@ -1837,7 +1847,7 @@ void resolutionSettings() {
             return;
         };
         titleMenu = "| Current resolution: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " |";
-        showMenu(titleMenu, menu, sizeMenu, &choose, "");
+        showMenu(titleMenu, menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 3);
         Sleep(100);
     };
@@ -1857,7 +1867,7 @@ void highScore() {
             flushStdin();
             return;
         };
-        showMenu("| High score |", menu, sizeMenu, &choose, "");
+        showMenu("| High score |", menu, sizeMenu, &choose, "", false);
         bottomKeymap("| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |");
         inputMenu(&choose, sizeMenu - 1, 4);
         Sleep(100);
@@ -2066,7 +2076,7 @@ void changeSkin(bool isSkinBird) {
         } else {
             j = settingsData[15] + 1;
         };
-        showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, &choose, "");
+        showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, &choose, "", false);
         inputMenu(&choose, size, inputCase);
         Sleep(100);
     };
@@ -2092,7 +2102,7 @@ void optionsSkin() {
             return;
         };
 
-        showMenu("| Change Skin |", menu, sizeMenu, &choose, "");
+        showMenu("| Change Skin |", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 8);
         Sleep(100);
     };
@@ -2200,13 +2210,12 @@ void moreSettingsMenu() {
         };
 
         menu[5] = "  Game speed [" + getNameGameSpeed(settingsData[17]) + "] ";
+        text = "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |";
         if (choose == 5) {
-            text = "[<- / ->] Change |";
-        } else {
-            text = "";
+            text = text + " [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> Change |";
         };
         
-        showMenu("| Settings |", menu, sizeMenu, &choose, text);
+        showMenu("| Settings |", menu, sizeMenu, &choose, text, true);
         inputMenu(&choose, sizeMenu - 1, 7);
         Sleep(100);
     };
@@ -2243,7 +2252,7 @@ void settingsMenu() {
             menu[1][9] = ' ';
         };
 
-        showMenu("| Settings |", menu, sizeMenu, &choose, "");
+        showMenu("| Settings |", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 1);
         Sleep(100);
     };
@@ -2295,7 +2304,7 @@ int pausedMenu(bool isShowPauseInGame) {
         if (choose == -3) {
             return 2;
         };
-        showMenu("| Paused |", menu, sizeMenu, &choose, "");
+        showMenu("| Paused |", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, -4);
         Sleep(100);
     };
@@ -2341,7 +2350,7 @@ void moreOptions() {
             flushStdin();
             return;
         };
-        showMenu("", menu, sizeMenu, &choose, "");
+        showMenu("", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 6);
         Sleep(100);
     };
@@ -2364,7 +2373,7 @@ void mainMenu() {
     playSound(soundMainmenu, false);
     flushStdin();
     while(true) {
-        showMenu("", menu, sizeMenu, &chooseMenu, "");
+        showMenu("", menu, sizeMenu, &chooseMenu, "", false);
         inputMenu(&chooseMenu, sizeMenu - 1, 0);
         Sleep(100);
     };
@@ -2385,7 +2394,7 @@ void startOptions() {
             flushStdin();
             return;
         };
-        showMenu("| Start game |", menu, sizeMenu, &choose, "");
+        showMenu("| Start game |", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, -8);
         Sleep(100);
     };
@@ -2729,6 +2738,9 @@ void loadConfig() {
         };
         if (settingsData[7]) {
             setBrightness(readConfig("brightness"));
+        };
+        if (settingsData[10]) {
+            settingsData[3] = readConfig("automode");
         };
         // skin bird
         if (!setSkin(readConfig("skinbird"), true)) {
@@ -3749,8 +3761,20 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                                 if(isInGame) {
                                     errorBox("Unavailable in game", "You must return to main menu first!", true);
                                 } else {
-                                    settingsData[3] = !settingsData[3];
-                                    // writeConfig("auto", to_string(settingsData[1]));  // auto mode not need saved!
+                                    bool i = false;
+                                    if (settingsData[3]) {
+                                        i = true;
+                                    };
+                                    if (!i) {
+                                        if (showYesorNo("Do you want to enable auto mode?")) {
+                                            i = true;
+                                        };
+                                    };
+                                    
+                                    if (i) {
+                                        settingsData[3] = !settingsData[3];
+                                        writeConfig("automode", to_string(settingsData[3]));
+                                    };
                                 };
                             } else {
                                 errorBox("AUTO DISABLED", "", true);
