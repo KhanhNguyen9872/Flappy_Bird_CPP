@@ -52,10 +52,10 @@ char defaultKeymapData[7][2] = {
 };
 char keymapData[7][2];
 
-int listHighScore[7];
+int listHighScore[8];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[18] = {
+int settingsData[19] = {
     true,  // music
     true,  // sfx
     WHITE, // brightness
@@ -73,9 +73,12 @@ int settingsData[18] = {
     true,   // show X/Y
     0,      // skin wall
     4,      // number of firework 
-    2     // game speed
+    2,      // game speed
+    true    // show FPS
 };
 
+int FPS = 0;
+int frameFPS = 0;
 int terminalColumns, terminalRows;
 int tmp_int[3] = {0, 0, 0};
 int listWall[10][3];
@@ -1462,7 +1465,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
     int padding = terminalRows - 7 - sizeMenu - titleMenuSize;
 
     for(i=0; i <= padding; ++i) {
-        if(i == 3) {
+        if(i == 2) {
             text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, *chooseMenu);
         } else if (i == padding - 1) {
             break;
@@ -1923,6 +1926,21 @@ void showWall(string output[], int skinValue, int column, int up, int down) {
     return;
 };
 
+void showFPS(string output[]) {
+    string text = "FPS: " + to_string(FPS);
+    int i;
+    int locate = terminalColumns - (text.length() + 1);
+    if (output == NULL) {
+        cursorPos_move(locate, 0);
+        cout << text;
+    } else {
+        for(i = 0; i < text.length(); ++i) {
+            output[0][locate + i] = text[i];
+        };
+    };
+    return;
+};
+
 void previewSkin(int index, bool isSkinBird) {
     int i = terminalRows - 2;
     int choose = 0;
@@ -1978,7 +1996,12 @@ void previewSkin(int index, bool isSkinBird) {
             };
         };
         output[i - 1] = road;
+        if (settingsData[18]) {
+            showFPS(output);
+            frameFPS = frameFPS + 1;
+        };
         finalOutput = getOutput(output, i);
+        
         clearTerminal();
         cout << finalOutput;
         bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> SET | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
@@ -2108,15 +2131,24 @@ void setGameSpeed(int value) {
     return;
 };
 
+void getFPS() {
+    while(true) {
+        FPS = frameFPS;
+        frameFPS = 0;
+        Sleep(1000);
+    };
+};
+
 void moreSettingsMenu() {
     string text;
-    string menu[7] = {
+    string menu[8] = {
         "    Auto mode [ ]   ",
         "  Show firework [ ] ",
         " Show background [ ]",
         "     Show X/Y [ ]   ",
         "",
         "",
+        "    Show FPS [ ]    ",
         "        Back        "
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
@@ -2157,12 +2189,19 @@ void moreSettingsMenu() {
             menu[3][15] = ' ';
         };
 
+        if (settingsData[18]) {
+            menu[6][14] = 'X';
+        } else {
+            menu[6][14] = ' ';
+        };
+
         menu[5] = "  Game speed [" + getNameGameSpeed(settingsData[17]) + "] ";
         if (choose == 5) {
             text = "[<- / ->] Change |";
         } else {
             text = "";
         };
+        
         showMenu("| Settings |", menu, sizeMenu, &choose, text);
         inputMenu(&choose, sizeMenu - 1, 7);
         Sleep(100);
@@ -2728,9 +2767,17 @@ void loadConfig() {
         } else {
             settingsData[14] = false;
         };
-
         // speed
         setGameSpeed(readConfig("speed"));
+        // show fps
+        i = readConfig("showfps");
+        if ((i == 0) || (i == -1)) {
+            writeConfig("showfps", "2");
+        } else if (i == 2) {
+            settingsData[18] = true;
+        } else {
+            settingsData[18] = false;
+        };
         
         for(i = 0; i < size; ++i) {
             isTwoChar = false;
@@ -3285,15 +3332,18 @@ void flappyBird() {
     color(settingsData[2]);
     showChangeScene();
     stopSound();
+
     flushStdin();
     while(true) {
         if (choose == -1) { // return to main menu
+            resetWall();
             isInGame = false;
             gameStarted = false;
             showChangeScene();
             disableCloseButton(false);
             playSound(soundMainmenu, false);
             flushStdin();
+            Sleep(100);
             return;
         };
         if (choose == -3) { // continue option in pausedMenu
@@ -3438,6 +3488,10 @@ void flappyBird() {
         showBird(output, countAnimation, sizeInAnimation, settingsData[4], y);
         showScore(output, score, highScore_, highScoreIsScore);
         output[terminalRows - 3] = lineMap;
+        if (settingsData[18]) {
+            showFPS(output);
+            frameFPS = frameFPS + 1;
+        };
         outputGame = getOutput(output, sizeOutput);
 
         // output
@@ -3737,7 +3791,11 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                             break;
                         case 5: // game speed
                             break;
-                        case 6:
+                        case 6: // show FPS
+                            settingsData[18] = !settingsData[18];
+                            writeConfig("showfps", to_string(settingsData[18] + 1));
+                            break;
+                        case 7:
                             *chooseMenu = -1;
                             break;
                     };
@@ -3970,6 +4028,8 @@ int main(int argc, char const *argv[]) {
     srand(time(NULL));
     
     loadHighScore();
+
+    thread threadFPS(getFPS);
 
     Sleep(1000);
     clearTerminal();
