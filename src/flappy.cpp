@@ -142,10 +142,10 @@ string skinWall[4][6] = {
     {
          "{  }", // up
          "{__}",
-        "(O_O_)",
+        "(O_O )",
 
-        "(`O`O)",  // down
-         "{  }",
+        "( O`O)",  // down
+         "{``}",
          "{  }"
     }
 };
@@ -1712,7 +1712,7 @@ void keymappingSettings() {
 void showFPS(string output[]) {
     string text = "FPS: " + to_string(FPS);
     int i;
-    int locate = terminalColumns - (text.length() + 1);
+    int locate = terminalColumns - (text.length());
     if (output == NULL) {
         cursorPos_move(locate, 0);
         cout << text;
