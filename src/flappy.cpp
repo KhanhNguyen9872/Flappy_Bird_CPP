@@ -111,7 +111,7 @@ string backGround[5] = {
 };
 int sizeBackground = sizeof(backGround) / sizeof(backGround[0]);
 
-string skinWall[2][6] = {
+string skinWall[4][6] = {
     {
          "|  |", // up
          "|__|",
@@ -129,6 +129,24 @@ string skinWall[2][6] = {
         "\\````/",  // down
           "|``|",
           "|``|"
+    },
+    {
+         "(__)", // up
+         "(__)",
+        "(____)",
+
+        "(````)",  // down
+         "(``)",
+         "(``)"
+    },
+    {
+         "{  }", // up
+         "{__}",
+        "(O_O_)",
+
+        "(`O`O)",  // down
+         "{  }",
+         "{  }"
     }
 };
 int sizeSkinWall = sizeof(skinWall) / sizeof(skinWall[0]);
@@ -1506,7 +1524,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
     if (isFullTextBottom) {
         bottomKeymap(addTextBottom);
     } else {
-        bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK | " + addTextBottom);
+        bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |" + addTextBottom);
     };
     return;
 };
@@ -1867,8 +1885,7 @@ void highScore() {
             flushStdin();
             return;
         };
-        showMenu("| High score |", menu, sizeMenu, &choose, "", false);
-        bottomKeymap("| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |");
+        showMenu("| High score |", menu, sizeMenu, &choose, "| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |", true);
         inputMenu(&choose, sizeMenu - 1, 4);
         Sleep(100);
     };
@@ -2213,6 +2230,8 @@ void moreSettingsMenu() {
         text = "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |";
         if (choose == 5) {
             text = text + " [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> Change |";
+        } else {
+            text = text + " [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |";
         };
         
         showMenu("| Settings |", menu, sizeMenu, &choose, text, true);
