@@ -1465,7 +1465,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
     int padding = terminalRows - 7 - sizeMenu - titleMenuSize;
 
     for(i=0; i <= padding; ++i) {
-        if(i == 2) {
+        if(i == (2 + (getResolutionValue() * 2))) {
             text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, *chooseMenu);
         } else if (i == padding - 1) {
             break;
@@ -1681,6 +1681,21 @@ void stringToOutput(string str, string output[], int sizeOutput) {
     return;
 };
 
+void showFPS(string output[]) {
+    string text = "FPS: " + to_string(FPS);
+    int i;
+    int locate = terminalColumns - (text.length() + 1);
+    if (output == NULL) {
+        cursorPos_move(locate, 0);
+        cout << text;
+    } else {
+        for(i = 0; i < text.length(); ++i) {
+            output[0][locate + i] = text[i];
+        };
+    };
+    return;
+};
+
 void showBird(string output[], int countAnimation[2], int sizeInAnimation, int skinIndex, int countGoUp) {
     int index;
     if (countAnimation == NULL) {
@@ -1787,6 +1802,10 @@ void brightnessSettings() {
             if (settingsData[13]) {
                 showBackground(output, 0, terminalRows - 3);
                 output[sizeOutput - 1] = road;
+            };
+            if (settingsData[18]) {
+                showFPS(output);
+                frameFPS = frameFPS + 1;
             };
             text = getOutput(output, sizeOutput);
             cursorPos_up();
@@ -1921,21 +1940,6 @@ void showWall(string output[], int skinValue, int column, int up, int down) {
     for(k = 0; k < text.length(); ++k) {
         if (((down + 2) < j) && ((column + k) <= terminalColumns)) {
             output[down + 2][column + k] = text[k];
-        };
-    };
-    return;
-};
-
-void showFPS(string output[]) {
-    string text = "FPS: " + to_string(FPS);
-    int i;
-    int locate = terminalColumns - (text.length() + 1);
-    if (output == NULL) {
-        cursorPos_move(locate, 0);
-        cout << text;
-    } else {
-        for(i = 0; i < text.length(); ++i) {
-            output[0][locate + i] = text[i];
         };
     };
     return;
@@ -4024,12 +4028,11 @@ int main(int argc, char const *argv[]) {
     clearTerminal();
     resizeTerminal(terminalColumns, terminalRows);
     thread lockSizeTer(lockSizeTerminal);
+    thread threadFPS(getFPS);
 
     srand(time(NULL));
     
     loadHighScore();
-
-    thread threadFPS(getFPS);
 
     Sleep(1000);
     clearTerminal();
