@@ -1324,17 +1324,29 @@ string menuText(string text[], int size, int choose) {
 
     string finalString = "";
     string lineSpace = "";
-    int i;
+    string text2;
+    int i, j;
 
-    for(i = 0; i < ((terminalColumns - text[0].length()) / 2) - 6; ++i) {
+    int k = 0;
+    for(i = 0; i < size; ++i) {
+        if (text[i].length() > k) {
+            k = text[i].length();
+        };
+    };
+
+    for(i = 0; i < ((terminalColumns - k) / 2) - 6; ++i) {
         lineSpace = lineSpace + ' ';
     };
     
     for(i = 0; i < size; ++i) {
+        text2 = "";
+        for(j = 0; j < (k - text[i].length()); ++j) {
+            text2 = text2 + ' ';
+        };
         if(i == choose) {
-            finalString = finalString + lineSpace + "==> | " + text[i] + " | <==" + "\n";
+            finalString = finalString + lineSpace + "==> | " + text[i] + text2 + " | <==" + "\n";
         } else {
-            finalString = finalString + lineSpace + "    | " + text[i] + " |    " + "\n";
+            finalString = finalString + lineSpace + "    | " + text[i] + text2 + " |    " + "\n";
         };
     };
     return finalString;
@@ -1664,13 +1676,13 @@ void keymappingSettings() {
     int choose = 0;
     string text;
     string template_menu[7] = {
-        "UP       ",
-        "DOWN     ",
-        "LEFT     ",
-        "RIGHT    ",
+        "UP",
+        "DOWN",
+        "LEFT",
+        "RIGHT",
         "EXIT/BACK",
-        "JUMP     ",
-        "ENTER    "
+        "JUMP",
+        "ENTER"
     };
     int sizeMenu = sizeof(template_menu) / sizeof(template_menu[0]);
     string *menu = new string[sizeMenu];
@@ -1847,7 +1859,7 @@ void brightnessSettings() {
 
 void resolutionSettings() {
     string menu[5] = {
-        " 80 x 20",
+        "80 x 20",
         "100 x 26",
         "120 x 30",
         "140 x 36",
@@ -2076,7 +2088,7 @@ void changeSkin(bool isSkinBird) {
         };
     };
     j = j - 6;
-    menu[size] = " Back ";
+    menu[size] = "Back";
     for(i = 0; i < j; ++i) {
         menu[size] = menu[size] + ' ';
     };
@@ -2104,9 +2116,9 @@ void optionsSkin() {
     };
     
     string menu[3] = {
-        " Bird ",
-        " Wall ",
-        " Back "
+        "Skin Bird",
+        "Skin Wall",
+        "Back"
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int choose = 0;
@@ -2126,19 +2138,19 @@ void optionsSkin() {
 string getNameGameSpeed(int index) {
     switch(index) {
         case 1:
-            return " Low ";
+            return "Low";
         case 2:
-            return " Med ";
+            return "Medium";
         case 3:
-            return "High ";
+            return "High";
         case 4:
-            return "Fast ";
+            return "Extreme";
         case 5:
-            return "30FPS";
+            return "30 FPS";
         case 6:
-            return "60FPS";
+            return "60 FPS";
         case 7:
-            return "NONE ";
+            return "Unlimited";
         default:
             break;
     };
@@ -2174,14 +2186,14 @@ void getFPS() {
 void moreSettingsMenu() {
     string text;
     string menu[8] = {
-        "    Auto mode [ ]   ",
-        "  Show firework [ ] ",
-        " Show background [ ]",
-        "     Show X/Y [ ]   ",
+        "Auto mode [ ]",
+        "Show firework [ ]",
+        "Show background [ ]",
+        "Show X/Y [ ]",
         "",
         "",
-        "    Show FPS [ ]    ",
-        "        Back        "
+        "Show FPS [ ]",
+        "Back"
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int choose = 0;
@@ -2191,43 +2203,39 @@ void moreSettingsMenu() {
             return;
         };
 
-        if (settingsData[16] > 9) {
-            menu[4] = "Number firework [" + to_string(settingsData[16]) + "]";
-        } else {
-            menu[4] = " Number firework [" + to_string(settingsData[16]) + "]";
-        };
+        menu[4] = "Number firework [" + to_string(settingsData[16]) + "]";
 
         if (settingsData[3]) {
-            menu[0][15] = 'X';
+            menu[0][11] = 'X';
         } else {
-            menu[0][15] = ' ';
+            menu[0][11] = ' ';
         };
 
         if (settingsData[12]) {
-            menu[1][17] = 'X';
+            menu[1][15] = 'X';
         } else {
-            menu[1][17] = ' ';
+            menu[1][15] = ' ';
         };
 
         if (settingsData[13]) {
-            menu[2][18] = 'X';
+            menu[2][17] = 'X';
         } else {
-            menu[2][18] = ' ';
+            menu[2][17] = ' ';
         };
 
         if (settingsData[14]) {
-            menu[3][15] = 'X';
+            menu[3][10] = 'X';
         } else {
-            menu[3][15] = ' ';
+            menu[3][10] = ' ';
         };
 
         if (settingsData[18]) {
-            menu[6][14] = 'X';
+            menu[6][10] = 'X';
         } else {
-            menu[6][14] = ' ';
+            menu[6][10] = ' ';
         };
 
-        menu[5] = " Game speed [" + getNameGameSpeed(settingsData[17]) + "] ";
+        menu[5] = "Speed [" + getNameGameSpeed(settingsData[17]) + "]";
         text = "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |";
         if (choose == 5) {
             text = text + " [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> Change |";
@@ -2244,13 +2252,13 @@ void moreSettingsMenu() {
 
 void settingsMenu() {
     string menu[7] = {
-        "    Music [ ]    ",
-        "    SFX [ ]      ",
-        "    Brightness   ",
-        "    Keymapping   ",
-        "    Resolution   ",
-        "    More...      ",
-        "    Back         "
+        "Music [ ]",
+        "SFX [ ]",
+        "Brightness",
+        "Keymapping",
+        "Resolution",
+        "More...",
+        "Back"
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int choose = 0;
@@ -2261,15 +2269,15 @@ void settingsMenu() {
         };
 
         if (settingsData[0]) {
-            menu[0][11] = 'X';
+            menu[0][7] = 'X';
         } else {
-            menu[0][11] = ' ';
+            menu[0][7] = ' ';
         };
         
         if (settingsData[1]) {
-            menu[1][9] = 'X';
+            menu[1][5] = 'X';
         } else {
-            menu[1][9] = ' ';
+            menu[1][5] = ' ';
         };
 
         showMenu("| Settings |", menu, sizeMenu, &choose, "", false);
@@ -2303,12 +2311,12 @@ int pausedMenu(bool isShowPauseInGame) {
     // paused menu
     choose = 0;
     string menu[6] = {
-        "  Continue  ",
-        "  New game  ",
-        " High score ",
-        "  Settings  ",
-        " Main menu  ",
-        "    Exit    "
+        "Continue",
+        "New game",
+        "High score",
+        "Settings",
+        "Main menu",
+        "Exit"
     };
 
     int sizeMenu = sizeof(menu) / sizeof(menu[0]);
@@ -2360,8 +2368,8 @@ void launchPaused(int *chooseMenu) {
 
 void moreOptions() {
     string menu[2] = {
-        "   Github  ",
-        "    Back   "
+        "Go to Github",
+        "Back"
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int choose = 0;
@@ -2380,13 +2388,13 @@ void moreOptions() {
 void mainMenu() {
     isInGame = false;
     string menu[7] = {
-        "   Start  ",
+        "Start",
         "High score",
-        "   Skin   ",
-        "  More... ",
-        " Settings ",
-        "  Credit  ",
-        "   Exit   "
+        "Skin",
+        "More...",
+        "Settings",
+        "Credit",
+        "Exit"
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int chooseMenu = 0;
@@ -2402,9 +2410,9 @@ void mainMenu() {
 
 void startOptions() {
     string menu[3] = {
-        "  Offline ",
-        "  Online  ",
-        "   Back   "
+        "Offline",
+        "Online",
+        "Back"
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int choose = 0;
