@@ -588,7 +588,7 @@ void errorBox(string output, string bottom, bool isBlur) {
             flushStdin();
             return;
         };
-        Sleep(250);
+        Sleep(200);
     };
     return;
 };
@@ -959,7 +959,7 @@ bool showYesorNo(string text) {
             };
         };
         tmp = false;
-        Sleep(250);
+        Sleep(200);
     };
 
     return 0;
@@ -2126,15 +2126,19 @@ void optionsSkin() {
 string getNameGameSpeed(int index) {
     switch(index) {
         case 1:
-            return "Low ";
+            return " Low ";
         case 2:
-            return "Med ";
+            return " Med ";
         case 3:
-            return "High";
+            return "High ";
         case 4:
-            return "Fast";
+            return "Fast ";
         case 5:
-            return "TEST";
+            return "30FPS";
+        case 6:
+            return "60FPS";
+        case 7:
+            return "NONE ";
         default:
             break;
     };
@@ -2142,8 +2146,8 @@ string getNameGameSpeed(int index) {
 };
 
 int getValueGameSpeed(int index) {    // value is 200, 150, 100 or 50
-    int valueData[5] = {
-        175, 150, 125, 100, 20
+    int valueData[7] = {
+        175, 150, 125, 100, 20, 5, 0
     };
     return valueData[index - 1];
 };
@@ -2223,7 +2227,7 @@ void moreSettingsMenu() {
             menu[6][14] = ' ';
         };
 
-        menu[5] = "  Game speed [" + getNameGameSpeed(settingsData[17]) + "] ";
+        menu[5] = " Game speed [" + getNameGameSpeed(settingsData[17]) + "] ";
         text = "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |";
         if (choose == 5) {
             text = text + " [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> Change |";
@@ -3053,7 +3057,7 @@ bool gameOver(int score, int y, int minY, int maxY) {
         showBoxText("Game over", false);
         bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> MAIN MENU | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |");
         inputMenu(&choose, 0, -6);
-        Sleep(200);
+        Sleep(100);
     };
     return 0;
 };
