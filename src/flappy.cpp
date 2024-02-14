@@ -12,9 +12,6 @@
 #include <fstream>
 #include <sstream>
 
-#pragma comment(lib, "winmm.lib")
-#pragma comment(lib, "ws2_32.lib")
-
 #define configFileName  ".\\flappy.conf"
 #define scoreFileName   ".\\score.txt"
 #define soundMainmenu   ".\\sound\\mainmenu.wav"
@@ -1512,8 +1509,8 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
         };
     };
 
-    string output[terminalRows - 2];
-    int sizeOutput = sizeof(output) / sizeof(output[0]);
+    int sizeOutput = terminalRows - 2;
+    string output[sizeOutput];
     wipeOutput(output, sizeOutput);
     stringToOutput(text, output, sizeOutput);
     text = getOutput(output, sizeOutput);
@@ -1760,8 +1757,8 @@ void brightnessSettings() {
         int currentBrightness = getBrightness();
         
         int i, j;
-        string output[terminalRows - 2];
-        int sizeOutput = sizeof(output) / sizeof(output[0]);
+        int sizeOutput = terminalRows - 2;
+        string output[sizeOutput];
         string road = getRoad();
 
         string text;
@@ -2439,13 +2436,13 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
     int sizeBox = terminalColumns - (column * 2);
     string text;
     string text2;
-    string output[terminalRows - 2];
+    int sizeOutput = terminalRows - 2;
+    string output[sizeOutput];
     string fullOutput;
     string nameKey;
     string userInput = "";
     string road = getRoad();
     int lengthUserInput = 0;
-    int sizeOutput = sizeof(output) / sizeof(output[0]);
     int indexCursor = 0;
     int secondIndexCursor = 0;
     flushStdin();
@@ -3334,10 +3331,7 @@ void flappyBird() {
     // wall
     int nextWall = 0;
     int countWall = 0;
-    int wallCreateDistance = 21;
-    for(i = 0; i < getResolutionValue(); ++i) {
-        wallCreateDistance = wallCreateDistance + 5;
-    };
+    int wallCreateDistance = 21 + (getResolutionValue() * 5);
     int distance = wallCreateDistance - 4;
 
     // road
@@ -3349,8 +3343,9 @@ void flappyBird() {
     bool highScoreIsScore = 0;
 
     // output data
-    string output[terminalRows - 2];
-    int sizeOutput = sizeof(output) / sizeof(output[0]);
+    // string output[terminalRows - 2];
+    int sizeOutput = terminalRows - 2;
+    string *output = new string[sizeOutput];    // memory leak when return function (but when deallocate array, [Access Violation Error] occurred)
     string text;
     string outputGame;
 
@@ -3370,22 +3365,45 @@ void flappyBird() {
 
     flushStdin();
     while(true) {
-        if (choose == -1) { // return to main menu
-            resetWall();
-            isInGame = false;
-            gameStarted = false;
-            showChangeScene();
-            disableCloseButton(false);
-            playSound(soundMainmenu, false);
-            flushStdin();
-            Sleep(100);
-            return;
+        switch(choose) {
+            case -1: // return to main menu
+                stopSound();
+                resetWall();
+                isInGame = false;
+                gameStarted = false;
+                showChangeScene();
+                disableCloseButton(false);
+                playSound(soundMainmenu, false);
+                flushStdin();
+                return;
+            case -2:  // new game
+                choose = 0;
+                stopSound();
+                resetWall();
+                score = 0;
+                distance = wallCreateDistance - 4;
+                x = 0;
+                y = 0;
+                isOver = 0;
+                nextWall = 0;
+                countWall = 0;
+                highScoreIsScore = 0;
+                countAnimation[0] = 1;
+                countAnimation[1] = 0;
+                highScore_ = getHighScore(score);
+                countStart = rand() % sizeBackground;
+                oldX = 0;
+                gameStarted = 0;
+                disableCloseButton(false);
+                flushStdin();
+                continue;
+            case -3: // continue option in pausedMenu
+                stopSound();
+                gameStarted = true;
+                choose = 0;
+                continue;
         };
-        if (choose == -3) { // continue option in pausedMenu
-            gameStarted = true;
-            choose = 0;
-            continue;
-        };
+
         if(gameStarted) {
             maxY = maxUp + 1 - listWall[nextWall][1];
             minY = maxUp + 1 - listWall[nextWall][2];
@@ -3401,27 +3419,6 @@ void flappyBird() {
                     choose = -2;
                 };
             };
-        };
-        if (choose == -2) { // new Game
-            resetWall();
-            choose = 0;
-            score = 0;
-            distance = wallCreateDistance - 4;
-            x = 0;
-            y = 0;
-            isOver = 0;
-            nextWall = 0;
-            countWall = 0;
-            highScoreIsScore = 0;
-            countAnimation[0] = 1;
-            countAnimation[1] = 0;
-            highScore_ = getHighScore(score);
-            countStart = rand() % sizeBackground;
-            oldX = 0;
-            gameStarted = 0;
-            disableCloseButton(false);
-            flushStdin();
-            continue;
         };
         if ((settingsData[3]) && (gameStarted)) { // auto mode activated
             if ((minY == maxUp + 3) && (maxY == maxUp + 3)) { // maxUp + 1 - (-2)
