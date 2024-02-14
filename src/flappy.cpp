@@ -52,7 +52,7 @@ char keymapData[7][2];
 int listHighScore[8];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[19] = {
+int settingsData[20] = {
     true,  // music
     true,  // sfx
     WHITE, // brightness
@@ -71,7 +71,8 @@ int settingsData[19] = {
     0,      // skin wall
     4,      // number of firework 
     2,      // game speed
-    true    // show FPS
+    true,   // show FPS
+    2       // Difficult
 };
 
 int FPS = 0;
@@ -279,6 +280,13 @@ void hideCursor() {  // Windows API
     return;
 };
 
+void getCurrentCursorXY(int *x, int *y) {
+    GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
+    *x = bufferInfo.dwCursorPosition.X;
+    *y = bufferInfo.dwCursorPosition.Y;
+    return;
+};
+
 void getTerminalSize(int *columns, int *rows) {  // Windows API
     GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
     *columns = bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1;
@@ -482,6 +490,26 @@ void bottomKeymap(string text) {
     return;
 };
 
+void showFPS(string output[]) {
+    if (!settingsData[18]) {
+        return;
+    };
+    string text = "FPS: " + to_string(FPS);
+    int i;
+    int locate = terminalColumns - (text.length());
+    if (output == NULL) {
+        color(settingsData[2]);
+        cursorPos_move(locate - 1, 0);
+        cout << " " << text;
+    } else {
+        for(i = 0; i < text.length(); ++i) {
+            output[0][locate + i] = text[i];
+        };
+    };
+    frameFPS = frameFPS + 1;
+    return;
+};
+
 void errorBox(string output, string bottom, bool isBlur) {
     //
     //     ________________________   .
@@ -519,6 +547,7 @@ void errorBox(string output, string bottom, bool isBlur) {
     };
 
     while(true) {
+        showFPS(NULL);
         color(RED);
         sizeRow = 0;
         for(i = 0; i < terminalRows - 5; ++i) {
@@ -582,7 +611,6 @@ void errorBox(string output, string bottom, bool isBlur) {
             };
         };
 
-        color(settingsData[2]);
         bottomKeymap(bottom);
         if(_kbhit()) {
             flushStdin();
@@ -866,6 +894,7 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
             cursorPos_up();
         };
         cout << text;
+        showFPS(NULL);
         Sleep(100);
     };
     clearTerminal();
@@ -993,6 +1022,9 @@ void banner() {
         "   Do not use headphones   ", \
     };
     showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]), false, true);
+
+    showFPS(NULL);
+    Sleep(1000);
     return;
 };
 
@@ -1307,10 +1339,12 @@ void loadingFrame(int progress, bool isShowBird) {
         };
     };
 
+    showFPS(NULL);
+
     if (progress >= 100) {
         showChangeScene();
     };
-    
+
     return;
 };
 
@@ -1472,21 +1506,6 @@ void stringToOutput(string str, string output[], int sizeOutput) {
     return;
 };
 
-void showFPS(string output[]) {
-    string text = "FPS: " + to_string(FPS);
-    int i;
-    int locate = terminalColumns - (text.length());
-    if (output == NULL) {
-        cursorPos_move(locate, 0);
-        cout << text;
-    } else {
-        for(i = 0; i < text.length(); ++i) {
-            output[0][locate + i] = text[i];
-        };
-    };
-    return;
-};
-
 void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, string addTextBottom, bool isFullTextBottom) {
     //   ___ _                       ___ _        _ 
     //  | __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |
@@ -1540,10 +1559,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
     string output[sizeOutput];
     wipeOutput(output, sizeOutput);
     stringToOutput(text, output, sizeOutput);
-    if (settingsData[18]) {
-        showFPS(output);
-        frameFPS = frameFPS + 1;
-    };
+    showFPS(output);
     text = getOutput(output, sizeOutput);
 
     color(settingsData[2]);
@@ -1552,24 +1568,27 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
     if (isFullTextBottom) {
         bottomKeymap(addTextBottom);
     } else {
-        bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |" + addTextBottom);
+        bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |" + addTextBottom);
     };
     return;
 };
 
 void credit() {
-    string credit_info[12] = {
-        "", \
-        "FLAPPY BIRD", \
-        "", \
-        "Admin: Nguyen Van Khanh", \
-        "", \
-        "Design: Nguyen Van Khanh", \
-        "", \
-        "Music: Nguyen Van Khanh", \
-        "", \
-        "", \
-        "KhanhNguyen9872. All rights reversed!", \
+    string credit_info[15] = {
+        "FLAPPY BIRD",
+        "",
+        "Admin: Nguyen Van Khanh",
+        "",
+        "Design: Nguyen Van Khanh",
+        "",
+        "Music: Nguyen Van Khanh",
+        "",
+        "Facebook: fb.me/khanh10a1",
+        "",
+        "Github: github.com/KhanhNguyen9872"
+        "",
+        "",
+        "KhanhNguyen9872. All rights reversed!",
         ""
     };
 
@@ -1579,20 +1598,21 @@ void credit() {
     string text, tmp;
 
     clearTerminal();
+    showFPS(NULL);
     Sleep(350);
     color(YELLOW);
     
     while(true) {
         text = "";
-        for(i=0; i<terminalRows - count; ++i) {
-            if (i == terminalRows - 1 - count) {
-                if (count - 1 < line) {
+        for(i = 0; i < (terminalRows - count); ++i) {
+            if (i == (terminalRows - 1 - count)) {
+                if ((count - 1) < line) {
                     tmp = "";
-                    for(k=0; k<count; ++k) {
-                        for(j=0; j < (terminalColumns - credit_info[k].length()) / 2; ++j) {
+                    for(k = 0; k < count; ++k) {
+                        for(j = 0; j < ((terminalColumns - credit_info[k].length()) / 2); ++j) {
                             tmp = tmp + ' ';
                         };
-                         tmp = tmp + credit_info[k] + "\n";
+                        tmp = tmp + credit_info[k] + "\n";
                     };
                 };
                 text = text + tmp;
@@ -1603,19 +1623,22 @@ void credit() {
                 text = text + "\n";
             };
         };
-        if (terminalRows - count - 1 == 0) {
+        if ((terminalRows - count - 1) == 0) {
             color(MAGENTA);
-            cout << "\n\n";
             tmp = ">> Press any key to exit <<";
+            text = "";
             for(i=0; i < (terminalColumns - tmp.length()) / 2; ++i) {
-                cout << ' ';
+                text = text + ' ';
             };
-            cout << tmp;
+            text = text + tmp;
+            cursorPos_move(0, (terminalRows - 3));
+            cout << text;
             anyKey();
             return;
         };
         clearTerminal();
         cout << text;
+        showFPS(NULL);
         Sleep(250);
     };
     return;
@@ -1730,7 +1753,7 @@ void keymappingSettings() {
             
             menu[i] = text + "  -->  " + template_menu[i];
         };
-        showMenu("| Keymapping Settings |", menu, sizeMenu, &choose, "[F12] -> RESET |", false);
+        showMenu("| Keymapping Settings |", menu, sizeMenu, &choose, " [F12] -> RESET |", false);
         inputMenu(&choose, sizeMenu - 1, -2);
         Sleep(100);
     };
@@ -1844,14 +1867,11 @@ void brightnessSettings() {
                 showBackground(output, 0, terminalRows - 3);
                 output[sizeOutput - 1] = road;
             };
-            if (settingsData[18]) {
-                showFPS(output);
-                frameFPS = frameFPS + 1;
-            };
+            showFPS(output);
             text = getOutput(output, sizeOutput);
             cursorPos_up();
             cout << text;
-            bottomKeymap("| [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "] -> LOW | [" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> HIGH | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
+            bottomKeymap("| [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) +"] -> LOW/HIGH | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
             inputMenu(&currentBrightness, 2, 2);
             Sleep(50);
         };
@@ -2040,10 +2060,7 @@ void previewSkin(int index, bool isSkinBird) {
             };
         };
         output[i - 1] = road;
-        if (settingsData[18]) {
-            showFPS(output);
-            frameFPS = frameFPS + 1;
-        };
+        showFPS(output);
         finalOutput = getOutput(output, i);
         
         clearTerminal();
@@ -2148,12 +2165,14 @@ string getNameGameSpeed(int index) {
         case 3:
             return "High";
         case 4:
-            return "Extreme";
+            return "Ultra";
         case 5:
-            return "30 FPS";
+            return "Extreme";
         case 6:
-            return "60 FPS";
+            return "30 FPS";
         case 7:
+            return "60 FPS";
+        case 8:
             return "Unlimited";
         default:
             break;
@@ -2162,8 +2181,8 @@ string getNameGameSpeed(int index) {
 };
 
 int getValueGameSpeed(int index) {    // value is 200, 150, 100 or 50
-    int valueData[7] = {
-        175, 150, 125, 100, 20, 5, 0
+    int valueData[8] = {
+        175, 150, 125, 100, 75, 20, 5, 0
     };
     return valueData[index - 1];
 };
@@ -2240,7 +2259,7 @@ void moreSettingsMenu() {
         };
 
         menu[5] = "Speed [" + getNameGameSpeed(settingsData[17]) + "]";
-        text = "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "] -> UP | [" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |";
+        text = "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |";
         if (choose == 5) {
             text = text + " [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> Change |";
         } else {
@@ -2255,12 +2274,13 @@ void moreSettingsMenu() {
 };
 
 void settingsMenu() {
-    string menu[7] = {
+    string menu[8] = {
         "Music [ ]",
         "SFX [ ]",
         "Brightness",
         "Keymapping",
         "Resolution",
+        "Difficult",
         "More...",
         "Back"
     };
@@ -2291,6 +2311,47 @@ void settingsMenu() {
     return;
 };
 
+string getNameDifficult(int value) {
+    switch(value) {
+        case 0:
+            return "Chill";
+        case 1:
+            return "Easy";
+        case 2:
+            return "Normal";
+        case 3:
+            return "Hard";
+        case 4:
+            return "Hell";
+        default:
+            break;      
+    };
+    return "NULL";
+};
+
+void changeDifficult() {
+    int i;
+    string menu[6];
+    int sizeMenu = sizeof(menu)/sizeof(menu[0]);
+    for(i = 0; i < (sizeMenu - 1); i++) {
+        menu[i] = getNameDifficult(i);
+    };
+    menu[5] = "Back";
+    int choose = settingsData[19];
+    string titleMenu;
+    while(true) {
+        if (choose == -1) {
+            flushStdin();
+            return;
+        };
+        titleMenu = "| Current difficult: " + menu[settingsData[19]] + " |";
+        showMenu(titleMenu, menu, sizeMenu, &choose, "", false);
+        inputMenu(&choose, sizeMenu - 1, 10);
+        Sleep(100);
+    };
+    return;
+};
+
 int pausedMenu(bool isShowPauseInGame) {
     int choose = 0;
 
@@ -2305,6 +2366,7 @@ int pausedMenu(bool isShowPauseInGame) {
             if (choose == -2) {
                 break;
             };
+            showFPS(NULL);
             showBoxText("PAUSED", false);
             bottomKeymap("| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> RESUME | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> PAUSED MENU |");
             inputMenu(&choose, 0, -5);
@@ -2461,6 +2523,8 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
     int lengthUserInput = 0;
     int indexCursor = 0;
     int secondIndexCursor = 0;
+    FPS = 0;
+    frameFPS = 0;
     flushStdin();
     while(true) {
         if ((!p[0]) && (p[1] == 27)) {
@@ -2590,6 +2654,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         fullOutput = getOutput(output, sizeOutput);
         cursorPos_up();
         cout << fullOutput;
+        showFPS(NULL);
         bottomKeymap(_bottomKeymap);
         // input
         // if (_kbhit()) {
@@ -2776,16 +2841,23 @@ void loadConfig() {
         };
         // skin bird
         if (!setSkin(readConfig("skinbird"), true)) {
-            writeConfig("skinbird", "0");  
+            writeConfig("skinbird", to_string(settingsData[4]));  
         };
         // skin wall
         if (!setSkin(readConfig("skinwall"), false)) {
-            writeConfig("skinwall", "0");  
+            writeConfig("skinwall", to_string(settingsData[15]));  
+        };
+        // Difficult
+        i = readConfig("difficult");
+        if ((i < 1) || (i > 5)) {
+            writeConfig("difficult", to_string(settingsData[19] + 1));
+        } else {
+            settingsData[19] = i - 1;
         };
         // show firework
         i = readConfig("showfw");
-        if ((i == 0) || (i == -1)) {
-            writeConfig("showfw", "2");
+        if (i < 1) {
+            writeConfig("showfw", to_string(settingsData[12] + 1));
         } else if (i == 2) {
             settingsData[12] = true;
         } else {
@@ -2799,8 +2871,8 @@ void loadConfig() {
         };
         // show background
         i = readConfig("showbg");
-        if ((i == 0) || (i == -1)) {
-            writeConfig("showbg", "2");
+        if (i < 1) {
+            writeConfig("showbg", to_string(settingsData[13] + 1));
         } else if (i == 2) {
             settingsData[13] = true;
         } else {
@@ -2808,8 +2880,8 @@ void loadConfig() {
         };
         // show xy
         i = readConfig("showxy");
-        if ((i == 0) || (i == -1)) {
-            writeConfig("showxy", "2");
+        if (i < 1) {
+            writeConfig("showxy", to_string(settingsData[14] + 1));
         } else if (i == 2) {
             settingsData[14] = true;
         } else {
@@ -2819,8 +2891,8 @@ void loadConfig() {
         setGameSpeed(readConfig("speed"));
         // show fps
         i = readConfig("showfps");
-        if ((i == 0) || (i == -1)) {
-            writeConfig("showfps", "2");
+        if (i < 1) {
+            writeConfig("showfps", to_string(settingsData[18] + 1));
         } else if (i == 2) {
             settingsData[18] = true;
         } else {
@@ -3066,8 +3138,9 @@ bool gameOver(int score, int y, int minY, int maxY) {
         if (choose == -2) {
             return 0;
         };
+        showFPS(NULL);
         showBoxText("Game over", false);
-        bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> MAIN MENU | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |");
+        bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> MAIN MENU | Diff: " + getNameDifficult(settingsData[19]) + " | Y: [" + to_string(minY) + "][" + to_string(y) + "][" + to_string(maxY) + "] |");
         inputMenu(&choose, 0, -6);
         Sleep(100);
     };
@@ -3093,7 +3166,7 @@ void addWall(int *countWall) {
     };
     listWall[*countWall][0] = terminalColumns - 4;
     listWall[*countWall][1] = (rand() % (terminalRows - 9)); //up
-    listWall[*countWall][2] = listWall[*countWall][1] + 6; // down
+    listWall[*countWall][2] = listWall[*countWall][1] + 8 - settingsData[19]; // down
 
     *countWall = *countWall + 1;
     if (*countWall >= sizelistWall) {
@@ -3446,7 +3519,14 @@ void flappyBird() {
                     y = y - 1;
                 };
             } else {
-                if (y <= minY + 2) {
+                i = minY + 2;
+                switch(settingsData[19]) { // diff
+                    case 3:
+                    case 4:
+                        i = i - 1;
+                        break;
+                };
+                if (y <= i) {
                     playSound(soundBirdFlyUp, true);
                     y = y + 2;
                 } else {
@@ -3519,7 +3599,7 @@ void flappyBird() {
         };
         text = text + " | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> PAUSE |";
         if (settingsData[14]) {
-            text = text + " X: " + to_string(x) + " | Y: " + to_string(y) + " | minY: " + to_string(minY) + " | maxY: " + to_string(maxY) + " |";  
+            text = text + " Diff: " + getNameDifficult(settingsData[19]) + " | X: " + to_string(x) + " | Y: [" + to_string(minY) + "][" + to_string(y) + "][" + to_string(maxY) + "] |";
         };
         wipeOutput(output, sizeOutput);
         if (settingsData[13]) {
@@ -3536,10 +3616,7 @@ void flappyBird() {
         showBird(output, countAnimation, sizeInAnimation, settingsData[4], y);
         showScore(output, score, highScore_, highScoreIsScore);
         output[terminalRows - 3] = lineMap;
-        if (settingsData[18]) {
-            showFPS(output);
-            frameFPS = frameFPS + 1;
-        };
+        showFPS(output);
         outputGame = getOutput(output, sizeOutput);
 
         // output
@@ -3576,6 +3653,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 7:  // moreSettingsMenu
                 case 8:  // optionsSkin
                 case 9:  // changeSkin (wall)
+                case 10: // changeDifficult
                     if(*chooseMenu > 0) {
                         *chooseMenu = *chooseMenu - 1;
                     } else {
@@ -3637,6 +3715,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 7:
                 case 8:
                 case 9:
+                case 10:
                     if(*chooseMenu < max) {
                         *chooseMenu = *chooseMenu + 1;
                     } else {
@@ -3756,10 +3835,13 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                                 };
                             };
                             break;
-                        case 5:
-                            moreSettingsMenu();
+                        case 5: // diff
+                            changeDifficult();
                             break;
                         case 6:
+                            moreSettingsMenu();
+                            break;
+                        case 7:
                             *chooseMenu = -1;
                             break;
                     };
@@ -3880,6 +3962,18 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                         previewSkin(*chooseMenu, false);
                     };
                     break;
+                case 10:
+                    if (*chooseMenu == 5) {
+                        *chooseMenu = -1;
+                        break;
+                    };
+                    settingsData[19] = *chooseMenu;
+                    writeConfig("difficult", to_string(settingsData[19] + 1));
+                    showBoxText("Completed", true);
+                    bottomKeymap("Press any key to continue!");
+                    anyKey();
+                    *chooseMenu = -1;
+                    break;
             };
         } else if ((p[1] == keymapData[4][1]) && (p[0] == keymapData[4][0])) /* ESC */ {
             switch(type_menu) {
@@ -3898,6 +3992,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 7:
                 case 8:
                 case 9:
+                case 10:
                     *chooseMenu = -1;
                     break;
                 case -3: // flappyBird
@@ -4094,7 +4189,6 @@ int main(int argc, char const *argv[]) {
     clearTerminal();
 
     banner();
-    Sleep(1000);
 
     // Loading time... [cho đẹp thôi chứ k có load gì đâu =)))]
     showTip("");
@@ -4113,9 +4207,6 @@ int main(int argc, char const *argv[]) {
             Sleep(120);
         };
     };
-
-    Sleep(500);
-    clearTerminal();
     
     mainMenu();
     return 0;
