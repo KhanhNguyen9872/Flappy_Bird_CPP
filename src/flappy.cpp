@@ -1472,6 +1472,21 @@ void stringToOutput(string str, string output[], int sizeOutput) {
     return;
 };
 
+void showFPS(string output[]) {
+    string text = "FPS: " + to_string(FPS);
+    int i;
+    int locate = terminalColumns - (text.length());
+    if (output == NULL) {
+        cursorPos_move(locate, 0);
+        cout << text;
+    } else {
+        for(i = 0; i < text.length(); ++i) {
+            output[0][locate + i] = text[i];
+        };
+    };
+    return;
+};
+
 void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, string addTextBottom, bool isFullTextBottom) {
     //   ___ _                       ___ _        _ 
     //  | __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |
@@ -1525,6 +1540,10 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
     string output[sizeOutput];
     wipeOutput(output, sizeOutput);
     stringToOutput(text, output, sizeOutput);
+    if (settingsData[18]) {
+        showFPS(output);
+        frameFPS = frameFPS + 1;
+    };
     text = getOutput(output, sizeOutput);
 
     color(settingsData[2]);
@@ -1714,21 +1733,6 @@ void keymappingSettings() {
         showMenu("| Keymapping Settings |", menu, sizeMenu, &choose, "[F12] -> RESET |", false);
         inputMenu(&choose, sizeMenu - 1, -2);
         Sleep(100);
-    };
-    return;
-};
-
-void showFPS(string output[]) {
-    string text = "FPS: " + to_string(FPS);
-    int i;
-    int locate = terminalColumns - (text.length());
-    if (output == NULL) {
-        cursorPos_move(locate, 0);
-        cout << text;
-    } else {
-        for(i = 0; i < text.length(); ++i) {
-            output[0][locate + i] = text[i];
-        };
     };
     return;
 };
