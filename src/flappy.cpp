@@ -3510,9 +3510,9 @@ void flappyBird() {
             };
         };
         if ((settingsData[3]) && (gameStarted)) { // auto mode activated
-            if ((minY == maxUp + 3) && (maxY == maxUp + 3)) { // maxUp + 1 - (-2)
+            if ((minY == maxUp + 5) && (maxY == maxUp + 5)) { // maxUp + 1 - (-4)
                 // skip due to noWall
-                if (y < maxUp / 2) {
+                if (y < 1) {
                     playSound(soundBirdFlyUp, true);
                     y = y + 2;
                 } else {
