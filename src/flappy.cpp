@@ -3095,16 +3095,16 @@ void showAllWall(string output[], int *nextWall, int *score, int countWall) {
     int i, j;
 
     for(i = 0; i < sizelistWall; ++i) {
-        if ((listWall[i][0] > -1) && (listWall[i][0] < terminalColumns - 3)) {
+        if ((listWall[i][0] > -4) && (listWall[i][0] < terminalColumns + 2)) {
             // display Wall
             showWall(output, settingsData[15], listWall[i][0], listWall[i][1], listWall[i][2]);
             if(gameStarted) {
                 listWall[i][0] = listWall[i][0] - 1; // decrease terminalColumn
             };
-        } else if ((listWall[i][1] > -1) && (gameStarted)) {
+        } else if ((listWall[i][1] > -4) && (gameStarted)) {
             // remove Wall cannot display
             for(j = 0; j < 3; ++j) {
-                listWall[i][j] = -1;
+                listWall[i][j] = -4;
             };
             *nextWall = i + 1;
             *score = *score + 1;
@@ -3151,7 +3151,7 @@ void resetWall() {
     int i, j;
     for(i = 0; i < sizelistWall; ++i) {
         for(j = 0; j < sizeof(listWall[i]) / sizeof(listWall[i][0]); ++j) {
-            listWall[i][j] = -2;
+            listWall[i][j] = -4;
         };
     };
     return;
@@ -3164,7 +3164,7 @@ void addWall(int *countWall) {
     if (listWall[*countWall][0] > -1) {
         return;
     };
-    listWall[*countWall][0] = terminalColumns - 4;
+    listWall[*countWall][0] = terminalColumns + 1;
     listWall[*countWall][1] = (rand() % (terminalRows - 9)); //up
     listWall[*countWall][2] = listWall[*countWall][1] + 8 - settingsData[19]; // down
 
@@ -3420,7 +3420,7 @@ void flappyBird() {
     // wall
     int nextWall = 0;
     int countWall = 0;
-    int wallCreateDistance = 21 + (getResolutionValue() * 5);
+    int wallCreateDistance = 22 + (getResolutionValue() * 4);
     int distance = wallCreateDistance - 4;
 
     // road
