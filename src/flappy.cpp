@@ -78,7 +78,7 @@ int settingsData[20] = {
 int FPS = 0;
 int frameFPS = 0;
 int terminalColumns, terminalRows;
-int tmp_int[3] = {0, 0, 0};
+int tmp_int[5] = {0, 0, 0, -1, -1}; // 3 - 4 [countAnimation menu]
 int listWall[10][3];
 int sizelistWall = sizeof(listWall) / sizeof(listWall[0]);
 bool isInGame = -1;
@@ -1361,6 +1361,59 @@ string menuText(string text[], int size, int choose) {
     string text2;
     int i, j;
 
+    // animation
+    string textLeft = "";
+    string textRight = "";
+    if (choose != tmp_int[3]) {
+        tmp_int[3] = choose;
+        tmp_int[4] = 0;
+    };
+
+    switch(tmp_int[4]) {
+        case 0:
+            textLeft = ">   |  ";
+            textRight = "  |   <";
+            break;
+        case 1:
+            textLeft = " >  |  ";
+            textRight = "  |  < ";
+            break;
+        case 2:
+            textLeft = "  > |  ";
+            textRight = "  | <  ";
+            break;
+        case 3:
+            textLeft = "   >|  ";
+            textRight = "  |<   ";
+            break;
+        case 4:
+            textLeft = "   |>  ";
+            textRight = "  <|   ";
+            break;
+        case 5:
+            textLeft = "  |=>  ";
+            textRight = "  <=|  ";
+            break;
+        case 6:
+            textLeft = " |==>  ";
+            textRight = "  <==| ";
+            break;
+        case 7:
+            textLeft = " [==>  ";
+            textRight = "  <==] ";
+            break;
+        case 8:
+            textLeft = ">[==>  ";
+            textRight = "  <==]<";
+            break;
+        default:
+            break;
+    };
+    if(tmp_int[4] < 8) {
+        tmp_int[4] = tmp_int[4] + 1;
+    };
+
+    //
     int k = 0;
     for(i = 0; i < size; ++i) {
         if (text[i].length() > k) {
@@ -1378,9 +1431,9 @@ string menuText(string text[], int size, int choose) {
             text2 = text2 + ' ';
         };
         if(i == choose) {
-            finalString = finalString + lineSpace + "==> | " + text[i] + text2 + " | <==" + "\n";
+            finalString = finalString + lineSpace + textLeft + text[i] + text2 + textRight + "\n";
         } else {
-            finalString = finalString + lineSpace + "    | " + text[i] + text2 + " |    " + "\n";
+            finalString = finalString + lineSpace + "    |  " + text[i] + text2 + "  |    " + "\n";
         };
     };
     return finalString;
@@ -1755,7 +1808,7 @@ void keymappingSettings() {
         };
         showMenu("| Keymapping Settings |", menu, sizeMenu, &choose, " [F12] -> RESET |", false);
         inputMenu(&choose, sizeMenu - 1, -2);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -1900,7 +1953,7 @@ void resolutionSettings() {
         titleMenu = "| Current resolution: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " |";
         showMenu(titleMenu, menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 3);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -1920,7 +1973,7 @@ void highScore() {
         };
         showMenu("| High score |", menu, sizeMenu, &choose, "| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |", true);
         inputMenu(&choose, sizeMenu - 1, 4);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -2125,7 +2178,7 @@ void changeSkin(bool isSkinBird) {
         };
         showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, &choose, "", false);
         inputMenu(&choose, size, inputCase);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -2151,7 +2204,7 @@ void optionsSkin() {
 
         showMenu("| Change Skin |", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 8);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -2268,7 +2321,7 @@ void moreSettingsMenu() {
         
         showMenu("| Settings |", menu, sizeMenu, &choose, text, true);
         inputMenu(&choose, sizeMenu - 1, 7);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -2306,7 +2359,7 @@ void settingsMenu() {
 
         showMenu("| Settings |", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 1);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -2347,7 +2400,7 @@ void changeDifficult() {
         titleMenu = "| Current difficult: " + menu[settingsData[19]] + " |";
         showMenu(titleMenu, menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 10);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -2400,7 +2453,7 @@ int pausedMenu(bool isShowPauseInGame) {
         };
         showMenu("| Paused |", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, -4);
-        Sleep(100);
+        Sleep(50);
     };
     return 1;
 };
@@ -2446,7 +2499,7 @@ void moreOptions() {
         };
         showMenu("", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 6);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -2469,7 +2522,7 @@ void mainMenu() {
     while(true) {
         showMenu("", menu, sizeMenu, &chooseMenu, "", false);
         inputMenu(&chooseMenu, sizeMenu - 1, 0);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -2490,7 +2543,7 @@ void startOptions() {
         };
         showMenu("| Start game |", menu, sizeMenu, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, -8);
-        Sleep(100);
+        Sleep(50);
     };
     return;
 };
@@ -3500,7 +3553,7 @@ void flappyBird() {
         if(gameStarted) {
             maxY = maxUp + 1 - listWall[nextWall][1];
             minY = maxUp + 1 - listWall[nextWall][2];
-            if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver)) { // game over
+            if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver) || (y > maxUp)) { // game over
                 playSound(soundBirdDead, true);
                 showAnimation(NULL, skinDeadAnimation[settingsData[4]], sizeof(skinDeadAnimation[settingsData[4]]) / sizeof(skinDeadAnimation[settingsData[4]][0]), y);
                 gameStarted = false;
