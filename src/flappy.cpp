@@ -678,12 +678,12 @@ void resizeTerminal(short column, short row) {
         };
         showOverlayResolution();
     };
-    if (settingsData[5]) {
-        cmd = "Enabled";
-    } else {
-        cmd = "Disabled";
-    };
-    titleTerminal("Flappy Bird - KhanhNguyen9872 - C++  |  Res: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + "  |  v2 mode: " + cmd);
+    // if (settingsData[5]) {
+    //     cmd = "Enabled";
+    // } else {
+    //     cmd = "Disabled";
+    // };
+    titleTerminal("Flappy Bird - KhanhNguyen9872 - C++  |  Res: " + to_string(terminalColumns) + " x " + to_string(terminalRows));
     return;
 };
 
@@ -1645,7 +1645,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
     if (isFullTextBottom) {
         bottomKeymap(addTextBottom);
     } else {
-        bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |" + addTextBottom);
+        bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |" + addTextBottom);
     };
     return;
 };
@@ -2341,12 +2341,13 @@ void moreSettingsMenu() {
         };
 
         menu[5] = "Speed [" + getNameGameSpeed(settingsData[17]) + "]";
-        text = "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |";
+        text = "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN |";
         if (choose == 5) {
-            text = text + " [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> Change |";
+            text = text + " [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) + "] -> CHANGE |";
         } else {
             text = text + " [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |";
         };
+        text = text + " [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |";
         
         showMenu("| Settings |", menu, sizeMenu, 7, &choose, text, true);
         inputMenu(&choose, sizeMenu - 1, 7);
@@ -2553,7 +2554,7 @@ void mainMenu() {
     playSound(soundMainmenu, false);
     flushStdin();
     while(true) {
-        showMenu("", menu, sizeMenu, 0, &chooseMenu, "", false);
+        showMenu("", menu, sizeMenu, 0, &chooseMenu, "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |", true);
         inputMenu(&chooseMenu, sizeMenu - 1, 0);
         Sleep(50);
     };
