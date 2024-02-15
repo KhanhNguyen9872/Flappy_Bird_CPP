@@ -78,10 +78,11 @@ int settingsData[20] = {
 int FPS = 0;
 int frameFPS = 0;
 int terminalColumns, terminalRows;
-int tmp_int[5] = {0, 0, 0, -1, -1}; // 3 - 4 [countAnimation menu]
+int tmp_int[3] = {0, 0, 0};
+int aniShowMenu[3] = {-20, -20, -20};
 int listWall[10][3];
 int sizelistWall = sizeof(listWall) / sizeof(listWall[0]);
-bool isInGame = -1;
+bool isInGame = false;
 bool gameStarted = false;
 
 string smallLogo = "";
@@ -1348,7 +1349,7 @@ void loadingFrame(int progress, bool isShowBird) {
     return;
 };
 
-string menuText(string text[], int size, int choose) {
+string menuText(string text[], int size, int type_menu, int choose) {
     //      
     // =>> |   Start  | <<=
     //     | Settings |
@@ -1364,12 +1365,13 @@ string menuText(string text[], int size, int choose) {
     // animation
     string textLeft = "";
     string textRight = "";
-    if (choose != tmp_int[3]) {
-        tmp_int[3] = choose;
-        tmp_int[4] = 0;
+    if ((type_menu != aniShowMenu[0]) || (choose != aniShowMenu[1])) {
+        aniShowMenu[0] = type_menu;
+        aniShowMenu[1] = choose;
+        aniShowMenu[2] = 0;
     };
 
-    switch(tmp_int[4]) {
+    switch(aniShowMenu[2]) {
         case 0:
             textLeft = ">   |  ";
             textRight = "  |   <";
@@ -1399,18 +1401,40 @@ string menuText(string text[], int size, int choose) {
             textRight = "  <==| ";
             break;
         case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+        case 15:
+        case 16:
             textLeft = " [==>  ";
             textRight = "  <==] ";
             break;
-        case 8:
-            textLeft = ">[==>  ";
-            textRight = "  <==]<";
+        case 17:
+        case 18:
+        case 19:
+        case 20:
+        case 21:
+        case 22:
+        case 23:
+        case 24:
+        case 25:
+        case 26:
+            textLeft = "[==>   ";
+            textRight = "   <==]";
             break;
         default:
             break;
     };
-    if(tmp_int[4] < 8) {
-        tmp_int[4] = tmp_int[4] + 1;
+    if(aniShowMenu[2] < 7) {
+        aniShowMenu[2] = aniShowMenu[2] + 1;
+    } else if(aniShowMenu[2] < 26) {
+        aniShowMenu[2] = aniShowMenu[2] + 1;
+    } else {
+        aniShowMenu[2] = 7;
     };
 
     //
@@ -1559,7 +1583,7 @@ void stringToOutput(string str, string output[], int sizeOutput) {
     return;
 };
 
-void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, string addTextBottom, bool isFullTextBottom) {
+void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *chooseMenu, string addTextBottom, bool isFullTextBottom) {
     //   ___ _                       ___ _        _ 
     //  | __| |__ _ _ __ _ __ _  _  | _ |_)_ _ __| |
     //  | _|| / _` | '_ \ '_ \ || | | _ \ | '_/ _` |
@@ -1600,7 +1624,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int *chooseMenu, str
 
     for(i=0; i <= padding; ++i) {
         if(i == (2 + (getResolutionValue() * 2))) {
-            text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, *chooseMenu);
+            text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, type_menu, *chooseMenu);
         } else if (i == padding - 1) {
             break;
         } else {
@@ -1806,7 +1830,7 @@ void keymappingSettings() {
             
             menu[i] = text + "  -->  " + template_menu[i];
         };
-        showMenu("| Keymapping Settings |", menu, sizeMenu, &choose, " [F12] -> RESET |", false);
+        showMenu("| Keymapping Settings |", menu, sizeMenu, -2, &choose, " [F12] -> RESET |", false);
         inputMenu(&choose, sizeMenu - 1, -2);
         Sleep(50);
     };
@@ -1951,7 +1975,7 @@ void resolutionSettings() {
             return;
         };
         titleMenu = "| Current resolution: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " |";
-        showMenu(titleMenu, menu, sizeMenu, &choose, "", false);
+        showMenu(titleMenu, menu, sizeMenu, 3, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 3);
         Sleep(50);
     };
@@ -1971,7 +1995,7 @@ void highScore() {
             flushStdin();
             return;
         };
-        showMenu("| High score |", menu, sizeMenu, &choose, "| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |", true);
+        showMenu("| High score |", menu, sizeMenu, 4, &choose, "| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |", true);
         inputMenu(&choose, sizeMenu - 1, 4);
         Sleep(50);
     };
@@ -2176,7 +2200,7 @@ void changeSkin(bool isSkinBird) {
         } else {
             j = settingsData[15] + 1;
         };
-        showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, &choose, "", false);
+        showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, inputCase, &choose, "", false);
         inputMenu(&choose, size, inputCase);
         Sleep(50);
     };
@@ -2202,7 +2226,7 @@ void optionsSkin() {
             return;
         };
 
-        showMenu("| Change Skin |", menu, sizeMenu, &choose, "", false);
+        showMenu("| Change Skin |", menu, sizeMenu, 8, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 8);
         Sleep(50);
     };
@@ -2241,6 +2265,11 @@ int getValueGameSpeed(int index) {    // value is 200, 150, 100 or 50
 };
 
 void setGameSpeed(int value) {
+    if (isInGame) {
+        errorBox("Unavailable in game", "You must return to main menu first!", true);
+        return;
+    };
+    
     if ((value < 1) || (getNameGameSpeed(value) == "NULL")) {
         writeConfig("speed", "2");
         return;
@@ -2319,7 +2348,7 @@ void moreSettingsMenu() {
             text = text + " [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |";
         };
         
-        showMenu("| Settings |", menu, sizeMenu, &choose, text, true);
+        showMenu("| Settings |", menu, sizeMenu, 7, &choose, text, true);
         inputMenu(&choose, sizeMenu - 1, 7);
         Sleep(50);
     };
@@ -2357,7 +2386,7 @@ void settingsMenu() {
             menu[1][5] = ' ';
         };
 
-        showMenu("| Settings |", menu, sizeMenu, &choose, "", false);
+        showMenu("| Settings |", menu, sizeMenu, 1, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 1);
         Sleep(50);
     };
@@ -2383,6 +2412,10 @@ string getNameDifficult(int value) {
 };
 
 void changeDifficult() {
+    if (isInGame) {
+        errorBox("Unavailable in game", "You must return to main menu first!", true);
+        return;
+    };
     int i;
     string menu[6];
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
@@ -2398,7 +2431,7 @@ void changeDifficult() {
             return;
         };
         titleMenu = "| Current difficult: " + menu[settingsData[19]] + " |";
-        showMenu(titleMenu, menu, sizeMenu, &choose, "", false);
+        showMenu(titleMenu, menu, sizeMenu, 10, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 10);
         Sleep(50);
     };
@@ -2451,7 +2484,7 @@ int pausedMenu(bool isShowPauseInGame) {
         if (choose == -3) {
             return 2;
         };
-        showMenu("| Paused |", menu, sizeMenu, &choose, "", false);
+        showMenu("| Paused |", menu, sizeMenu, -4, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, -4);
         Sleep(50);
     };
@@ -2497,7 +2530,7 @@ void moreOptions() {
             flushStdin();
             return;
         };
-        showMenu("", menu, sizeMenu, &choose, "", false);
+        showMenu("", menu, sizeMenu, 6, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 6);
         Sleep(50);
     };
@@ -2520,7 +2553,7 @@ void mainMenu() {
     playSound(soundMainmenu, false);
     flushStdin();
     while(true) {
-        showMenu("", menu, sizeMenu, &chooseMenu, "", false);
+        showMenu("", menu, sizeMenu, 0, &chooseMenu, "", false);
         inputMenu(&chooseMenu, sizeMenu - 1, 0);
         Sleep(50);
     };
@@ -2541,7 +2574,7 @@ void startOptions() {
             flushStdin();
             return;
         };
-        showMenu("| Start game |", menu, sizeMenu, &choose, "", false);
+        showMenu("| Start game |", menu, sizeMenu, -8, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, -8);
         Sleep(50);
     };
@@ -3729,11 +3762,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 7:
                     switch(*chooseMenu) {
                         case 5:
-                            if (isInGame) {
-                                errorBox("Unavailable in game", "You must return to main menu first!", true);
-                            } else {
-                                setGameSpeed(settingsData[17] - 1);
-                            };
+                            setGameSpeed(settingsData[17] - 1);
                             break;
                     };
                     break;
@@ -3749,11 +3778,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                 case 7:
                     switch(*chooseMenu) {
                         case 5:
-                            if (isInGame) {
-                                errorBox("Unavailable in game", "You must return to main menu first!", true);
-                            } else {
-                                setGameSpeed(settingsData[17] + 1);
-                            };
+                            setGameSpeed(settingsData[17] + 1);
                             break;
                     };
                     break;
