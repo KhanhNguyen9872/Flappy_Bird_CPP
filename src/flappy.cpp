@@ -3095,24 +3095,28 @@ void showAllWall(string output[], int *nextWall, int *score, int countWall) {
     int i, j;
 
     for(i = 0; i < sizelistWall; ++i) {
-        if ((listWall[i][0] > -4) && (listWall[i][0] < terminalColumns + 2)) {
+        if ((listWall[i][0] > -5) && (listWall[i][0] < terminalColumns + 2)) {
             // display Wall
             showWall(output, settingsData[15], listWall[i][0], listWall[i][1], listWall[i][2]);
             if(gameStarted) {
                 listWall[i][0] = listWall[i][0] - 1; // decrease terminalColumn
+
+                if (listWall[i][0] == -2) {
+                    *nextWall = i + 1;
+                    *score = *score + 1;
+                    if (*nextWall > sizelistWall - 1) {
+                        *nextWall = 0;
+                    };
+                    if (*score > 2000000000) {
+                        gameStarted = false;
+                    };
+                };
             };
-        } else if ((listWall[i][1] > -4) && (gameStarted)) {
-            // remove Wall cannot display
-            for(j = 0; j < 3; ++j) {
-                listWall[i][j] = -4;
-            };
-            *nextWall = i + 1;
-            *score = *score + 1;
-            if (*nextWall > sizelistWall - 1) {
-                *nextWall = 0;
-            };
-            if (*score > 2000000000) {
-                gameStarted = false;
+        } else if (gameStarted) { 
+            if (listWall[i][1] > -5) { // remove Wall cannot display
+                for(j = 0; j < 3; ++j) {
+                    listWall[i][j] = -5;
+                };
             };
         };
     };
@@ -3151,7 +3155,7 @@ void resetWall() {
     int i, j;
     for(i = 0; i < sizelistWall; ++i) {
         for(j = 0; j < sizeof(listWall[i]) / sizeof(listWall[i][0]); ++j) {
-            listWall[i][j] = -4;
+            listWall[i][j] = -5;
         };
     };
     return;
@@ -3510,7 +3514,7 @@ void flappyBird() {
             };
         };
         if ((settingsData[3]) && (gameStarted)) { // auto mode activated
-            if ((minY == maxUp + 5) && (maxY == maxUp + 5)) { // maxUp + 1 - (-4)
+            if ((minY == maxUp + 6) && (maxY == maxUp + 6)) { // maxUp + 1 - (-5)
                 // skip due to noWall
                 if (y < 1) {
                     playSound(soundBirdFlyUp, true);
