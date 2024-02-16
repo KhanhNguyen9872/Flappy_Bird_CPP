@@ -1373,35 +1373,41 @@ string menuText(string text[], int size, int type_menu, int choose) {
 
     switch(aniShowMenu[2]) {
         case 0:
-            textLeft = ">   |  ";
-            textRight = "  |   <";
+            textLeft = ">    |  ";
+            textRight = "  |    <";
             break;
         case 1:
-            textLeft = " >  |  ";
-            textRight = "  |  < ";
+            textLeft = " >   |  ";
+            textRight = "  |   < ";
             break;
         case 2:
-            textLeft = "  > |  ";
-            textRight = "  | <  ";
+            textLeft = "  >  |  ";
+            textRight = "  |  <  ";
             break;
         case 3:
-            textLeft = "   >|  ";
-            textRight = "  |<   ";
+            textLeft = "   > |  ";
+            textRight = "  | <   ";
             break;
         case 4:
-            textLeft = "   |>  ";
-            textRight = "  <|   ";
+            textLeft = "    >|  ";
+            textRight = "  |<    ";
             break;
         case 5:
-            textLeft = "  |=>  ";
-            textRight = "  <=|  ";
+            textLeft = "    |>  ";
+            textRight = "  <|    ";
             break;
         case 6:
-            textLeft = " |==>  ";
-            textRight = "  <==| ";
+            textLeft = "   |=>  ";
+            textRight = "  <=|   ";
             break;
         case 7:
+            textLeft = "  |==>  ";
+            textRight = "  <==|  ";
+            break;
         case 8:
+            textLeft = " -|==>  ";
+            textRight = "  <==|- ";
+            break;
         case 9:
         case 10:
         case 11:
@@ -1410,11 +1416,11 @@ string menuText(string text[], int size, int type_menu, int choose) {
         case 14:
         case 15:
         case 16:
-            textLeft = " [==>  ";
-            textRight = "  <==] ";
-            break;
         case 17:
         case 18:
+            textLeft = " -|==>  ";
+            textRight = "  <==|- ";
+            break;
         case 19:
         case 20:
         case 21:
@@ -1423,18 +1429,20 @@ string menuText(string text[], int size, int type_menu, int choose) {
         case 24:
         case 25:
         case 26:
-            textLeft = "[==>   ";
-            textRight = "   <==]";
+        case 27:
+        case 28:
+            textLeft = "-|==>   ";
+            textRight = "   <==|-";
             break;
         default:
             break;
     };
-    if(aniShowMenu[2] < 7) {
+    if(aniShowMenu[2] < 9) {
         aniShowMenu[2] = aniShowMenu[2] + 1;
-    } else if(aniShowMenu[2] < 26) {
+    } else if(aniShowMenu[2] < 28) {
         aniShowMenu[2] = aniShowMenu[2] + 1;
     } else {
-        aniShowMenu[2] = 7;
+        aniShowMenu[2] = 9;
     };
 
     //
@@ -1457,7 +1465,7 @@ string menuText(string text[], int size, int type_menu, int choose) {
         if(i == choose) {
             finalString = finalString + lineSpace + textLeft + text[i] + text2 + textRight + "\n";
         } else {
-            finalString = finalString + lineSpace + "    |  " + text[i] + text2 + "  |    " + "\n";
+            finalString = finalString + lineSpace + "     |  " + text[i] + text2 + "  |     " + "\n";
         };
     };
     return finalString;
