@@ -777,9 +777,9 @@ void showUser(string username) {
 
     string text;
 
-    if (username.length() > 6 + j) {
+    if (username.length() > 10 + j) {
         text = "";
-        for(i = 0; i < 6 + j; ++i) {
+        for(i = 0; i < 10 + j; ++i) {
             if (i >= username.length()) {
                 break;
             };
@@ -1624,7 +1624,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
         string p[1] = {
             titleMenu
         };
-        titleMenu = centerText(p, sizeof(p)/sizeof(p[0]));
+        titleMenu = "  " + centerText(p, sizeof(p)/sizeof(p[0]));
         titleMenuSize = 1;
     };
 
