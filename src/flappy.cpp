@@ -4001,7 +4001,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                             if (isInGame) {
                                 errorBox("Unavailable in game", "You must return to main menu first!", true);
                             } else {
-                                if (settingsData[13]) {
+                                if (settingsData[12]) {
                                     int num;
                                     string p = "";
                                     
