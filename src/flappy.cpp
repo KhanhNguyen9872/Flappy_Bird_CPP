@@ -1,51 +1,93 @@
-#ifndef _WIN32
-    #error "Only supported Windows!"
-#endif
+// #ifndef _WIN32
+//     #error "Only supported Windows!"
+// #endif
 
 #include <iostream>
-#include <winsock2.h>
-#include <windows.h>
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <windows.h>
+    #include <conio.h>
+#else
+    #include <unistd.h>
+    #include <termios.h>
+#endif
 #include <string>
-#include <conio.h>
 #include <thread>
 #include <time.h>
 #include <fstream>
 #include <sstream>
 
-#define configFileName  ".\\flappy.conf"
-#define scoreFileName   ".\\score.txt"
-#define soundMainmenu   ".\\sound\\mainmenu.wav"
-#define soundBirdFlyUp   ".\\sound\\birdFlyUp.wav"
-#define soundBirdDead   ".\\sound\\birdDead.wav"
+#ifdef _WIN32
+    #define configFileName  ".\\flappy.conf"
+    #define scoreFileName   ".\\score.txt"
+    #define soundMainmenu   ".\\sound\\mainmenu.wav"
+    #define soundBirdFlyUp   ".\\sound\\birdFlyUp.wav"
+    #define soundBirdDead   ".\\sound\\birdDead.wav"
+#else
+    #define configFileName  "./flappy.conf"
+    #define scoreFileName   "./score.txt"
+    #define soundMainmenu   "./sound/mainmenu.wav"
+    #define soundBirdFlyUp   "./sound/birdFlyUp.wav"
+    #define soundBirdDead   "./sound/birdDead.wav"
+#endif
 
-#define BLACK			0
-#define BLUE			1
-#define GREEN			2
-#define CYAN			3
-#define RED				4
-#define MAGENTA			5
-#define BROWN			6
-#define LIGHTGRAY		7
-#define DARKGRAY		8
-#define LIGHTBLUE		9
-#define LIGHTGREEN		10
-#define LIGHTCYAN		11
-#define LIGHTRED		12
-#define LIGHTMAGENTA	13
-#define YELLOW			14
-#define WHITE			15
+#ifdef _WIN32
+    #define BLACK			0
+    #define BLUE			1
+    #define GREEN			2
+    #define CYAN			3
+    #define RED				4
+    #define MAGENTA			5
+    #define BROWN			6
+    #define LIGHTGRAY		7
+    #define DARKGRAY		8
+    #define LIGHTBLUE		9
+    #define LIGHTGREEN		10
+    #define LIGHTCYAN		11
+    #define LIGHTRED		12
+    #define LIGHTMAGENTA	13
+    #define YELLOW			14
+    #define WHITE			15
+#else
+    #define BLACK         "\033[0;30m"
+    #define RED           "\033[0;31m"
+    #define GREEN         "\033[0;32m"
+    #define BROWN         "\033[0;33m"
+    #define YELLOW        "\033[1;33m"
+    #define BLUE          "\033[0;34m"
+    #define MAGENTA       "\033[0;35m"
+    #define CYAN          "\033[0;36m"
+    #define LIGHTGRAY	  "\033[0;37m"
+    #define DARKGRAY	  "\033[1;30m"
+    #define LIGHTRED      "\033[1;31m"
+    #define LIGHTBLUE	  "\033[1;34m"
+    #define LIGHTCYAN	  "\033[1;36m"
+    #define LIGHTGREEN    "\033[1;32m"
+    #define LIGHTMAGENTA  "\033[1;35m"
+    #define WHITE         "\033[1;37m"
+#endif
 
 using namespace std;
 
 string version_code = "1.0.0";
 char defaultKeymapData[7][2] = {
-    {0, 119},    // UP       'w'
-    {0, 115},    // DOWN     's'
-    {0, 97},    // LEFT      'a'
-    {0, 100},    // RIGHT    'd'
-    {0, 27},     // ESC      
-    {0, 32},   // SPACE      ' '
-    {0, 13}     // ENTER     '\r'
+    #ifdef _WIN32
+        {0, 119},    // UP       'w'
+        {0, 115},    // DOWN     's'
+        {0, 97},    // LEFT      'a'
+        {0, 100},    // RIGHT    'd'
+        {0, 27},     // ESC      
+        {0, 32},   // SPACE      ' '
+        {0, 13}     // ENTER     '\r'
+    #else
+        {0, 119},    // UP       'w'
+        {0, 115},    // DOWN     's'
+        {0, 97},    // LEFT      'a'
+        {0, 100},    // RIGHT    'd'
+        {0, 27},     // ESC      
+        {0, 32},   // SPACE      ' '
+        {0, 10}     // ENTER     '\r'
+    #endif
 };
 char keymapData[7][2];
 
@@ -55,7 +97,7 @@ int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 int settingsData[20] = {
     true,  // music
     true,  // sfx
-    WHITE, // brightness
+    0, // brightness  // removed
     false,  // auto mode
     0,  // skin bird
     true,  // cmd mode v1/v2 (0/1)
@@ -75,6 +117,12 @@ int settingsData[20] = {
     2       // Difficult
 };
 
+#ifdef _WIN32
+    int brightnessData = WHITE;
+#else
+    string brightnessData = WHITE;
+#endif
+
 int FPS = 0;
 int frameFPS = 0;
 int terminalColumns, terminalRows;
@@ -87,11 +135,15 @@ bool gameStarted = false;
 
 string smallLogo = "";
 
-HWND consoleWindow = GetConsoleWindow();
-HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
-CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
-DWORD dwConsoleMode;
+#ifdef _WIN32
+    HWND consoleWindow = GetConsoleWindow();
+    HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
+    DWORD dwConsoleMode;
+#else
+
+#endif
 
 string backGround[5] = {
     // 
@@ -242,15 +294,71 @@ int sizeBirdAnimation = sizeof(skinFlyAnimation) / sizeof(skinFlyAnimation[0]);
 void inputMenu(int *chooseMenu, int max, int type_menu);
 void flappyBird();
 
+void __sleep__(int s) {
+    if (s < 1) {
+        return;
+    };
+    #ifdef _WIN32
+        Sleep(s);
+    #else
+        usleep((s * 1000) + 11000);
+    #endif
+    return;
+};
+
+int __getch__() {
+    #ifdef _WIN32
+        return _getch();
+    #else
+        int c;
+        if (read(STDIN_FILENO, &c, 1) != 1) {
+            return 0;
+        };
+        return c;
+    #endif
+};
+
+bool __kbhit__() {
+    #ifdef _WIN32
+        return _kbhit();
+    #else
+        struct timeval tv;
+        fd_set fds;
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds); // STDIN_FILENO is 0
+        select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+        return FD_ISSET(STDIN_FILENO, &fds);
+    #endif
+};
+
+#ifdef _WIN32
+#else
+    void set_terminal_mode() {
+        struct termios t;
+        tcgetattr(STDIN_FILENO, &t);
+        t.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &t);
+        return;
+    };
+#endif
+
 void cursorPos_move(int column, int row) {
-    COORD tmpPos;
-    tmpPos.X = column;
-    tmpPos.Y = row;
-    SetConsoleCursorPosition(hOutput, tmpPos);
+    #ifdef _WIN32
+        COORD tmpPos;
+        tmpPos.X = column;
+        tmpPos.Y = row;
+        SetConsoleCursorPosition(hOutput, tmpPos);
+    #else
+        cout << "\033[" + to_string(row) + ";" + to_string(column) + "H";
+    #endif
+    return;
 };
 
 void cursorPos_up() {
     cursorPos_move(0, 0);
+    return;
 };
 
 void clearTerminal() {
@@ -272,63 +380,91 @@ void clearTerminal() {
 };
 
 void hideCursor() {  // Windows API
-    CONSOLE_CURSOR_INFO cursorInfo;
+    #ifdef _WIN32
+        CONSOLE_CURSOR_INFO cursorInfo;
 
-    cursorInfo.dwSize = 1;
-    cursorInfo.bVisible = false;
+        cursorInfo.dwSize = 1;
+        cursorInfo.bVisible = false;
 
-    SetConsoleCursorInfo(hOutput, &cursorInfo);
+        SetConsoleCursorInfo(hOutput, &cursorInfo);
+    #else
+        cout << "\033[?25l";
+    #endif
     return;
 };
 
-void getCurrentCursorXY(int *x, int *y) {
-    GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
-    *x = bufferInfo.dwCursorPosition.X;
-    *y = bufferInfo.dwCursorPosition.Y;
-    return;
-};
+// void getCurrentCursorXY(int *x, int *y) {
+//     GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
+//     *x = bufferInfo.dwCursorPosition.X;
+//     *y = bufferInfo.dwCursorPosition.Y;
+//     return;
+// };
 
 void getTerminalSize(int *columns, int *rows) {  // Windows API
-    GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
-    *columns = bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1;
-    *rows = bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1;
-    if(!settingsData[5]) {
-        *columns = *columns - 1;
-    };
+    #ifdef _WIN32
+        GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
+        *columns = bufferInfo.srWindow.Right - bufferInfo.srWindow.Left + 1;
+        *rows = bufferInfo.srWindow.Bottom - bufferInfo.srWindow.Top + 1;
+        if(!settingsData[5]) {
+            *columns = *columns - 1;
+        };
+    #else
+    #endif
     return;
 };
 
-void color(int index) {  // Windows API
-    if (settingsData[7]) {
-        SetConsoleTextAttribute(hOutput, index);
+#ifdef _WIN32
+    void color(int index) {  // Windows API
+        if (settingsData[7]) {
+            SetConsoleTextAttribute(hOutput, index);
+        };
+        return;
     };
-    return;
-};
+#else
+    void color(string textColor) {  // Windows API
+        if (settingsData[7]) {
+            cout << textColor;
+        };
+        return;
+    };
+#endif
 
 void disableTouch() {  // Windows API
-    GetConsoleMode(hInput, &dwConsoleMode);
-    dwConsoleMode &= ~ENABLE_PROCESSED_INPUT;
-    dwConsoleMode &= ~ENABLE_QUICK_EDIT_MODE;
-    SetConsoleMode(hInput, dwConsoleMode);
+    #ifdef _WIN32
+        GetConsoleMode(hInput, &dwConsoleMode);
+        dwConsoleMode &= ~ENABLE_PROCESSED_INPUT;
+        dwConsoleMode &= ~ENABLE_QUICK_EDIT_MODE;
+        SetConsoleMode(hInput, dwConsoleMode);
+    #else
+    #endif
     return;
 };
 
 void disableCloseButton(bool isDisable) {  // WIndows API
-    if (isDisable) {
-        EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_GRAYED);
-    } else {
-        EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_ENABLED);
-    };
+    #ifdef _WIN32
+        if (isDisable) {
+            EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_GRAYED);
+        } else {
+            EnableMenuItem(GetSystemMenu(consoleWindow, FALSE), SC_CLOSE, MF_ENABLED);
+        };
+    #else
+    #endif
     return;
 };
 
 void disableMaximizeButton() {  // Windows API
-    SetWindowLong(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+    #ifdef _WIN32
+        SetWindowLong(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+    #else
+    #endif
     return;
 };
 
 void configureTerminal() {
-    system("color 07 >NUL 2>&1"); // default color CMD
+    #ifdef _WIN32
+        system("color 07 >NUL 2>&1"); // default color CMD
+    #else
+    #endif
     hideCursor();
     disableTouch();
     disableMaximizeButton();
@@ -338,24 +474,43 @@ void configureTerminal() {
 
 void __getch(int p[2]) {
     p[0] = 0;
-    p[1] = _getch();
-    if((p[1] == 0) || (p[1] == 224)) {
-        p[1] = _getch();
-        p[0] = 1;
-    };
+    p[1] = __getch__();
+    #ifdef _WIN32
+        if((p[1] == 0) || (p[1] == 224)) {
+            p[1] = __getch__();
+            p[0] = 1;
+        };
+    #else
+        if((__kbhit__()) && (p[1] == 27)) {
+            p[0] = p[0] + p[1];
+            p[1] = __getch__();
+            if ((__kbhit__()) && ((p[1] == 91) || (p[1] == 79))) {
+                p[0] = p[0] + p[1];
+                p[1] = __getch__();
+                if ((__kbhit__()) && ((p[1] == 49) || (p[1] == 50) || (p[1] == 51) || (p[1] == 53) || (p[1] == 54))) {
+                    p[0] = p[0] + p[1];
+                    p[1] = __getch__();
+                    if ((__kbhit__()) && ((p[1] == 48) || (p[1] == 53) || (p[1] == 55) || (p[1] == 56) || (p[1] == 57))) {
+                        p[0] = p[0] + p[1];
+                        p[1] = __getch__();
+                    };
+                };
+            };
+        };
+    #endif
     return;
 };
 
 void flushStdin() {
-    while (_kbhit()) {
-        _getch();
+    while (__kbhit__()) {
+        __getch__();
     };
     return;
 };
 
 void anyKey() {
     flushStdin();
-    _getch();
+    __getch__();
     flushStdin();
     return;
 };
@@ -364,11 +519,17 @@ void playSound(string file, bool isSFX) {  // Windows API
     if (settingsData[8]) {
         if (isSFX) {
             if(settingsData[1]) {
-                PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_ASYNC);
+                #ifdef _WIN32
+                    PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_ASYNC);
+                #else
+                #endif
             };
         } else {
             if(settingsData[0]) {
-                PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
+                #ifdef _WIN32
+                    PlaySound(TEXT(file.c_str()), NULL, SND_FILENAME|SND_LOOP|SND_ASYNC);
+                #else
+                #endif
             };
         };
     };
@@ -377,7 +538,10 @@ void playSound(string file, bool isSFX) {  // Windows API
 
 void stopSound() {
     if (settingsData[8]) {
-        PlaySound(NULL, 0, 0);
+        #ifdef _WIN32
+            PlaySound(NULL, 0, 0);
+        #else
+        #endif
     };
     return;
 };
@@ -448,23 +612,31 @@ void resetKeymapData(bool isWriteConfig) {
 };
 
 void titleTerminal(string name) {
-    SetConsoleTitle((LPCTSTR)name.c_str());
+    #ifdef _WIN32
+        SetConsoleTitle((LPCTSTR)name.c_str());
+    #else
+    #endif
     return;
 };
 
 void showBlur() {
     int i, j;
-    do {
-        i = rand() % 15;
-    } while ((i == BLACK) || (i == RED));
-    color(i);
+    #ifdef _WIN32    
+        do {
+            i = rand() % 15;
+        } while ((i == BLACK) || (i == RED));
+        color(i);
+    #else
+        color(RED);
+    #endif
+    
     for(i = 0; i < terminalRows; ++i) {
         for(j = 0; j < terminalColumns; j = j + 5) {
             cursorPos_move(j, i);
             cout << "-";
         };
     };
-    color(settingsData[2]);
+    color(brightnessData);
     return;
 };
 
@@ -487,7 +659,11 @@ void bottomKeymap(string text) {
     cout << lineLastTer;
     color(GREEN);
     cout << text;
-    color(settingsData[2]);
+    #ifdef _WIN32
+    #else
+        cout << flush;
+    #endif
+    color(brightnessData);
     return;
 };
 
@@ -499,9 +675,13 @@ void showFPS(string output[]) {
     int i;
     int locate = terminalColumns - (text.length());
     if (output == NULL) {
-        color(settingsData[2]);
+        color(brightnessData);
         cursorPos_move(locate - 1, 0);
         cout << " " << text;
+        #ifdef _WIN32
+        #else
+            cout << flush;
+        #endif
     } else {
         for(i = 0; i < text.length(); ++i) {
             output[0][locate + i] = text[i];
@@ -613,17 +793,17 @@ void errorBox(string output, string bottom, bool isBlur) {
         };
 
         bottomKeymap(bottom);
-        if(_kbhit()) {
+        if(__kbhit__()) {
             flushStdin();
             return;
         };
-        Sleep(200);
+        __sleep__(200);
     };
     return;
 };
 
 void showOverlayResolution() {
-    color(settingsData[2]);
+    color(brightnessData);
     string resolutionString = to_string(terminalColumns) + " x " + to_string(terminalRows);
     string text = "";
     string text2 = "";
@@ -642,7 +822,7 @@ void showOverlayResolution() {
     };
     text2 = text2 + "-+";
 
-    color(settingsData[2]);
+    color(brightnessData);
     for(i = 0; i < terminalRows; ++i) {
         if (i == 0) {
             cursorPos_move(0, i);
@@ -667,16 +847,19 @@ void showOverlayResolution() {
 void resizeTerminal(short column, short row) {
     string cmd;
     if (settingsData[9]) {
-        if(!settingsData[5]) {
-            column = column + 1;
-        };
-        cmd = "MODE " + to_string(column) + "," + to_string(row) + " >NUL 2>&1";
-        if (system(cmd.c_str()) != 0) {
-            clearTerminal();
-            errorBox("API ERROR", "Please run on real Windows!", false);
-            exit(1);
-        };
-        showOverlayResolution();
+        #ifdef _WIN32
+            if(!settingsData[5]) {
+                column = column + 1;
+            };
+            cmd = "MODE " + to_string(column) + "," + to_string(row) + " >NUL 2>&1";
+            if (system(cmd.c_str()) != 0) {
+                clearTerminal();
+                errorBox("API ERROR", "Please run on real Windows!", false);
+                exit(1);
+            };
+            showOverlayResolution();
+        #else
+        #endif
     };
     // if (settingsData[5]) {
     //     cmd = "Enabled";
@@ -688,25 +871,30 @@ void resizeTerminal(short column, short row) {
 };
 
 void setResolution(int value) {
-    if((value == -1) || (value == 0)) {
-        terminalColumns = 80;
-        terminalRows = 20;
-    } else if (value == 1) {
-        terminalColumns = 100;
-        terminalRows = 26;
-    } else if (value == 2) {
-        terminalColumns = 120;
-        terminalRows = 30;
-    } else if (value == 3) {
-        terminalColumns = 140;
-        terminalRows = 36;
-    } else if (value == 4) {
-        terminalColumns = 160;
-        terminalRows = 40;
-    } else {
-        terminalColumns = 80;
-        terminalRows = 20;
-        value = 0;
+    switch(value) {
+        case 1:
+            terminalColumns = 100;
+            terminalRows = 26;
+            break;
+        case 2:
+            terminalColumns = 120;
+            terminalRows = 30;
+            break;
+        case 3:
+            terminalColumns = 140;
+            terminalRows = 36;
+            break;
+        case 4:
+            terminalColumns = 160;
+            terminalRows = 40;
+            break;
+        default:
+            terminalColumns = 80;
+            terminalRows = 20;
+            if (value != -1) {
+                value = 0;
+            };
+            break;
     };
     smallLogo = "";
     if (value != -1) {
@@ -773,7 +961,6 @@ void showUser(string username) {
     int i;
     int j = 5 * getResolutionValue();
     int sizeColumn = 0;
-    int sizeRow = 0;
 
     string text;
 
@@ -809,23 +996,20 @@ void showUser(string username) {
         };
     };
 
-    for(i = 0; i < terminalRows; ++i) {
-        if (i == 1) {
-            cursorPos_move(sizeColumn, sizeRow);
-            cout << text;
+    #ifdef _WIN32
+        int sizeRow = 1;
+    #else
+        int sizeRow = 2;
+    #endif
 
-            cursorPos_move(sizeColumn, sizeRow + 1);
-            cout << "| " << username << " |";
+    cursorPos_move(sizeColumn, sizeRow);
+    cout << text;
 
-            cursorPos_move(sizeColumn, sizeRow + 2);
-            cout << text;
+    cursorPos_move(sizeColumn, sizeRow + 1);
+    cout << "| " << username << " |";
 
-            break;
-        } else {
-            sizeRow = sizeRow + 1;
-        };
-    };
-
+    cursorPos_move(sizeColumn, sizeRow + 2);
+    cout << text;
     return;
 };
 
@@ -870,7 +1054,11 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
     clearTerminal();
     if(isShowUser) {
         color(WHITE);
-        showUser(getenv("username"));
+        #ifdef _WIN32
+            showUser(getenv("username"));
+        #else
+            showUser(getenv("USER"));
+        #endif
     };
     for(i=0;i < 40; ++i) {
         if (i<5) {
@@ -896,7 +1084,7 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
         };
         cout << text;
         showFPS(NULL);
-        Sleep(100);
+        __sleep__(100);
     };
     clearTerminal();
     return;
@@ -979,7 +1167,7 @@ bool showYesorNo(string text) {
     while(true) {
         showBoxText(text, tmp);
         bottomKeymap("| [y] -> YES | [n] -> NO |");
-        if (_kbhit()) {
+        if (__kbhit__()) {
             __getch(p);
 
             if (((p[1] == 'y') || (p[1] == 'Y')) && (!p[0])) {
@@ -989,7 +1177,7 @@ bool showYesorNo(string text) {
             };
         };
         tmp = false;
-        Sleep(200);
+        __sleep__(200);
     };
 
     return 0;
@@ -1025,7 +1213,7 @@ void banner() {
     showLogoFullTerminal(logo2, sizeof(logo2)/sizeof(logo2[0]), false, true);
 
     showFPS(NULL);
-    Sleep(1000);
+    __sleep__(1000);
     return;
 };
 
@@ -1130,48 +1318,52 @@ void showChangeScene() {
 
     int k = 5 - getResolutionValue();
     
-    color(settingsData[2]);
-    Sleep(400);
+    color(brightnessData);
+    __sleep__(400);
     if (randomVar) {
         cursorPos_up();
         for(i = 0; i < terminalRows; ++i) {
             cout << text;
-            Sleep(k);
+            __sleep__(k);
         };
 
-        Sleep(150);
+        __sleep__(150);
         cursorPos_up();
         for(i = 0; i < terminalRows; ++i) {
             cout << text2;
-            Sleep(k);
+            __sleep__(k);
         };
     } else {
         for(i = terminalRows - 1; i >= 0; --i) {
             cursorPos_move(0, i);
             cout << text;
-            Sleep(k);
+            __sleep__(k);
         };
 
-        Sleep(150);
+        __sleep__(150);
         for(i = terminalRows - 1; i >= 0; --i) {
             cursorPos_move(0, i);
             cout << text2;
-            Sleep(k);
+            __sleep__(k);
         };
     };
 
-    Sleep(250);
+    __sleep__(250);
     return;
 };
 
 bool checkTerminalActive() {  // Windows API
-    return consoleWindow == GetForegroundWindow();
+    #ifdef _WIN32
+        return consoleWindow == GetForegroundWindow();
+    #else
+        return true;
+    #endif
 };
 
 void exitProgram() {
     if (showYesorNo("Do you want to exit?")) {
         showChangeScene();
-        Sleep(500);
+        __sleep__(500);
         exit(0);
     };
     return;
@@ -1475,67 +1667,144 @@ void lockSizeTerminal() {
     if (!settingsData[9]) {
         return;
     };
-    int columns = 0, rows = 0;
-    while(true) {
-        getTerminalSize(&columns, &rows);
-        if ((columns != terminalColumns) || (rows != terminalRows)) {
-            resizeTerminal(terminalColumns, terminalRows);
-            disableMaximizeButton();
+    #ifdef _WIN32
+        int columns = 0, rows = 0;
+        while(true) {
+            getTerminalSize(&columns, &rows);
+            if ((columns != terminalColumns) || (rows != terminalRows)) {
+                resizeTerminal(terminalColumns, terminalRows);
+                disableMaximizeButton();
+            };
+            __sleep__(500);
         };
-        Sleep(500);
-    };
+    #else
+    #endif
     return;
 };
 
-string getNameKey(short value, bool isTwoChar) {
+string getNameKey(short value, int isTwoChar) {
     if (isTwoChar) {
         switch(value) {
-            case 59:
-            case 60:
-            case 61:
-            case 62:
-            case 63:
-            case 64:
-            case 65:
-            case 66:
-            case 67:
-            case 68:
-                return "F" + to_string(value - 58);
-            case 71:
-                return "HOME";
-            case 79:
-                return "END";
-            case 82:
-                return "INSER";
-            case 83:
-                return "DEL";
-            case 73:
-                return "PG UP";
-            case 81:
-                return "PG DN";
-            case 72:
-                return "UP";
-            case 80:
-                return "DOWN";
-            case 75:
-                return "LEFT";
-            case 77:
-                return "RIGHT";
+            #ifdef _WIN32
+                case 59:
+                case 60:
+                case 61:
+                case 62:
+                case 63:
+                case 64:
+                case 65:
+                case 66:
+                case 67:
+                case 68:
+                    return "F" + to_string(value - 58);
+                case 71:
+                    return "HOME";
+                case 79:
+                    return "END";
+                case 82:
+                    return "INSER";
+                case 83:
+                    return "DEL";
+                case 73:
+                    return "PG UP";
+                case 81:
+                    return "PG DN";
+                case 72:
+                    return "UP";
+                case 80:
+                    return "DOWN";
+                case 75:
+                    return "LEFT";
+                case 77:
+                    return "RIGHT";
+            #else
+                case 80:
+                case 81:
+                case 82:
+                case 83:
+                    switch(isTwoChar) {
+                        case 79:
+                            return "F" + to_string(value - 79);
+                    };
+                case 65:
+                    switch(isTwoChar) {
+                        case 118:
+                            return "UP";
+                    };
+                case 66:
+                    switch(isTwoChar) {
+                        case 118:
+                            return "DOWN";
+                    };
+                case 67:
+                    switch(isTwoChar) {
+                        case 118:
+                            return "RIGHT";
+                    };
+                case 68:
+                    switch(isTwoChar) {
+                        case 118:
+                            return "LEFT";
+                    };
+                case 70:
+                    switch(isTwoChar) {
+                        case 118:
+                            return "END";
+                    };
+                case 72:
+                    switch(isTwoChar) {
+                        case 118:
+                            return "HOME";
+                    };
+                case 126:   // 51
+                    switch(isTwoChar) {
+                        case 169: // 27 + 91 + 51
+                            return "DEL";
+                        case 168:
+                            return "INSERT";
+                        case 171:
+                            return "PG UP";
+                        case 172:
+                            return "PG DN";
+                        case 220:
+                            return "F5";
+                        case 222:
+                            return "F6";
+                        case 223:
+                            return "F7";
+                        case 224:
+                            return "F8";
+                        case 216:
+                            return "F9";
+                        case 217:
+                            return "F10";
+                        default:
+                            return "NULL";
+                    };
+            #endif
             default:
                 return "NULL";
         };
     } else {
         switch(value) {
-            case 8:
-                return "BACKS";
             case 9:
                 return "TAB";
-            case 13:
-                return "ENTER";
             case 27:
                 return "ESC";
             case 32:
                 return "SPACE";
+
+            #ifdef _WIN32
+                case 8:
+                    return "BACKS";
+                case 13:
+                    return "ENTER";
+            #else
+                case 10:
+                    return "ENTER";
+                case 127:
+                    return "BACKS";
+            #endif
             default:
                 break;
         };
@@ -1543,14 +1812,20 @@ string getNameKey(short value, bool isTwoChar) {
     return string(1, value);
 };
 
-bool setKeymap(int value, int key, bool isTwoChar) {
-    int keyAllow[5] = {
-        8, 9, 13, 27, 32
-    };
+bool setKeymap(int value, int key, int isTwoChar) {
+    #ifdef _WIN32
+        int keyAllow[5] = {
+            8, 9, 13, 27, 32
+        };
+    #else
+        int keyAllow[5] = {
+            9, 10, 27, 32, 127
+        };
+    #endif
     int i;
     if(isTwoChar) {
         if (getNameKey(key, isTwoChar) != "NULL") {
-            keymapData[value][0] = 1;
+            keymapData[value][0] = isTwoChar;
             keymapData[value][1] = key;
             return 1;
         };
@@ -1630,8 +1905,14 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
 
     int padding = terminalRows - 7 - sizeMenu - titleMenuSize;
 
+    #ifdef _WIN32
+        int j = 2;
+    #else
+        int j = 1;
+    #endif
+
     for(i=0; i <= padding; ++i) {
-        if(i == (2 + (getResolutionValue() * 2))) {
+        if(i == (j + (getResolutionValue() * 2))) {
             text = text + smallLogo + titleMenu + "\n" + menuText(menu, sizeMenu, type_menu, *chooseMenu);
         } else if (i == padding - 1) {
             break;
@@ -1640,14 +1921,19 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
         };
     };
 
-    int sizeOutput = terminalRows - 2;
-    string output[sizeOutput];
+    #ifdef _WIN32
+        int sizeOutput = terminalRows - 2;
+        string output[sizeOutput];
+    #else
+        int sizeOutput = terminalRows - 3;
+        string *output = new string[sizeOutput];
+    #endif
     wipeOutput(output, sizeOutput);
     stringToOutput(text, output, sizeOutput);
     showFPS(output);
     text = getOutput(output, sizeOutput);
 
-    color(settingsData[2]);
+    color(brightnessData);
     cursorPos_up();
     cout << text;
     if (isFullTextBottom) {
@@ -1655,6 +1941,10 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
     } else {
         bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |" + addTextBottom);
     };
+    #ifdef _WIN32
+    #else
+        delete [] output;
+    #endif
     return;
 };
 
@@ -1684,7 +1974,7 @@ void credit() {
 
     clearTerminal();
     showFPS(NULL);
-    Sleep(350);
+    __sleep__(350);
     color(YELLOW);
     
     while(true) {
@@ -1718,38 +2008,42 @@ void credit() {
             text = text + tmp;
             cursorPos_move(0, (terminalRows - 3));
             cout << text;
+            #ifdef _WIN32
+            #else
+                cout << flush;
+            #endif
             anyKey();
             return;
         };
         clearTerminal();
         cout << text;
         showFPS(NULL);
-        Sleep(250);
+        __sleep__(250);
     };
     return;
 };
 
 void setBrightness(int value) {
     if (value == 3) {
-        settingsData[2] = WHITE;
+        brightnessData = WHITE;
     } else if (value == 2) {
-        settingsData[2] = LIGHTGRAY;
+        brightnessData = LIGHTGRAY;
     } else if (value == 1) {
-        settingsData[2] = DARKGRAY;
+        brightnessData = DARKGRAY;
     } else {
         value = 3;
-        settingsData[2] = WHITE;
+        brightnessData = WHITE;
     };
     writeConfig("brightness", to_string(value));
     return;
 };
 
 int getBrightness() {
-    if (settingsData[2] == WHITE) {
+    if (brightnessData == WHITE) {
         return 3;
-    } else if (settingsData[2] == LIGHTGRAY) {
+    } else if (brightnessData == LIGHTGRAY) {
         return 2;
-    } else if (settingsData[2] == DARKGRAY) {
+    } else if (brightnessData == DARKGRAY) {
         return 1;
     } else {
         setBrightness(3);
@@ -1840,7 +2134,7 @@ void keymappingSettings() {
         };
         showMenu("| Keymapping Settings |", menu, sizeMenu, -2, &choose, " [F12] -> RESET |", false);
         inputMenu(&choose, sizeMenu - 1, -2);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -1881,7 +2175,11 @@ void brightnessSettings() {
         int currentBrightness = getBrightness();
         
         int i, j;
-        int sizeOutput = terminalRows - 2;
+        #ifdef _WIN32
+            int sizeOutput = terminalRows - 2;
+        #else
+            int sizeOutput = terminalRows - 3;
+        #endif
         string output[sizeOutput];
         string road = getRoad();
 
@@ -1945,7 +2243,7 @@ void brightnessSettings() {
                 };
             };
             
-            color(settingsData[2]);
+            color(brightnessData);
             wipeOutput(output, sizeOutput);
             stringToOutput(text, output, sizeOutput);
             if (settingsData[13]) {
@@ -1958,7 +2256,7 @@ void brightnessSettings() {
             cout << text;
             bottomKeymap("| [" + getNameKey(keymapData[2][1], keymapData[2][0]) + "][" + getNameKey(keymapData[3][1], keymapData[3][0]) +"] -> LOW/HIGH | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
             inputMenu(&currentBrightness, 2, 2);
-            Sleep(50);
+            __sleep__(50);
         };
     } else {
         errorBox("COLOR DISABLED", "", true);
@@ -1985,7 +2283,7 @@ void resolutionSettings() {
         titleMenu = "| Current resolution: " + to_string(terminalColumns) + " x " + to_string(terminalRows) + " |";
         showMenu(titleMenu, menu, sizeMenu, 3, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 3);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2005,7 +2303,7 @@ void highScore() {
         };
         showMenu("| High score |", menu, sizeMenu, 4, &choose, "| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> MAIN MENU |", true);
         inputMenu(&choose, sizeMenu - 1, 4);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2091,7 +2389,12 @@ void showWall(string output[], int skinValue, int column, int up, int down) {
 };
 
 void previewSkin(int index, bool isSkinBird) {
-    int i = terminalRows - 2;
+    #ifdef _WIN32
+        int i = terminalRows - 2;
+    #else
+        int i = terminalRows - 3;
+    #endif
+    
     int choose = 0;
     int countAnimation[2] = {1, 0};
     int sizeInAnimation;
@@ -2148,11 +2451,11 @@ void previewSkin(int index, bool isSkinBird) {
         showFPS(output);
         finalOutput = getOutput(output, i);
         
-        clearTerminal();
+        cursorPos_up();
         cout << finalOutput;
         bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> SET | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |");
         inputMenu(&choose, 0, -7);
-        Sleep(200);
+        __sleep__(200);
     };
     flushStdin();
     return;
@@ -2210,7 +2513,7 @@ void changeSkin(bool isSkinBird) {
         };
         showMenu("| Current skin: " + text + to_string(j) + " |", menu, size + 1, inputCase, &choose, "", false);
         inputMenu(&choose, size, inputCase);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2236,7 +2539,7 @@ void optionsSkin() {
 
         showMenu("| Change Skin |", menu, sizeMenu, 8, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 8);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2292,7 +2595,7 @@ void getFPS() {
     while(true) {
         FPS = frameFPS;
         frameFPS = 0;
-        Sleep(1000);
+        __sleep__(1000);
     };
 };
 
@@ -2359,7 +2662,7 @@ void moreSettingsMenu() {
         
         showMenu("| Settings |", menu, sizeMenu, 7, &choose, text, true);
         inputMenu(&choose, sizeMenu - 1, 7);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2397,7 +2700,7 @@ void settingsMenu() {
 
         showMenu("| Settings |", menu, sizeMenu, 1, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 1);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2442,7 +2745,7 @@ void changeDifficult() {
         titleMenu = "| Current difficult: " + menu[settingsData[19]] + " |";
         showMenu(titleMenu, menu, sizeMenu, 10, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 10);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2455,7 +2758,7 @@ int pausedMenu(bool isShowPauseInGame) {
     if (isShowPauseInGame) {
         while(true) {
             if (choose == -1) {
-                color(settingsData[2]);
+                color(brightnessData);
                 return 0;
             };
             if (choose == -2) {
@@ -2465,7 +2768,7 @@ int pausedMenu(bool isShowPauseInGame) {
             showBoxText("PAUSED", false);
             bottomKeymap("| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> RESUME | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> PAUSED MENU |");
             inputMenu(&choose, 0, -5);
-            Sleep(100);
+            __sleep__(100);
         };
     };
 
@@ -2495,7 +2798,7 @@ int pausedMenu(bool isShowPauseInGame) {
         };
         showMenu("| Paused |", menu, sizeMenu, -4, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, -4);
-        Sleep(50);
+        __sleep__(50);
     };
     return 1;
 };
@@ -2541,7 +2844,7 @@ void moreOptions() {
         };
         showMenu("", menu, sizeMenu, 6, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, 6);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2564,7 +2867,7 @@ void mainMenu() {
     while(true) {
         showMenu("", menu, sizeMenu, 0, &chooseMenu, "| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER |", true);
         inputMenu(&chooseMenu, sizeMenu - 1, 0);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2585,7 +2888,7 @@ void startOptions() {
         };
         showMenu("| Start game |", menu, sizeMenu, -8, &choose, "", false);
         inputMenu(&choose, sizeMenu - 1, -8);
-        Sleep(50);
+        __sleep__(50);
     };
     return;
 };
@@ -2609,7 +2912,11 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
     int sizeBox = terminalColumns - (column * 2);
     string text;
     string text2;
-    int sizeOutput = terminalRows - 2;
+    #ifdef _WIN32
+        int sizeOutput = terminalRows - 2;
+    #else
+        int sizeOutput = terminalRows - 3;
+    #endif
     string output[sizeOutput];
     string fullOutput;
     string nameKey;
@@ -2752,11 +3059,15 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         showFPS(NULL);
         bottomKeymap(_bottomKeymap);
         // input
-        // if (_kbhit()) {
+        // if (__kbhit__()) {
             __getch(p);
             if (!p[0]) {
                 switch(p[1]) {
-                    case 8: // backspace
+                    #ifdef _WIN32
+                        case 8: // backspace
+                    #else
+                        case 127:
+                    #endif
                         if (lengthUserInput > 0) {
                             if (indexCursor > (sizeShowInput + 1)) {
                                 userInput.pop_back();
@@ -2854,26 +3165,35 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                 };
             } else {
                 switch(p[1]) {
-                    case 75: // left
-                        if ((indexCursor == 1) && (lengthUserInput > sizeShowInput) && (secondIndexCursor < (lengthUserInput - (sizeShowInput + 1)))) {
-                            secondIndexCursor = secondIndexCursor + 1;
-                        } else if (indexCursor > 0) {
-                            indexCursor = indexCursor - 1;
-                        };
-                        break;
-                    case 77: // right
-                        if ((indexCursor < lengthUserInput) && (indexCursor <= sizeShowInput)) {
-                            indexCursor = indexCursor + 1;
-                        } else {
-                            if (secondIndexCursor > 0) {
-                                secondIndexCursor = secondIndexCursor - 1;
+                    #ifdef _WIN32
+                        case 75: // left
+                    #else
+                        case 68:
+                    #endif
+                            if ((indexCursor == 1) && (lengthUserInput > sizeShowInput) && (secondIndexCursor < (lengthUserInput - (sizeShowInput + 1)))) {
+                                secondIndexCursor = secondIndexCursor + 1;
+                            } else if (indexCursor > 0) {
+                                indexCursor = indexCursor - 1;
                             };
-                        };
-                        break;
+                            break;
+                    #ifdef _WIN32
+                        case 77: // right
+                    #else
+                        case 67:
+                    #endif
+                            if ((indexCursor < lengthUserInput) && (indexCursor <= sizeShowInput)) {
+                                indexCursor = indexCursor + 1;
+                            } else {
+                                if (secondIndexCursor > 0) {
+                                    secondIndexCursor = secondIndexCursor - 1;
+                                };
+                            };
+                            break;
+                    
                 };
             };
         // };
-        // Sleep(25);
+        // __sleep__(25);
     };
     return NULL;
 };
@@ -2903,7 +3223,7 @@ void configError(int key) {
     clearTerminal();
     errorBox("Keymap Error [key" + to_string(key) + "]", "Keymap configuration has been reset! You can restart the game now!", false);
     while(true) {
-        _getch();
+        __getch__();
     };
     exit(-1);
     return;
@@ -2911,7 +3231,7 @@ void configError(int key) {
 
 void loadConfig() {
     if (settingsData[6]) {
-        bool isTwoChar;
+        int isTwoChar;
         int i, j, k;
         int size = sizeof(keymapData) / sizeof(keymapData[0]);
         int newKeymapData[size][2];
@@ -2995,25 +3315,29 @@ void loadConfig() {
         };
         
         for(i = 0; i < size; ++i) {
-            isTwoChar = false;
-            j = readConfig("key" + to_string(i));
-            if(j > 500) {
-                j = j - 500;
-                isTwoChar = true;
-            };
-            if (j > 7) {
-                for(k = 0; k < size; ++k) {
-                    if((j == newKeymapData[k][1]) && (isTwoChar == newKeymapData[k][0])) {
-                        configError(i);
+            #ifdef _WIN32
+                isTwoChar = false;
+                j = readConfig("key" + to_string(i));
+                if(j > 500) {
+                    j = j - 500;
+                    isTwoChar = true;
+                };
+                if (j > 7) {
+                    for(k = 0; k < size; ++k) {
+                        if((j == newKeymapData[k][1]) && (isTwoChar == newKeymapData[k][0])) {
+                            configError(i);
+                        };
                     };
                 };
-            };
-            if (setKeymap(i, j, isTwoChar)) {
-                newKeymapData[i][0] = isTwoChar;
-                newKeymapData[i][1] = j;
-            } else {
-                writeConfig("key" + to_string(i), "-1");
-            };
+                if (setKeymap(i, j, isTwoChar)) {
+                    newKeymapData[i][0] = isTwoChar;
+                    newKeymapData[i][1] = j;
+                } else {
+                    writeConfig("key" + to_string(i), "-1");
+                };
+            #else
+
+            #endif
         };
         // check keymap after set
         for(i = 0; i < size; ++i) {
@@ -3241,7 +3565,7 @@ bool gameOver(int score, int y, int minY, int maxY) {
         showBoxText("Game over", false);
         bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> MAIN MENU | Diff: " + getNameDifficult(settingsData[19]) + " | Y: [" + to_string(minY) + "][" + to_string(y) + "][" + to_string(maxY) + "] |");
         inputMenu(&choose, 0, -6);
-        Sleep(100);
+        __sleep__(100);
     };
     return 0;
 };
@@ -3302,7 +3626,7 @@ void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
     return;
 };
 
-void showFirework(string output[], int firework[3]) {
+void showFirework(string output[], int firework[3], int sizeOutput) {
     if (output == NULL) {
         return;
     };
@@ -3314,7 +3638,7 @@ void showFirework(string output[], int firework[3]) {
                 firework[0] = rand() % (terminalColumns - 1); // right
             } while (firework[0] < 1); // left
 
-            firework[1] = terminalRows - 3; // Row
+            firework[1] = sizeOutput - 1; // Row
             firework[2] = (rand() % ((firework[1] / 2) + (firework[1] / 4) + 1)); // BUMMM
         } else {
             return;
@@ -3532,7 +3856,11 @@ void flappyBird() {
 
     // output data
     // string output[terminalRows - 2];
-    int sizeOutput = terminalRows - 2;
+    #ifdef _WIN32
+        int sizeOutput = terminalRows - 2;
+    #else
+        int sizeOutput = terminalRows - 3;
+    #endif
     string *output = new string[sizeOutput];    // memory leak when return function (but when deallocate array, [Access Violation Error] occurred)
     string text;
     string outputGame;
@@ -3547,7 +3875,7 @@ void flappyBird() {
 
     // prepare
     resetWall();
-    color(settingsData[2]);
+    color(brightnessData);
     showChangeScene();
     stopSound();
 
@@ -3559,6 +3887,10 @@ void flappyBird() {
                 resetWall();
                 isInGame = false;
                 gameStarted = false;
+                #ifdef _WIN32
+                #else
+                    delete [] output;
+                #endif
                 showChangeScene();
                 disableCloseButton(false);
                 playSound(soundMainmenu, false);
@@ -3707,14 +4039,14 @@ void flappyBird() {
         if (settingsData[12]) {
             if (gameStarted) {
                 for(i = 0; i < settingsData[16]; ++i) {
-                    showFirework(output, fireworkData[i]);
+                    showFirework(output, fireworkData[i], sizeOutput);
                 };
             };
         };
         showAllWall(output, &nextWall, &score, countWall);
         showBird(output, countAnimation, sizeInAnimation, settingsData[4], y);
         showScore(output, score, highScore_, highScoreIsScore);
-        output[terminalRows - 3] = lineMap;
+        output[sizeOutput - 1] = lineMap;
         showFPS(output);
         outputGame = getOutput(output, sizeOutput);
 
@@ -3725,7 +4057,7 @@ void flappyBird() {
         bottomKeymap(text);
         inputMenu(&choose, 0, -3);
         checkWall(nextWall, y, maxUp, &isOver);
-        Sleep(speed);
+        __sleep__(speed);
 
         if ((!checkTerminalActive()) && (!settingsData[3]) && (gameStarted)) {
             launchPaused(&choose);
@@ -3735,7 +4067,7 @@ void flappyBird() {
 };
 
 void inputMenu(int *chooseMenu, int max, int type_menu) {
-    if (_kbhit()) {
+    if (__kbhit__()) {
         int p[2];
         __getch(p);
         if ((p[1] == keymapData[0][1]) && (p[0] == keymapData[0][0])) /* UP */ {
@@ -3760,6 +4092,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
+            return;
         } else if ((p[1] == keymapData[2][1]) && (p[0] == keymapData[2][0])) /* LEFT */ {
             switch (type_menu) {
                 case 2: // brightnessSettings
@@ -3776,6 +4109,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
+            return;
         } else if ((p[1] == keymapData[3][1]) && (p[0] == keymapData[3][0])) /* RIGHT */ {
             switch (type_menu) {
                 case 2:
@@ -3792,6 +4126,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
+            return;
         } else if ((p[1] == keymapData[1][1]) && (p[0] == keymapData[1][0])) /* DOWN */ {
             switch (type_menu) {
                 case -8:
@@ -3814,6 +4149,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
+            return;
         } else if ((p[1] == keymapData[6][1]) && (p[0] == keymapData[6][0])) /* ENTER */ {
             switch(type_menu) {
                 case -8:
@@ -4066,6 +4402,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     *chooseMenu = -1;
                     break;
             };
+            return;
         } else if ((p[1] == keymapData[4][1]) && (p[0] == keymapData[4][0])) /* ESC */ {
             switch(type_menu) {
                 case -8:
@@ -4090,6 +4427,7 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     launchPaused(&*chooseMenu);
                     break;
             };
+            return;
         } else if ((p[1] == keymapData[5][1]) && (p[0] == keymapData[5][0])) /* SPACE */ {
             switch(type_menu) {
                 case -5:
@@ -4103,7 +4441,19 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     showTip("");
                     break;
             };
-        } else if ((p[1] == 134) && (p[0])) {    // F12
+            return;
+        };
+        bool check = false;
+        #ifdef _WIN32
+            if ((p[1] == 134) && (p[0])) {    // F12
+                check = true;
+            };
+        #else
+            if ((p[1] == 126) && (p[0] == 220)) {    // F12
+                check = true;
+            };
+        #endif
+        if (check) {    // F12
             switch(type_menu) {
                 case -2:
                     if (showYesorNo("Do you want to reset?")) {
@@ -4114,8 +4464,6 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     };
                     break;
             };
-        } else {
-            return;
         };
     };
     return;
@@ -4153,7 +4501,7 @@ void checkARG(int argc, char const *argv[]) {
                 cout << "\t--disable-skin\t\t Disable skin\n";
                 cout << "\nPRESS ANY KEY TO EXIT\n";
                 flushStdin();
-                _getch();
+                __getch__();
                 exit(-1);
             };
             if (arg == "--disable-v2") {
@@ -4193,7 +4541,7 @@ void checkARG(int argc, char const *argv[]) {
         clearTerminal();
         cout << text;
         cout << "\n>> Program will start in 5 seconds...\n";
-        Sleep(5250);
+        __sleep__(5250);
     };
     return;
 };
@@ -4241,13 +4589,13 @@ void checkTerminalMode() {
         if (((p[1] == 'y') || (p[1] == 'Y')) && (!p[0])) {
             cout << "YES";
             settingsData[5] = true;
-            Sleep(1000);
+            __sleep__(1000);
             return;
         };
         if (((p[1] == 'n') || (p[1] == 'N')) && (!p[0])) {
             cout << "NO";
             settingsData[5] = false;
-            Sleep(1000);
+            __sleep__(1000);
             return;
         };
     };
@@ -4255,14 +4603,23 @@ void checkTerminalMode() {
 };
 
 int main(int argc, char const *argv[]) {
-    SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
-    ios_base::sync_with_stdio(true); // Enable synchronization with stdio (slower performance)
+    #ifdef _WIN32
+        SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
+        SetForegroundWindow(consoleWindow); // Windows API
+    #else
+        system("clear");
+        set_terminal_mode();
+    #endif
 
-    SetForegroundWindow(consoleWindow); // Windows API
+    ios_base::sync_with_stdio(true); // Enable synchronization with stdio (slower performance)
 
     checkARG(argc, &*argv);
 
-    checkTerminalMode();
+    #ifdef _WIN32
+        checkTerminalMode();
+    #else
+        
+    #endif
 
     configureTerminal();
     resetKeymapData(false);
@@ -4276,7 +4633,7 @@ int main(int argc, char const *argv[]) {
     
     loadHighScore();
 
-    Sleep(1000);
+    __sleep__(1000);
     clearTerminal();
 
     banner();
@@ -4289,13 +4646,13 @@ int main(int argc, char const *argv[]) {
         loadingFrame(i, true);
         inputMenu(&tmp_int[0], 0, -1);
         if(i < 20) {
-            Sleep(200);
+            __sleep__(200);
         } else if(i < 70) {
-            Sleep(40);
+            __sleep__(40);
         } else if (i < 90) {
-            Sleep(60);
+            __sleep__(60);
         } else {
-            Sleep(120);
+            __sleep__(120);
         };
     };
     

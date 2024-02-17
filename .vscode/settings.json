@@ -66,6 +66,17 @@
         "forward_list": "cpp",
         "fstream": "cpp",
         "iomanip": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "*.tcc": "c",
+        "cstdarg": "c",
+        "cwctype": "c",
+        "unordered_map": "c",
+        "functional": "c",
+        "memory_resource": "c",
+        "numeric": "c",
+        "random": "c",
+        "string_view": "c",
+        "numbers": "c",
+        "semaphore": "c"
     }
 }
