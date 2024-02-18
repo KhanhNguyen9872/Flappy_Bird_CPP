@@ -1,7 +1,3 @@
-// #ifndef _WIN32
-//     #error "Only supported Windows!"
-// #endif
-
 #include <iostream>
 #ifdef _WIN32
     #include <winsock2.h>
@@ -80,13 +76,23 @@ char defaultKeymapData[7][2] = {
         {0, 32},   // SPACE      ' '
         {0, 13}     // ENTER     '\r'
     #else
-        {0, 119},    // UP       'w'
-        {0, 115},    // DOWN     's'
-        {0, 97},    // LEFT      'a'
-        {0, 100},    // RIGHT    'd'
-        {0, 27},     // ESC      
-        {0, 32},   // SPACE      ' '
-        {0, 10}     // ENTER     '\r'
+        #ifdef _TERMUX
+            {118, 65},    // UP  
+            {118, 66},    // DOWN  
+            {118, 68},    // LEFT 
+            {118, 67},    // RIGHT 
+            {0, 27},     // ESC      
+            {118, 67},   // SPACE  
+            {171, 126}     // ENTER 
+        #else
+            {0, 119},    // UP   
+            {0, 115},    // DOWN 
+            {0, 97},    // LEFT   
+            {0, 100},    // RIGHT
+            {0, 27},     // ESC 
+            {0, 32},   // SPACE    
+            {0, 10}     // ENTER    
+        #endif
     #endif
 };
 char keymapData[7][2];
@@ -333,8 +339,7 @@ bool __kbhit__() {
     #endif
 };
 
-#ifdef _WIN32
-#else
+#ifndef _WIN32
     void set_terminal_mode() {
         struct termios t;
         tcgetattr(STDIN_FILENO, &t);
@@ -669,8 +674,7 @@ void bottomKeymap(string text) {
     cout << lineLastTer;
     color(GREEN);
     cout << text;
-    #ifdef _WIN32
-    #else
+    #ifndef _WIN32
         cout << flush;
     #endif
     color(brightnessData);
@@ -688,8 +692,7 @@ void showFPS(string output[]) {
         color(brightnessData);
         cursorPos_move(locate - 1, 0);
         cout << " " << text;
-        #ifdef _WIN32
-        #else
+        #ifndef _WIN32
             cout << flush;
         #endif
     } else {
@@ -1060,7 +1063,11 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
         #ifdef _WIN32
             showUser(getenv("username"));
         #else
-            showUser(getenv("USER"));
+            string user = getenv("USER");
+            if (user == "") {
+                user = "root";
+            };
+            showUser(user);
         #endif
     };
     for(i=0;i < 40; ++i) {
@@ -1356,8 +1363,7 @@ void exitProgram() {
     if (showYesorNo("Do you want to exit?")) {
         showChangeScene();
         __sleep__(500);
-        #ifdef _WIN32
-        #else
+        #ifndef _WIN32
             reset_terminal_mode();
         #endif
         exit(0);
@@ -1911,8 +1917,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
     color(brightnessData);
     cursorPos_up();
     cout << text;
-    #ifdef _WIN32
-    #else
+    #ifndef _WIN32
         cout << flush;
     #endif
     if (isFullTextBottom) {
@@ -1983,8 +1988,7 @@ void credit() {
             text = text + tmp;
             cursorPos_move(0, (terminalRows - 3));
             cout << text;
-            #ifdef _WIN32
-            #else
+            #ifndef _WIN32
                 cout << flush;
             #endif
             anyKey();
@@ -2150,11 +2154,7 @@ void brightnessSettings() {
         int currentBrightness = getBrightness();
         
         int i, j;
-        #ifdef _WIN32
-            int sizeOutput = terminalRows - 2;
-        #else
-            int sizeOutput = terminalRows - 3;
-        #endif
+        int sizeOutput = terminalRows - 2;
         string output[sizeOutput];
         string road = getRoad();
 
@@ -3896,8 +3896,7 @@ void flappyBird() {
             minY = maxUp + 1 - listWall[nextWall][2];
             if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver) || (y > maxUp)) { // game over
                 playSound(soundBirdDead, true);
-                #ifdef _WIN32
-                #else
+                #ifndef _WIN32
                     y = y - 1;
                 #endif
                 showAnimation(NULL, skinDeadAnimation[settingsData[4]], sizeof(skinDeadAnimation[settingsData[4]]) / sizeof(skinDeadAnimation[settingsData[4]][0]), y);
@@ -4555,8 +4554,7 @@ void checkTerminalMode() {
     cursorPos_move((terminalColumns / 2) - (text.length() / 2), terminalRows - 4);
     cout << text;
 
-    #ifdef _WIN32
-    #else
+    #ifndef _WIN32
         cout << flush;
     #endif
     
@@ -4564,8 +4562,7 @@ void checkTerminalMode() {
         __getch(p);
         if (((p[1] == 'y') || (p[1] == 'Y')) && (!p[0])) {
             cout << "YES";
-            #ifdef _WIN32
-            #else
+            #ifndef _WIN32
                 cout << flush;
             #endif
             settingsData[5] = true;
@@ -4574,8 +4571,7 @@ void checkTerminalMode() {
         };
         if (((p[1] == 'n') || (p[1] == 'N')) && (!p[0])) {
             cout << "NO";
-            #ifdef _WIN32
-            #else
+            #ifndef _WIN32
                 cout << flush;
             #endif
             settingsData[5] = false;
