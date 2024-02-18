@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = 
+CXXFLAGS = -s -Ofast -flto
 
 SRC = src/flappy.cpp
 
