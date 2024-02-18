@@ -1365,6 +1365,7 @@ void exitProgram() {
         __sleep__(500);
         #ifndef _WIN32
             reset_terminal_mode();
+            system("clear");
         #endif
         exit(0);
     };
