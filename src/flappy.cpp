@@ -3076,12 +3076,16 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                             };
                         };
                         break;
-                    case 13: // enter
-                        if (lengthUserInput > 0) {
-                            return userInput;
-                        } else {
-                            errorStr = "Empty input";
-                        };
+                    #ifdef _WIN32
+                        case 13: // enter
+                    #else
+                        case 10:
+                    #endif
+                            if (lengthUserInput > 0) {
+                                return userInput;
+                            } else {
+                                errorStr = "Empty input";
+                            };
                     default:
                         if ((p[1] == 32) && (!p[0])) {
                             nameKey = ' ';
