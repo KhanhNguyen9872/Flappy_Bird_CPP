@@ -12,8 +12,18 @@
 rm -rf Flappy_Bird_CPP 2>/dev/null
 git clone https://github.com/KhanhNguyen9872/Flappy_Bird_CPP
 cd Flappy_Bird_CPP
-g++ ./src/flappy.cpp -o flappy 	# build flappyBird
-./flappy 	# run flappyBird
+```
+
+```bash
+make linux # for linux
+```
+
+```bash
+make termux # for termux
+```
+
+```bash
+./build/flappy # run
 ```
 
 # VirusTotal
