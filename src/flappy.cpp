@@ -306,11 +306,11 @@ void __sleep__(int s) {
     return;
 };
 
-int __getch__() {
+char __getch__() {
     #ifdef _WIN32
         return _getch();
     #else
-        int c;
+        char c;
         if (read(STDIN_FILENO, &c, 1) != 1) {
             return 0;
         };
@@ -341,6 +341,12 @@ bool __kbhit__() {
         t.c_lflag &= ~(ICANON | ECHO);
         tcsetattr(STDIN_FILENO, TCSANOW, &t);
         return;
+    };
+    void reset_terminal_mode() {
+        struct termios t;
+        tcgetattr(STDIN_FILENO, &t);
+        t.c_lflag |= ICANON | ECHO;
+        tcsetattr(STDIN_FILENO, TCSANOW, &t);
     };
 #endif
 
@@ -654,7 +660,11 @@ void bottomKeymap(string text) {
     while (text.length() > terminalColumns) {
         text.pop_back();
     };
-    cursorPos_move(0, terminalRows - 2);
+    #ifdef _WIN32
+        cursorPos_move(0, terminalRows - 2);
+    #else
+        cursorPos_move(0, terminalRows - 1);
+    #endif
     color(WHITE);
     cout << lineLastTer;
     color(GREEN);
@@ -730,67 +740,60 @@ void errorBox(string output, string bottom, bool isBlur) {
     while(true) {
         showFPS(NULL);
         color(RED);
-        sizeRow = 0;
-        for(i = 0; i < terminalRows - 5; ++i) {
-            if (i == (terminalRows / 2) - 3) {
-                text = "";
-                cursorPos_move(sizeColumn, sizeRow);
+        sizeRow = (terminalRows / 2) - 3;
+        text = "";
+        cursorPos_move(sizeColumn, sizeRow);
 
-                text = text + ' ';
-                for(j = 0; j < boxSize - 2; ++j) {
-                    text = text + "_";
-                };
+        text = text + ' ';
+        for(j = 0; j < boxSize - 2; ++j) {
+            text = text + "_";
+        };
                 
-                text = text + "   /";
-                cout << text;
+        text = text + "   /";
+        cout << text;
 
-                text = "";
-                cursorPos_move(sizeColumn, sizeRow + 1);
+        text = "";
+        cursorPos_move(sizeColumn, sizeRow + 1);
 
-                text = text + "/ ";
-                for(j = 0; j < boxSize - 4; ++j) {
-                    text = text + ' ';
-                }; 
-                text = text + " \\ /";
-                cout << text;
+        text = text + "/ ";
+        for(j = 0; j < boxSize - 4; ++j) {
+            text = text + ' ';
+        }; 
+        text = text + " \\ /";
+        cout << text;
 
-                text = "";
-                cursorPos_move(sizeColumn - 1, sizeRow + 2);
-                text = text + "/ ";
-                for(j = 0; j < boxSize - 2 - (output.length() ); ++j) {
-                    if (j == ((boxSize - 2) - output.length() ) / 2) {
-                        text = text + ' ' + output;
-                    } else {
-                        text = text + ' ';
-                    };
-                };
-                text = text + " /";
-                cout << text;
-
-                text = "";
-                cursorPos_move(sizeColumn - 2, sizeRow + 3);
-                text = text + "/ \\ ";
-                for(j = 0; j < boxSize - 4; ++j) {
-                    text = text + ' ';
-                }; 
-                text = text + " /";
-                cout << text;
-
-                text = "";
-                cursorPos_move(sizeColumn - 3, sizeRow + 4);
-
-                text = text + "/   ";
-                for(j = 0; j < boxSize - 2; ++j) {
-                    text = text + "`";
-                };
-                
-                text = text + ' ';
-                cout << text;
-                break;
+        text = "";
+        cursorPos_move(sizeColumn - 1, sizeRow + 2);
+        text = text + "/ ";
+        for(j = 0; j < boxSize - 2 - (output.length() ); ++j) {
+            if (j == ((boxSize - 2) - output.length() ) / 2) {
+                text = text + ' ' + output;
             } else {
-                sizeRow = sizeRow + 1;
+                text = text + ' ';
             };
         };
+        text = text + " /";
+        cout << text;
+
+        text = "";
+        cursorPos_move(sizeColumn - 2, sizeRow + 3);
+        text = text + "/ \\ ";
+        for(j = 0; j < boxSize - 4; ++j) {
+            text = text + ' ';
+        }; 
+        text = text + " /";
+        cout << text;
+
+        text = "";
+        cursorPos_move(sizeColumn - 3, sizeRow + 4);
+
+        text = text + "/   ";
+        for(j = 0; j < boxSize - 2; ++j) {
+            text = text + "`";
+        };
+                
+        text = text + ' ';
+        cout << text;
 
         bottomKeymap(bottom);
         if(__kbhit__()) {
@@ -1092,7 +1095,7 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
 
 void showBoxText(string text, bool isBlur) {
     int sizeColumn = 0;
-    int sizeRow = 0;
+    int sizeRow = ((terminalRows / 2) - 3);
     int i, j;
     string tmp;
     if (text.length() > (terminalColumns - 16)) {
@@ -1111,44 +1114,37 @@ void showBoxText(string text, bool isBlur) {
         showBlur();
     };
 
-    for(i = 0; i < terminalRows; ++i) {
-        if (i == (terminalRows / 2) - 3) {
-            color(YELLOW);
-            cursorPos_move(sizeColumn, sizeRow);
-            tmp = "  ";
-            for(j = 0; j < text.length() + 2; ++j) {
-                tmp = tmp + "_";
-            };
-            cout << tmp;
-
-            cursorPos_move(sizeColumn, sizeRow + 1);
-            tmp = " | ";
-            for(j = 0; j < text.length(); ++j) {
-                tmp = tmp + ' ';
-            }
-            cout << tmp << " |";
-
-            cursorPos_move(sizeColumn, sizeRow + 2);
-            cout << " | " << text << " |";
-
-            cursorPos_move(sizeColumn, sizeRow + 3);
-            tmp = " | ";
-            for(j = 0; j < text.length(); ++j) {
-                tmp = tmp + ' ';
-            }
-            cout << tmp << " |";
-
-            cursorPos_move(sizeColumn, sizeRow + 4);
-            tmp = "  ";
-            for(j = 0; j < text.length() + 2; ++j) {
-                tmp = tmp + "`";
-            };
-            cout << tmp;
-            return;
-        } else {
-            sizeRow = sizeRow + 1;
-        };
+    color(YELLOW);
+    cursorPos_move(sizeColumn, sizeRow);
+    tmp = "  ";
+    for(j = 0; j < text.length() + 2; ++j) {
+        tmp = tmp + "_";
     };
+    cout << tmp;
+
+    cursorPos_move(sizeColumn, sizeRow + 1);
+    tmp = " | ";
+    for(j = 0; j < text.length(); ++j) {
+        tmp = tmp + ' ';
+    };
+    cout << tmp << " |";
+
+    cursorPos_move(sizeColumn, sizeRow + 2);
+    cout << " | " << text << " |";
+
+    cursorPos_move(sizeColumn, sizeRow + 3);
+    tmp = " | ";
+    for(j = 0; j < text.length(); ++j) {
+        tmp = tmp + ' ';
+    };
+    cout << tmp << " |";
+
+    cursorPos_move(sizeColumn, sizeRow + 4);
+    tmp = "  ";
+    for(j = 0; j < text.length() + 2; ++j) {
+        tmp = tmp + "`";
+    };
+    cout << tmp;
     return;
 };
 
@@ -1242,50 +1238,41 @@ void showTip(string tip) {
 
     cursorPos_up();
     color(YELLOW);
-    int sizeRow = 0;
-    for(i = 0; i < terminalRows; ++i) {
-        if (i == terminalRows - 3) {
-            cursorPos_move(0, sizeRow);
-            cout << text;
-            cursorPos_move(3, sizeRow);
-            cout << tip;
-            break;
-        } else {
-            sizeRow = sizeRow + 1;
-        };
-    };
+    int sizeRow = (terminalRows - 3);
+    cursorPos_move(0, sizeRow);
+    cout << text;
+    cursorPos_move(3, sizeRow);
+    cout << tip;
     return;
 };
 
 void showAnimation(string output[], string animation[], int sizeAnimation, int countUp) {
     bool noSpace;
     int i, j, m;
-    int k = (terminalRows / 4) - countUp;
+    int sizeRow = (terminalRows / 4) - countUp;
     int l = terminalRows - 3;
-    int sizeRow = 0;
-    for(i = 0; i < l; ++i) {
-        if (i == k) {
-            for(j = 0; j < sizeAnimation; ++j) {
-                if (output == NULL) { // print direct to terminal
-                    cursorPos_move(3, sizeRow + j);
-                    cout << animation[j];
-                } else { // insert data to output array
-                    noSpace = 0;
-                    for(m = 0; m < animation[j].length(); m++) {
-                        if (!noSpace) { // remove space char in first string
-                            if (animation[j][m] == ' ') {
-                                continue;
-                            } else {
-                                noSpace = 1;
-                            };
-                        };
-                        output[sizeRow + j][3 + m] = animation[j][m];
+    for(j = 0; j < sizeAnimation; ++j) {
+        if (output == NULL) { // print direct to terminal
+            #ifdef _WIN32
+                cursorPos_move(3, sizeRow + j);
+            #else
+                cursorPos_move(4, sizeRow + j);
+            #endif
+            cout << animation[j];
+        } else { // insert data to output array
+            noSpace = 0;
+            for(m = 0; m < animation[j].length(); m++) {
+                if (!noSpace) { // remove space char in first string
+                    if (animation[j][m] == ' ') {
+                        continue;
+                    } else {
+                        noSpace = 1;
                     };
                 };
+                if ((sizeRow + j) < l) {
+                    output[sizeRow + j][3 + m] = animation[j][m];
+                };
             };
-            break;
-        } else {
-            sizeRow = sizeRow + 1;
         };
     };
     return;
@@ -1317,31 +1304,36 @@ void showChangeScene() {
     bool randomVar = rand() % 1;
 
     int k = 5 - getResolutionValue();
+    #ifdef _WIN32
+        int j = terminalRows;
+    #else
+        int j = terminalRows + 1;
+    #endif
     
     color(brightnessData);
     __sleep__(400);
     if (randomVar) {
         cursorPos_up();
-        for(i = 0; i < terminalRows; ++i) {
+        for(i = 0; i < j; ++i) {
             cout << text;
             __sleep__(k);
         };
 
         __sleep__(150);
         cursorPos_up();
-        for(i = 0; i < terminalRows; ++i) {
+        for(i = 0; i < j; ++i) {
             cout << text2;
             __sleep__(k);
         };
     } else {
-        for(i = terminalRows - 1; i >= 0; --i) {
+        for(i = j - 1; i >= 0; --i) {
             cursorPos_move(0, i);
             cout << text;
             __sleep__(k);
         };
 
         __sleep__(150);
-        for(i = terminalRows - 1; i >= 0; --i) {
+        for(i = j - 1; i >= 0; --i) {
             cursorPos_move(0, i);
             cout << text2;
             __sleep__(k);
@@ -1364,6 +1356,10 @@ void exitProgram() {
     if (showYesorNo("Do you want to exit?")) {
         showChangeScene();
         __sleep__(500);
+        #ifdef _WIN32
+        #else
+            reset_terminal_mode();
+        #endif
         exit(0);
     };
     return;
@@ -1458,56 +1454,44 @@ void loadingFrame(int progress, bool isShowBird) {
     int i, j, k;
 
     string text = "";
-    int sizeRow = 0;
-    int sizeColumn = 0;
+    int sizeRow = terminalRows-5;
+    int sizeColumn = terminalColumns - 15;
 
     color(LIGHTCYAN);
-    for(i = 0; i < terminalRows - 4; ++i) {
-        if(i == terminalRows-5) {
-            for(j = 0; j < terminalColumns; ++j) {
-                if(j == terminalColumns - 15) {
 
-                    cursorPos_move(sizeColumn, sizeRow);
-                    cout << " __________ ";
+    cursorPos_move(sizeColumn, sizeRow);
+    cout << " __________ ";
 
-                    cursorPos_move(sizeColumn, sizeRow + 1);
-                    text = "|";
-                    for(k = 10; k <= 100; k = k + 10) {
-                        if(progress >= k) {
-                            text = text + "=";
-                        } else {
-                            text = text + ' ';
-                        };
-                    };
-                    text = text + "|";
-                    cout << text;
-
-                    cursorPos_move(sizeColumn, sizeRow + 2);
-                    cout << " `````````` ";
-                    break;
-                } else {
-                    sizeColumn = sizeColumn + 1;
-                }
-            }
-            cursorPos_move(sizeColumn, sizeRow + 3);
-            cout << " LOADING";
-
-            text = "";
-            for(k=0; k < tmp_int[0]; ++k) {
-                text = text + ".";
-            };
-            for(k=0; k < 4 - tmp_int[0]; ++k) {
-                text = text + ' ';
-            };
-            cout << text + "\n";
-
-            tmp_int[0] = tmp_int[0] + 1;
-            if(tmp_int[0] > 4) {
-                tmp_int[0] = 0;
-            };
+    cursorPos_move(sizeColumn, sizeRow + 1);
+    text = "|";
+    for(k = 10; k <= 100; k = k + 10) {
+        if(progress >= k) {
+            text = text + "=";
         } else {
-            sizeRow = sizeRow + 1;
+            text = text + ' ';
         };
+    };
+    text = text + "|";
+    cout << text;
+
+    cursorPos_move(sizeColumn, sizeRow + 2);
+    cout << " `````````` ";
+
+    cursorPos_move(sizeColumn, sizeRow + 3);
+    cout << " LOADING";
+
+    text = "";
+    for(k=0; k < tmp_int[0]; ++k) {
+        text = text + ".";
+    };
+    for(k=0; k < 4 - tmp_int[0]; ++k) {
+        text = text + ' ';
+    };
+    cout << text + "\n";
+
+    tmp_int[0] = tmp_int[0] + 1;
+    if(tmp_int[0] > 4) {
+        tmp_int[0] = 0;
     };
 
     if(isShowBird) {
@@ -1905,11 +1889,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
 
     int padding = terminalRows - 7 - sizeMenu - titleMenuSize;
 
-    #ifdef _WIN32
-        int j = 2;
-    #else
-        int j = 1;
-    #endif
+    int j = 2;
 
     for(i=0; i <= padding; ++i) {
         if(i == (j + (getResolutionValue() * 2))) {
@@ -1921,13 +1901,8 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
         };
     };
 
-    #ifdef _WIN32
-        int sizeOutput = terminalRows - 2;
-        string output[sizeOutput];
-    #else
-        int sizeOutput = terminalRows - 3;
-        string *output = new string[sizeOutput];
-    #endif
+    int sizeOutput = terminalRows - 2;
+    string output[sizeOutput];
     wipeOutput(output, sizeOutput);
     stringToOutput(text, output, sizeOutput);
     showFPS(output);
@@ -1936,15 +1911,15 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
     color(brightnessData);
     cursorPos_up();
     cout << text;
+    #ifdef _WIN32
+    #else
+        cout << flush;
+    #endif
     if (isFullTextBottom) {
         bottomKeymap(addTextBottom);
     } else {
         bottomKeymap("| [" + getNameKey(keymapData[0][1], keymapData[0][0]) + "][" + getNameKey(keymapData[1][1], keymapData[1][0]) + "] -> UP/DOWN | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> ENTER | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> BACK |" + addTextBottom);
     };
-    #ifdef _WIN32
-    #else
-        delete [] output;
-    #endif
     return;
 };
 
@@ -2309,7 +2284,11 @@ void highScore() {
 };
 
 void author() {
-    system("start \"\" \"https://github.com/KhanhNguyen9872/\"");
+    #ifdef _WIN32
+        system("start \"\" \"https://github.com/KhanhNguyen9872/\"");
+    #else
+        system("xdg-open \"https://github.com/KhanhNguyen9872/\"");
+    #endif
     return;
 };
 
@@ -2389,11 +2368,7 @@ void showWall(string output[], int skinValue, int column, int up, int down) {
 };
 
 void previewSkin(int index, bool isSkinBird) {
-    #ifdef _WIN32
-        int i = terminalRows - 2;
-    #else
-        int i = terminalRows - 3;
-    #endif
+    int i = terminalRows - 2;
     
     int choose = 0;
     int countAnimation[2] = {1, 0};
@@ -3856,11 +3831,7 @@ void flappyBird() {
 
     // output data
     // string output[terminalRows - 2];
-    #ifdef _WIN32
-        int sizeOutput = terminalRows - 2;
-    #else
-        int sizeOutput = terminalRows - 3;
-    #endif
+    int sizeOutput = terminalRows - 2;
     string *output = new string[sizeOutput];    // memory leak when return function (but when deallocate array, [Access Violation Error] occurred)
     string text;
     string outputGame;
@@ -3887,10 +3858,6 @@ void flappyBird() {
                 resetWall();
                 isInGame = false;
                 gameStarted = false;
-                #ifdef _WIN32
-                #else
-                    delete [] output;
-                #endif
                 showChangeScene();
                 disableCloseButton(false);
                 playSound(soundMainmenu, false);
@@ -3929,6 +3896,10 @@ void flappyBird() {
             minY = maxUp + 1 - listWall[nextWall][2];
             if ((y == -(terminalRows - sizeBird - maxUp - 1)) || (isOver) || (y > maxUp)) { // game over
                 playSound(soundBirdDead, true);
+                #ifdef _WIN32
+                #else
+                    y = y - 1;
+                #endif
                 showAnimation(NULL, skinDeadAnimation[settingsData[4]], sizeof(skinDeadAnimation[settingsData[4]]) / sizeof(skinDeadAnimation[settingsData[4]][0]), y);
                 gameStarted = false;
                 disableCloseButton(false);
@@ -4583,17 +4554,30 @@ void checkTerminalMode() {
     text = "Input [y/n]: ";
     cursorPos_move((terminalColumns / 2) - (text.length() / 2), terminalRows - 4);
     cout << text;
+
+    #ifdef _WIN32
+    #else
+        cout << flush;
+    #endif
     
     while(true) {
         __getch(p);
         if (((p[1] == 'y') || (p[1] == 'Y')) && (!p[0])) {
             cout << "YES";
+            #ifdef _WIN32
+            #else
+                cout << flush;
+            #endif
             settingsData[5] = true;
             __sleep__(1000);
             return;
         };
         if (((p[1] == 'n') || (p[1] == 'N')) && (!p[0])) {
             cout << "NO";
+            #ifdef _WIN32
+            #else
+                cout << flush;
+            #endif
             settingsData[5] = false;
             __sleep__(1000);
             return;
@@ -4615,11 +4599,7 @@ int main(int argc, char const *argv[]) {
 
     checkARG(argc, &*argv);
 
-    #ifdef _WIN32
-        checkTerminalMode();
-    #else
-        
-    #endif
+    checkTerminalMode();
 
     configureTerminal();
     resetKeymapData(false);

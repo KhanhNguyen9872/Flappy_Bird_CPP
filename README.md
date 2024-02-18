@@ -4,7 +4,17 @@
 > [!CAUTION]
 > The current version is unstable!
 >
-> You can download test [here](https://codeload.github.com/KhanhNguyen9872/Flappy_Bird_CPP/zip/refs/heads/main)
+> You can download test (Windows) [here](https://codeload.github.com/KhanhNguyen9872/Flappy_Bird_CPP/zip/refs/heads/main)
+
+
+# Build for Linux
+```bash
+rm -rf Flappy_Bird_CPP 2>/dev/null
+git clone https://github.com/KhanhNguyen9872/Flappy_Bird_CPP
+cd Flappy_Bird_CPP
+g++ ./src/flappy.cpp -o flappy 	# build flappyBird
+./flappy 	# run flappyBird
+```
 
 # VirusTotal
 > Link [here](https://www.virustotal.com/gui/file/81e50597719244d701680f684338657a8f1a3f0c165ea6c3d42f7f35a3afba4e?nocache=1)

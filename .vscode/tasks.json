@@ -200,20 +200,20 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "-Ofast",
-                "-ffunction-sections",
-                "-fdata-sections",
-                "-fno-signed-zeros",
-                "-fno-trapping-math",
-                "-funroll-loops",
-                "-frename-registers",
-                "-fdiagnostics-color=always",
-                "-flto",
+                // "-Ofast",
+                // "-ffunction-sections",
+                // "-fdata-sections",
+                // "-fno-signed-zeros",
+                // "-fno-trapping-math",
+                // "-funroll-loops",
+                // "-frename-registers",
+                // "-fdiagnostics-color=always",
+                // "-flto",
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
                 // "-s",
-                "-Wl,--gc-sections"
+                // "-Wl,--gc-sections"
             ],
             "options": {
                 "cwd": "${fileDirname}"
