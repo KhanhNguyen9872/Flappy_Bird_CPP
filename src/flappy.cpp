@@ -6,6 +6,7 @@
 #else
     #include <unistd.h>
     #include <termios.h>
+    #include <sys/ioctl.h>
 #endif
 #include <string>
 #include <thread>
@@ -138,6 +139,9 @@ int listWall[10][3];
 int sizelistWall = sizeof(listWall) / sizeof(listWall[0]);
 bool isInGame = false;
 bool gameStarted = false;
+#ifndef _WIN32  
+    bool frameStarted = true;
+#endif
 
 string smallLogo = "";
 
@@ -148,7 +152,7 @@ string smallLogo = "";
     CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
     DWORD dwConsoleMode;
 #else
-
+    winsize bufferSize;
 #endif
 
 string backGround[5] = {
@@ -422,6 +426,10 @@ void getTerminalSize(int *columns, int *rows) {  // Windows API
             *columns = *columns - 1;
         };
     #else
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &bufferSize);
+
+        *columns = bufferSize.ws_col;
+        *rows = bufferSize.ws_row;
     #endif
     return;
 };
@@ -518,6 +526,19 @@ void flushStdin() {
     while (__kbhit__()) {
         __getch__();
     };
+    return;
+};
+
+void pauseFrame() {
+    #ifndef _WIN32
+        while(!frameStarted) {
+            if (frameStarted) {
+                flushStdin();
+                return;
+            };
+            __sleep__(250);
+        };
+    #endif
     return;
 };
 
@@ -628,6 +649,7 @@ void titleTerminal(string name) {
     #ifdef _WIN32
         SetConsoleTitle((LPCTSTR)name.c_str());
     #else
+        cout << "\033]0;" + name + "\007";
     #endif
     return;
 };
@@ -743,6 +765,7 @@ void errorBox(string output, string bottom, bool isBlur) {
     };
 
     while(true) {
+        pauseFrame();
         showFPS(NULL);
         color(RED);
         sizeRow = (terminalRows / 2) - 3;
@@ -852,7 +875,75 @@ void showOverlayResolution() {
     return;
 };
 
-void resizeTerminal(short column, short row) {
+void showBoxText(string text, bool isBlur) {
+    int columns = terminalColumns;
+    int rows = terminalRows;
+    #ifndef _WIN32
+        if (!frameStarted) {
+            columns = tmp_int[0];
+            rows = tmp_int[1];
+        };
+    #endif
+
+    int sizeColumn = 0;
+    int sizeRow = ((rows / 2) - 3);
+    if (sizeRow < 0) {
+        sizeRow = 0;
+    };
+    int i, j;
+    string tmp;
+    if (text.length() > (columns - 16)) {
+        tmp = "";
+        for(i = 0; i < (columns - 16); ++i) {
+            tmp = tmp + text[i];  
+        };
+        text = tmp;
+    };
+    for(i = 0; i < (columns - text.length()) / 2; ++i) {
+        sizeColumn = sizeColumn + 1;
+    };
+    sizeColumn = sizeColumn - 1;
+
+    if (isBlur) {
+        showBlur();
+    };
+
+    color(YELLOW);
+    cursorPos_move(sizeColumn, sizeRow);
+    tmp = "  ";
+    for(j = 0; j < text.length() + 2; ++j) {
+        tmp = tmp + "_";
+    };
+    cout << tmp;
+
+    cursorPos_move(sizeColumn, sizeRow + 1);
+    tmp = " | ";
+    for(j = 0; j < text.length(); ++j) {
+        tmp = tmp + ' ';
+    };
+    cout << tmp << " |";
+
+    cursorPos_move(sizeColumn, sizeRow + 2);
+    cout << " | " << text << " |";
+
+    cursorPos_move(sizeColumn, sizeRow + 3);
+    tmp = " | ";
+    for(j = 0; j < text.length(); ++j) {
+        tmp = tmp + ' ';
+    };
+    cout << tmp << " |";
+
+    cursorPos_move(sizeColumn, sizeRow + 4);
+    tmp = "  ";
+    for(j = 0; j < text.length() + 2; ++j) {
+        tmp = tmp + "`";
+    };
+    cout << tmp;
+    return;
+};
+
+void resizeTerminal(int column, int row) {
+    gameStarted = false;
     string cmd;
     if (settingsData[9]) {
         #ifdef _WIN32
@@ -867,6 +958,21 @@ void resizeTerminal(short column, short row) {
             };
             showOverlayResolution();
         #else
+            gameStarted = false;
+            frameStarted = false;
+            while(true) {
+                if ((column >= terminalColumns) && (row >= terminalRows)) {
+                    system("clear");
+                    frameStarted = true;
+                    break;
+                };
+                getTerminalSize(&column, &row);
+                tmp_int[0] = column;
+                tmp_int[1] = row;
+                color(YELLOW);
+                showBoxText("Resize [" + to_string(column) + " x " + to_string(row) + "] to [" + to_string(terminalColumns) + " x " + to_string(terminalRows) + "]", false);
+                __sleep__(500);
+            };
         #endif
     };
     // if (settingsData[5]) {
@@ -1088,7 +1194,8 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
                 color(WHITE);
                 _i = true;
             }
-        }
+        };
+        pauseFrame();
         if (isClear) {
             clearTerminal();
         } else {
@@ -1099,61 +1206,6 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
         __sleep__(100);
     };
     clearTerminal();
-    return;
-};
-
-void showBoxText(string text, bool isBlur) {
-    int sizeColumn = 0;
-    int sizeRow = ((terminalRows / 2) - 3);
-    int i, j;
-    string tmp;
-    if (text.length() > (terminalColumns - 16)) {
-        tmp = "";
-        for(i = 0; i < (terminalColumns - 16); ++i) {
-            tmp = tmp + text[i];  
-        };
-        text = tmp;
-    };
-    for(i = 0; i < (terminalColumns - text.length()) / 2; ++i) {
-        sizeColumn = sizeColumn + 1;
-    };
-    sizeColumn = sizeColumn - 1;
-
-    if (isBlur) {
-        showBlur();
-    };
-
-    color(YELLOW);
-    cursorPos_move(sizeColumn, sizeRow);
-    tmp = "  ";
-    for(j = 0; j < text.length() + 2; ++j) {
-        tmp = tmp + "_";
-    };
-    cout << tmp;
-
-    cursorPos_move(sizeColumn, sizeRow + 1);
-    tmp = " | ";
-    for(j = 0; j < text.length(); ++j) {
-        tmp = tmp + ' ';
-    };
-    cout << tmp << " |";
-
-    cursorPos_move(sizeColumn, sizeRow + 2);
-    cout << " | " << text << " |";
-
-    cursorPos_move(sizeColumn, sizeRow + 3);
-    tmp = " | ";
-    for(j = 0; j < text.length(); ++j) {
-        tmp = tmp + ' ';
-    };
-    cout << tmp << " |";
-
-    cursorPos_move(sizeColumn, sizeRow + 4);
-    tmp = "  ";
-    for(j = 0; j < text.length() + 2; ++j) {
-        tmp = tmp + "`";
-    };
-    cout << tmp;
     return;
 };
 
@@ -1170,16 +1222,30 @@ bool showYesorNo(string text) {
 
     flushStdin();
     while(true) {
+        pauseFrame();
         showBoxText(text, tmp);
-        bottomKeymap("| [y] -> YES | [n] -> NO |");
+        #ifdef _TERMUX
+            bottomKeymap("| [/] -> YES | [-] -> NO |");
+        #else
+            bottomKeymap("| [y] -> YES | [n] -> NO |");
+        #endif
+
         if (__kbhit__()) {
             __getch(p);
 
-            if (((p[1] == 'y') || (p[1] == 'Y')) && (!p[0])) {
-                return 1;
-            } else if (((p[1] == 'n') || (p[1] == 'N')) && (!p[0])) {
-                return 0;
-            };
+            #ifdef _TERMUX
+                if ((p[1] == '/') && (!p[0])) {
+                    return 1;
+                } else if ((p[1] == '-') && (!p[0])) {
+                    return 0;
+                };
+            #else
+                if (((p[1] == 'y') || (p[1] == 'Y')) && (!p[0])) {
+                    return 1;
+                } else if (((p[1] == 'n') || (p[1] == 'N')) && (!p[0])) {
+                    return 0;
+                };
+            #endif
         };
         tmp = false;
         __sleep__(200);
@@ -1459,6 +1525,8 @@ void loadingFrame(int progress, bool isShowBird) {
     //
     // [/////////////////////////////////////////]
 
+    pauseFrame();
+
     int sizeAnimation = sizeof(skinFlyAnimation[settingsData[4]]) / sizeof(skinFlyAnimation[settingsData[4]][0]);
     int i, j, k;
 
@@ -1660,18 +1728,21 @@ void lockSizeTerminal() {
     if (!settingsData[9]) {
         return;
     };
-    #ifdef _WIN32
-        int columns = 0, rows = 0;
-        while(true) {
-            getTerminalSize(&columns, &rows);
+    int columns = 0, rows = 0;
+    while(true) {
+        getTerminalSize(&columns, &rows);
+        #ifdef _WIN32
             if ((columns != terminalColumns) || (rows != terminalRows)) {
                 resizeTerminal(terminalColumns, terminalRows);
                 disableMaximizeButton();
             };
-            __sleep__(500);
+        #else
+        if ((columns < terminalColumns) || (rows < terminalRows)) {
+            resizeTerminal(columns, rows);
         };
-    #else
-    #endif
+        #endif
+        __sleep__(300);
+    };
     return;
 };
 
@@ -1917,6 +1988,7 @@ void showMenu(string titleMenu, string* menu, int sizeMenu, int type_menu, int *
     showFPS(output);
     text = getOutput(output, sizeOutput);
 
+    pauseFrame();
     color(brightnessData);
     cursorPos_up();
     cout << text;
@@ -2221,6 +2293,7 @@ void brightnessSettings() {
                 };
             };
             
+            pauseFrame();
             color(brightnessData);
             wipeOutput(output, sizeOutput);
             stringToOutput(text, output, sizeOutput);
@@ -2398,6 +2471,8 @@ void previewSkin(int index, bool isSkinBird) {
             };
             break;
         };
+
+        pauseFrame();
         wipeOutput(output, i);
         if (settingsData[13]) {
             showBackground(output, 0, terminalRows - 3);
@@ -2742,6 +2817,7 @@ int pausedMenu(bool isShowPauseInGame) {
             if (choose == -2) {
                 break;
             };
+            pauseFrame();
             showFPS(NULL);
             showBoxText("PAUSED", false);
             bottomKeymap("| [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "][" + getNameKey(keymapData[5][1], keymapData[5][0]) + "] -> RESUME | [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> PAUSED MENU |");
@@ -3543,6 +3619,7 @@ bool gameOver(int score, int y, int minY, int maxY) {
         if (choose == -2) {
             return 0;
         };
+        pauseFrame();
         showFPS(NULL);
         showBoxText("Game over", false);
         bottomKeymap("| [" + getNameKey(keymapData[6][1], keymapData[6][0]) + "] -> TRY AGAIN | [" + getNameKey(keymapData[4][1], keymapData[4][0]) + "] -> MAIN MENU | Diff: " + getNameDifficult(settingsData[19]) + " | Y: [" + to_string(minY) + "][" + to_string(y) + "][" + to_string(maxY) + "] |");
@@ -3898,6 +3975,7 @@ void flappyBird() {
                 continue;
         };
 
+        pauseFrame();
         if(gameStarted) {
             maxY = maxUp + 1 - listWall[nextWall][1];
             minY = maxUp + 1 - listWall[nextWall][2];
@@ -4602,7 +4680,9 @@ int main(int argc, char const *argv[]) {
 
     checkARG(argc, &*argv);
 
-    checkTerminalMode();
+    #ifdef _WIN32
+        checkTerminalMode();
+    #endif
 
     configureTerminal();
     resetKeymapData(false);
