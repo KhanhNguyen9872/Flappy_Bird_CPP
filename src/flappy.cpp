@@ -943,7 +943,9 @@ void showBoxText(string text, bool isBlur) {
 };
 
 void resizeTerminal(int column, int row) {
-    gameStarted = false;
+    if (!settingsData[3]) {
+        gameStarted = false;
+    };
     string cmd;
     if (settingsData[9]) {
         #ifdef _WIN32
