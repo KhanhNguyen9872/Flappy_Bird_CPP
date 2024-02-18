@@ -410,13 +410,6 @@ void hideCursor() {  // Windows API
     return;
 };
 
-// void getCurrentCursorXY(int *x, int *y) {
-//     GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
-//     *x = bufferInfo.dwCursorPosition.X;
-//     *y = bufferInfo.dwCursorPosition.Y;
-//     return;
-// };
-
 void getTerminalSize(int *columns, int *rows) {  // Windows API
     #ifdef _WIN32
         GetConsoleScreenBufferInfo(hOutput, &bufferInfo);
@@ -960,7 +953,6 @@ void resizeTerminal(int column, int row) {
             };
             showOverlayResolution();
         #else
-            gameStarted = false;
             frameStarted = false;
             while(true) {
                 if ((column >= terminalColumns) && (row >= terminalRows)) {
