@@ -82,7 +82,7 @@ char defaultKeymapData[7][2] = {
             {118, 68},    // LEFT 
             {118, 67},    // RIGHT 
             {0, 27},     // ESC      
-            {118, 67},   // SPACE  
+            {172, 126},   // SPACE  
             {171, 126}     // ENTER 
         #else
             {0, 119},    // UP   
@@ -312,17 +312,19 @@ void __sleep__(int s) {
     return;
 };
 
-char __getch__() {
-    #ifdef _WIN32
-        return _getch();
-    #else
+#ifdef _WIN32
+    int __getch__() {
+        return _getch();   
+    };
+#else
+    char __getch__() {
         char c;
         if (read(STDIN_FILENO, &c, 1) != 1) {
             return 0;
         };
         return c;
-    #endif
-};
+    };
+#endif
 
 bool __kbhit__() {
     #ifdef _WIN32
@@ -4418,17 +4420,17 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
             };
             return;
         };
-        bool check = false;
+        bool _check = false;
         #ifdef _WIN32
             if ((p[1] == 134) && (p[0])) {    // F12
-                check = true;
+                _check = true;
             };
         #else
-            if ((p[1] == 126) && (p[0] == 220)) {    // F12
-                check = true;
+            if ((p[1] == 52) && (p[0] == 168)) {    // F12
+                _check = true;
             };
         #endif
-        if (check) {    // F12
+        if (_check) {    // F12
             switch(type_menu) {
                 case -2:
                     if (showYesorNo("Do you want to reset?")) {
