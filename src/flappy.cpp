@@ -2332,12 +2332,7 @@ void brightnessSettings() {
 };
 
 void resolutionSettings() {
-    #ifdef _TERMUX
-        int sizeMenu = 6;
-    #else
-        int sizeMenu = 5;
-    #endif
-    string menu[sizeMenu] = {
+    string menu[6] = {
         "80 x 20",
         "100 x 26",
         "120 x 30",
@@ -2347,6 +2342,12 @@ void resolutionSettings() {
             ,"113 x 20"
         #endif
     };
+
+    #ifdef _TERMUX
+        int sizeMenu = 6;
+    #else
+        int sizeMenu = 5;
+    #endif
     
     int choose = getResolutionValue();
     string titleMenu;
