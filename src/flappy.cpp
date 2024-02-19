@@ -998,6 +998,12 @@ void setResolution(int value) {
             terminalColumns = 160;
             terminalRows = 40;
             break;
+        #ifdef _TERMUX
+            case 5:
+                terminalColumns = 113;
+                terminalRows = 20;
+                break;
+        #endif
         default:
             terminalColumns = 80;
             terminalRows = 20;
@@ -1026,6 +1032,11 @@ int getResolutionValue() {
     } else if ((terminalColumns == 160) && (terminalRows == 40)) {
         return 4;
     } else {
+        #ifdef _TERMUX
+            if ((terminalColumns == 113) && (terminalRows == 20)) {
+                return 0;
+            };
+        #endif
         setResolution(0);
         return 0;
     };
@@ -1167,8 +1178,10 @@ void showLogoFullTerminal(string logo[], int sizeLogo, bool isClear, bool isShow
         #ifdef _WIN32
             showUser(getenv("username"));
         #else
-            string user = getenv("USER");
-            if (user == "") {
+            string user;
+            if (getenv("USER")) {
+                user = getenv("USER");
+            } else {
                 user = "root";
             };
             showUser(user);
@@ -1375,38 +1388,45 @@ void showChangeScene() {
     bool randomVar = rand() % 1;
 
     int k = 5 - getResolutionValue();
-    #ifdef _WIN32
-        int j = terminalRows;
-    #else
-        int j = terminalRows + 1;
-    #endif
     
     color(brightnessData);
     __sleep__(400);
     if (randomVar) {
         cursorPos_up();
-        for(i = 0; i < j; ++i) {
+        for(i = 0; i < terminalRows; ++i) {
             cout << text;
+            #ifndef _WIN32
+                cout << flush;
+            #endif
             __sleep__(k);
         };
 
         __sleep__(150);
         cursorPos_up();
-        for(i = 0; i < j; ++i) {
+        for(i = 0; i < terminalRows; ++i) {
             cout << text2;
+            #ifndef _WIN32
+                cout << flush;
+            #endif
             __sleep__(k);
         };
     } else {
-        for(i = j - 1; i >= 0; --i) {
+        for(i = terminalRows - 1; i >= 0; --i) {
             cursorPos_move(0, i);
             cout << text;
+            #ifndef _WIN32
+                cout << flush;
+            #endif
             __sleep__(k);
         };
 
         __sleep__(150);
-        for(i = j - 1; i >= 0; --i) {
+        for(i = terminalRows - 1; i >= 0; --i) {
             cursorPos_move(0, i);
             cout << text2;
+            #ifndef _WIN32
+                cout << flush;
+            #endif
             __sleep__(k);
         };
     };
@@ -2312,14 +2332,22 @@ void brightnessSettings() {
 };
 
 void resolutionSettings() {
-    string menu[5] = {
+    #ifdef _TERMUX
+        int sizeMenu = 6;
+    #else
+        int sizeMenu = 5;
+    #endif
+    string menu[sizeMenu] = {
         "80 x 20",
         "100 x 26",
         "120 x 30",
         "140 x 36",
         "160 x 40"
+        #ifdef _TERMUX
+            ,"113 x 20"
+        #endif
     };
-    int sizeMenu = sizeof(menu) / sizeof(menu[0]);
+    
     int choose = getResolutionValue();
     string titleMenu;
     while(true) {
@@ -2962,11 +2990,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
     int sizeBox = terminalColumns - (column * 2);
     string text;
     string text2;
-    #ifdef _WIN32
-        int sizeOutput = terminalRows - 2;
-    #else
-        int sizeOutput = terminalRows - 3;
-    #endif
+    int sizeOutput = terminalRows - 2;
     string output[sizeOutput];
     string fullOutput;
     string nameKey;
@@ -3106,6 +3130,9 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         fullOutput = getOutput(output, sizeOutput);
         cursorPos_up();
         cout << fullOutput;
+        #ifndef _WIN32
+            cout << flush;
+        #endif
         showFPS(NULL);
         bottomKeymap(_bottomKeymap);
         // input

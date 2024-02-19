@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -s -Ofast -flto=auto -march=native -Walloc-size-larger-than=18446744073709551615
+CXXFLAGS = -s -Ofast -flto=auto -march=native 
 
 SRC = src/flappy.cpp
 
