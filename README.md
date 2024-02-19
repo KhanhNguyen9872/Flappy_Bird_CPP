@@ -23,7 +23,7 @@ make termux # for termux
 ```
 
 ```bash
-./build/flappy # run
+./flappy # run flappy
 ```
 
 # VirusTotal

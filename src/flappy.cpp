@@ -524,12 +524,14 @@ void flushStdin() {
 
 void pauseFrame() {
     #ifndef _WIN32
-        while(!frameStarted) {
-            if (frameStarted) {
-                flushStdin();
-                return;
+        if (!frameStarted) {
+            while(true) {
+                if (frameStarted) {
+                    flushStdin();
+                    return;
+                };
+                __sleep__(250);
             };
-            __sleep__(250);
         };
     #endif
     return;
