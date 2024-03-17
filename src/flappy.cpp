@@ -135,8 +135,9 @@ int frameFPS = 0;
 int terminalColumns, terminalRows;
 int tmp_int[3] = {0, 0, 0};
 int aniShowMenu[3] = {-20, -20, -20};
-int listWall[10][3];
+int listWall[12][3];
 int sizelistWall = sizeof(listWall) / sizeof(listWall[0]);
+int locateItem[12];
 bool isInGame = false;
 bool gameStarted = false;
 #ifndef _WIN32  
@@ -2412,6 +2413,14 @@ bool setSkin(int index, bool isSkinBird) {
     return 0;
 };
 
+void wipeLocateItem() {
+    int i;
+    for(i = 0; i < sizelistWall; i++) {
+        locateItem[i] = -1;
+    };
+    return;
+};
+
 void showWall(string output[], int skinValue, int column, int up, int down) {
     if (output == NULL) {
         return;
@@ -3589,7 +3598,17 @@ void showScore(string output[], int score, int higherScore, bool isHigher) {
     return;
 };
 
-void showAllWall(string output[], int *nextWall, int *score, int countWall) {
+void addLocateItem(int countWall) {
+    locateItem[countWall] = 1;
+    return;
+};
+
+void rmLocateItem(int countWall) {
+    locateItem[countWall] = -1;
+    return;
+};
+
+void showAllWall(string output[], int *nextWall, int *score) {
     if (output == NULL) {
         return;
     };
@@ -3599,6 +3618,10 @@ void showAllWall(string output[], int *nextWall, int *score, int countWall) {
         if ((listWall[i][0] > -5) && (listWall[i][0] < terminalColumns + 2)) {
             // display Wall
             showWall(output, settingsData[15], listWall[i][0], listWall[i][1], listWall[i][2]);
+            // show item
+            if(locateItem[i] != -1) {
+                output[listWall[i][1] + (int)((listWall[i][2] - listWall[i][1]) / 2)][listWall[i][0] + (int)((skinWall[settingsData[15]][1].length()) / 2)] = 'X';
+            };
             if(gameStarted) {
                 listWall[i][0] = listWall[i][0] - 1; // decrease terminalColumn
 
@@ -3674,6 +3697,11 @@ void addWall(int *countWall) {
     listWall[*countWall][1] = (rand() % (terminalRows - 9)); //up
     listWall[*countWall][2] = listWall[*countWall][1] + 8 - settingsData[19]; // down
 
+    // if (!(rand() % 4)) {
+    if (true) {
+        addLocateItem(*countWall);
+    };
+
     *countWall = *countWall + 1;
     if (*countWall >= sizelistWall) {
         *countWall = 0;
@@ -3681,7 +3709,7 @@ void addWall(int *countWall) {
     return;
 };
 
-void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
+void checkWall(int nextWall, int y, int maxUp, bool *isOver, int maxItem, int *curItem) {
     if(!gameStarted) {
         return;
     };
@@ -3692,9 +3720,20 @@ void checkWall(int nextWall, int y, int maxUp, bool *isOver) {
         if ((listWall[nextWall][1] < 0) || (listWall[nextWall][2] < 0)) { // wall not initial
             return;
         };
+        if (listWall[nextWall][0] < 7) { // got item
+            if (locateItem[nextWall] != -1) {
+                rmLocateItem(nextWall);
+                if (*curItem < maxItem) {
+                    *curItem = *curItem + 1;
+                };
+            };
+        };
         maxUp = maxUp + 1;
         int up = maxUp - listWall[nextWall][1];
         int down = maxUp - listWall[nextWall][2];
+        if (up == down) {
+            return;
+        };
         if (((y >= up) && (y < up + 3)) || ((y <= down) && (y > down - 3))) { // 3 is row of Bird Animation
             *isOver = 1;
             return;
@@ -3900,6 +3939,62 @@ void showFirework(string output[], int firework[3], int sizeOutput) {
     return;
 };
 
+void showItem(string output[], int sizeOutput, int curItem, int maxItem) {
+    int i;
+    int locate = sizeOutput - 3;
+    string text, text2;
+
+    text2 = "+";
+    for(i = 0; i < maxItem + 2; ++i) {
+        text2 = text2 + '-';
+    };
+    text2 = text2 + '+';
+
+    for(i = 0; i < text2.length(); ++i) {
+        output[locate - 1][terminalColumns - 2 - text2.length() + i] = text2[i];
+    };
+
+    //
+    text = "|[";
+    for(i = 0; i < curItem; ++i) {
+        text = text + '=';
+    };
+    for(i = 0; i < (maxItem - curItem); ++i) {
+        text = text + ' ';
+    };
+    text = text + "]|";
+
+    for(i = 0; i < text.length(); ++i) {
+        output[locate][terminalColumns - 2 - text.length() + i] = text[i];
+    };
+
+    //
+    for(i = 0; i < text2.length(); ++i) {
+        output[locate + 1][terminalColumns - 2 - text2.length() + i] = text2[i];
+    };
+
+    return;
+};
+
+void skillBird(string output[], int y, int maxUp, int *nextWall, int *score) {
+    int i, j, k;
+    for(i = 0; i <= 2; ++i) {
+        if ((listWall[*nextWall][0] > -5) && (listWall[*nextWall][0] < terminalColumns + 2)) {
+            k = sizeof(listWall[*nextWall]) / sizeof(listWall[*nextWall][0]);
+            for(j = 0; j < k; ++j) {
+                listWall[*nextWall][j] = -5;
+            };
+            rmLocateItem(*nextWall);
+            *score = *score + 1;
+            *nextWall = *nextWall + 1;
+            if (*nextWall > sizelistWall - 1) {
+                *nextWall = 0;
+            };
+        };
+    };
+    return;
+};
+
 void flappyBird() { 
     int i, j;
     isInGame = true;
@@ -3932,6 +4027,11 @@ void flappyBird() {
     // road
     string lineMap = getRoad();
     
+    // item
+    int maxItem = 5;
+    int curItem = 0;
+    bool useSkill = false;
+
     // score
     int score = 0;
     int highScore_ = getHighScore(score);
@@ -3954,6 +4054,7 @@ void flappyBird() {
 
     // prepare
     resetWall();
+    wipeLocateItem();
     color(brightnessData);
     showChangeScene();
     stopSound();
@@ -3963,7 +4064,10 @@ void flappyBird() {
         switch(choose) {
             case -1: // return to main menu
                 stopSound();
+                wipeLocateItem();
                 resetWall();
+                curItem = 0;
+                useSkill = false;
                 isInGame = false;
                 gameStarted = false;
                 showChangeScene();
@@ -3974,7 +4078,10 @@ void flappyBird() {
             case -2:  // new game
                 choose = 0;
                 stopSound();
+                wipeLocateItem();
                 resetWall();
+                curItem = 0;
+                useSkill = false;
                 score = 0;
                 distance = wallCreateDistance - 4;
                 x = 0;
@@ -3997,6 +4104,11 @@ void flappyBird() {
                 gameStarted = true;
                 choose = 0;
                 continue;
+            case -10: // skill button
+                if (curItem >= maxItem) {
+                    useSkill = true;
+                };
+                break;
         };
 
         pauseFrame();
@@ -4022,7 +4134,9 @@ void flappyBird() {
         if ((settingsData[3]) && (gameStarted)) { // auto mode activated
             if ((minY == maxUp + 6) && (maxY == maxUp + 6)) { // maxUp + 1 - (-5)
                 // skip due to noWall
-                if (y < 1) {
+                if (false) { // Fix bird falling error
+
+                } else if (y < 1) {
                     playSound(soundBirdFlyUp, true);
                     y = y + 2;
                 } else {
@@ -4122,10 +4236,16 @@ void flappyBird() {
                 };
             };
         };
-        showAllWall(output, &nextWall, &score, countWall);
+        if (useSkill) { // skill here
+            skillBird(output, y, maxUp, &nextWall, &score);
+            curItem = 0;
+            useSkill = false;
+        };
+        showAllWall(output, &nextWall, &score);
         showBird(output, countAnimation, sizeInAnimation, settingsData[4], y);
         showScore(output, score, highScore_, highScoreIsScore);
         output[sizeOutput - 1] = lineMap;
+        showItem(output, sizeOutput, curItem, maxItem);
         showFPS(output);
         outputGame = getOutput(output, sizeOutput);
 
@@ -4135,7 +4255,7 @@ void flappyBird() {
 
         bottomKeymap(text);
         inputMenu(&choose, 0, -3);
-        checkWall(nextWall, y, maxUp, &isOver);
+        checkWall(nextWall, y, maxUp, &isOver, maxItem, &curItem);
         __sleep__(speed);
 
         if ((!checkTerminalActive()) && (!settingsData[3]) && (gameStarted)) {
@@ -4169,6 +4289,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                     } else {
                         *chooseMenu = max;
                     };
+                    break;
+                case -3:
+                    *chooseMenu = -10;
                     break;
             };
             return;
