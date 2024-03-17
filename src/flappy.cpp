@@ -3697,8 +3697,7 @@ void addWall(int *countWall) {
     listWall[*countWall][1] = (rand() % (terminalRows - 9)); //up
     listWall[*countWall][2] = listWall[*countWall][1] + 8 - settingsData[19]; // down
 
-    // if (!(rand() % 4)) {
-    if (true) {
+    if (!(rand() % 4)) {
         addLocateItem(*countWall);
     };
 
@@ -4134,9 +4133,7 @@ void flappyBird() {
         if ((settingsData[3]) && (gameStarted)) { // auto mode activated
             if ((minY == maxUp + 6) && (maxY == maxUp + 6)) { // maxUp + 1 - (-5)
                 // skip due to noWall
-                if (false) { // Fix bird falling error
-
-                } else if (y < 1) {
+                if (y < 1) {
                     playSound(soundBirdFlyUp, true);
                     y = y + 2;
                 } else {
@@ -4156,6 +4153,9 @@ void flappyBird() {
                 } else {
                     y = y - 1;
                 };
+            };
+            if (curItem == maxItem) {   // use skill
+                useSkill = true;
             };
             choose = 0;
         } else if (choose == -9) { // received by SPACE button
