@@ -101,7 +101,7 @@ char keymapData[7][2];
 int listHighScore[8];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
 
-int settingsData[20] = {
+int settingsData[21] = {
     true,  // music
     true,  // sfx
     0, // brightness  // removed
@@ -121,7 +121,8 @@ int settingsData[20] = {
     4,      // number of firework 
     2,      // game speed
     true,   // show FPS
-    2       // Difficult
+    2,      // Difficult
+    false    // auto use skill
 };
 
 #ifdef _WIN32
@@ -2696,7 +2697,7 @@ void moreSettingsMenu() {
         "",
         "",
         "Show FPS [ ]",
-        "Back"
+        "Auto use skill [ ]"
     };
     int sizeMenu = sizeof(menu)/sizeof(menu[0]);
     int choose = 0;
@@ -2736,6 +2737,12 @@ void moreSettingsMenu() {
             menu[6][10] = 'X';
         } else {
             menu[6][10] = ' ';
+        };
+
+        if (settingsData[20]) {
+            menu[7][16] = 'X';
+        } else {
+            menu[7][16] = ' ';
         };
 
         menu[5] = "Speed [" + getNameGameSpeed(settingsData[17]) + "]";
@@ -3403,6 +3410,15 @@ void loadConfig() {
             settingsData[18] = true;
         } else {
             settingsData[18] = false;
+        };
+        // auto use skill
+        i = readConfig("autoskill");
+        if (i < 1) {
+            writeConfig("autoskill", to_string(settingsData[20] + 1));
+        } else if (i == 2) {
+            settingsData[20] = true;
+        } else {
+            settingsData[20] = false;
         };
         
         for(i = 0; i < size; ++i) {
@@ -4155,7 +4171,9 @@ void flappyBird() {
                 };
             };
             if (curItem == maxItem) {   // use skill
-                useSkill = true;
+                if (settingsData[20]) {
+                    useSkill = true;
+                };
             };
             choose = 0;
         } else if (choose == -9) { // received by SPACE button
@@ -4181,6 +4199,11 @@ void flappyBird() {
             };
         };
         if(gameStarted) {
+            if (settingsData[20]) {
+                if (curItem >= maxItem) {
+                    useSkill = true;
+                };
+            };
             if((x - oldX) > 50) {
                 countStart = countStart + 1;
                 if(countStart > sizeBackground - 1) {
@@ -4247,7 +4270,7 @@ void flappyBird() {
         output[sizeOutput - 1] = lineMap;
         showItem(output, sizeOutput, curItem, maxItem);
         showFPS(output);
-        outputGame = getOutput(output, sizeOutput);
+        outputGame = getOutput(output, sizeOutput) + '\n';
 
         // output
         cursorPos_up();
@@ -4566,8 +4589,9 @@ void inputMenu(int *chooseMenu, int max, int type_menu) {
                             settingsData[18] = !settingsData[18];
                             writeConfig("showfps", to_string(settingsData[18] + 1));
                             break;
-                        case 7:
-                            *chooseMenu = -1;
+                        case 7: // auto use skill
+                            settingsData[20] = !settingsData[20];
+                            writeConfig("autoskill", to_string(settingsData[20] + 1));
                             break;
                     };
                     break;
