@@ -1,5 +1,9 @@
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC optimize("O3,unroll-loops,inline-functions")
+#if defined(__x86_64__) || defined(__i386__)
 #pragma GCC target("avx2")
+#endif
+#endif
 
 #include <iostream>
 #ifdef _WIN32
@@ -18,6 +22,7 @@
 #include <sstream>
 #include <vector>
 #include <memory>
+#include <climits>
 
 #ifdef _WIN32
 #define configFileName ".\\flappy.conf"
@@ -72,7 +77,7 @@
 using namespace std;
 
 string version_code = "1.0.0";
-char defaultKeymapData[7][2] = {
+int defaultKeymapData[7][2] = {
 #ifdef _WIN32
     {0, 119}, // UP       'w'
     {0, 115}, // DOWN     's'
@@ -101,7 +106,7 @@ char defaultKeymapData[7][2] = {
 #endif
 #endif
 };
-char keymapData[7][2];
+int keymapData[7][2];
 
 int listHighScore[8];
 int sizelistHighScore = sizeof(listHighScore) / sizeof(listHighScore[0]);
@@ -262,6 +267,7 @@ int sizeBirdAnimation = sizeof(skinFlyAnimation) / sizeof(skinFlyAnimation[0]);
 
 void inputMenu(int *chooseMenu, int max, int type_menu);
 void flappyBird();
+void runSystemCommand(const string &command);
 
 inline void __sleep__(int s)
 {
@@ -431,6 +437,7 @@ void disableTouch()
 
 void disableCloseButton(bool isDisable)
 { // WIndows API
+    (void)isDisable;
 #ifdef _WIN32
     if (isDisable)
     {
@@ -457,7 +464,7 @@ void disableMaximizeButton()
 void configureTerminal()
 {
 #ifdef _WIN32
-    system("color 07 >NUL 2>&1"); // default color CMD
+    runSystemCommand("color 07 >NUL 2>&1"); // default color CMD
 #else
 #endif
     hideCursor();
@@ -540,6 +547,7 @@ void anyKey()
 
 void playSound(string file, bool isSFX)
 { // Windows API
+    (void)file;
     if (settingsData[8])
     {
         if (isSFX)
@@ -608,6 +616,13 @@ void writeFile(string fileName, string data)
     };
 };
 
+void runSystemCommand(const string &command)
+{
+    int result = system(command.c_str());
+    (void)result;
+    return;
+};
+
 void writeConfig(string key, string value)
 {
     if (settingsData[6])
@@ -647,9 +662,9 @@ void writeConfig(string key, string value)
 void resetKeymapData(bool isWriteConfig)
 {
     int i, j;
-    for (i = 0; i < sizeof(defaultKeymapData) / sizeof(defaultKeymapData[0]); ++i)
+    for (i = 0; i < (int)(sizeof(defaultKeymapData) / sizeof(defaultKeymapData[0])); ++i)
     {
-        for (j = 0; j < sizeof(defaultKeymapData[0]) / sizeof(defaultKeymapData[0][0]); ++j)
+        for (j = 0; j < (int)(sizeof(defaultKeymapData[0]) / sizeof(defaultKeymapData[0][0])); ++j)
         {
             keymapData[i][j] = defaultKeymapData[i][j];
             if (isWriteConfig)
@@ -774,7 +789,7 @@ void showFPS(string output[])
         // Optimized copy
         const char* src = fpsText.c_str();
         string& dest = output[0];
-        for (int i = 0; i < fpsText.length(); ++i)
+        for (int i = 0; i < (int)fpsText.length(); ++i)
         {
             dest[locate + i] = src[i];
         };
@@ -857,9 +872,9 @@ void errorBox(string output, string bottom, bool isBlur)
         text = "";
         cursorPos_move(sizeColumn - 1, sizeRow + 2);
         text = text + "/ ";
-        for (j = 0; j < boxSize - 2 - (output.length()); ++j)
+        for (j = 0; j < boxSize - 2 - (int)(output.length()); ++j)
         {
-            if (j == ((boxSize - 2) - output.length()) / 2)
+            if (j == ((boxSize - 2) - (int)(output.length())) / 2)
             {
                 text = text + ' ' + output;
             }
@@ -910,19 +925,19 @@ void showOverlayResolution()
     string resolutionString = to_string(terminalColumns) + " x " + to_string(terminalRows);
     string text = "";
     string text2 = "";
-    int i, j;
+    int i;
     for (i = 0; i < terminalColumns; ++i)
     {
         text = text + "=";
     };
 
     text2 = text2 + "| +-";
-    for (i = 0; i < resolutionString.length(); ++i)
+    for (i = 0; i < (int)resolutionString.length(); ++i)
     {
         text2 = text2 + "-";
     };
     text2 = text2 + "-+\n| | " + resolutionString + " |\n| +-";
-    for (i = 0; i < resolutionString.length(); ++i)
+    for (i = 0; i < (int)resolutionString.length(); ++i)
     {
         text2 = text2 + "-";
     };
@@ -975,9 +990,9 @@ void showBoxText(string text, bool isBlur)
     {
         sizeRow = 0;
     };
-    int i, j;
+    int i;
     string tmp;
-    if (text.length() > (columns - 16))
+    if ((int)text.length() > (columns - 16))
     {
         tmp = "";
         for (i = 0; i < (columns - 16); ++i)
@@ -986,7 +1001,7 @@ void showBoxText(string text, bool isBlur)
         };
         text = tmp;
     };
-    for (i = 0; i < (columns - text.length()) / 2; ++i)
+    for (i = 0; i < (columns - (int)text.length()) / 2; ++i)
     {
         sizeColumn = sizeColumn + 1;
     };
@@ -1051,7 +1066,7 @@ void resizeTerminal(int column, int row)
         {
             if ((column >= terminalColumns) && (row >= terminalRows))
             {
-                system("clear");
+                runSystemCommand("clear");
                 frameStarted = true;
                 break;
             };
@@ -1207,12 +1222,12 @@ void showUser(string username)
 
     string text;
 
-    if (username.length() > 10 + j)
+    if ((int)username.length() > 10 + j)
     {
         int maxLen = min(10 + j, static_cast<int>(username.length()));
         text = username.substr(0, maxLen);
 
-        if (maxLen >= username.length())
+        if (maxLen >= (int)username.length())
         {
             username = text;
         }
@@ -1230,7 +1245,7 @@ void showUser(string username)
 
     for (i = 0; i < terminalColumns; ++i)
     {
-        if (i == terminalColumns - 7 - username.length())
+        if (i == terminalColumns - 7 - (int)username.length())
         {
             break;
         }
@@ -1260,7 +1275,11 @@ void showUser(string username)
 string centerText(string text[], int size)
 {
     stringstream finalText;
-    int Tmp = (terminalColumns - text[0].length()) / 2;
+    int Tmp = (terminalColumns - (int)text[0].length()) / 2;
+    if (Tmp < 0)
+    {
+        Tmp = 0;
+    };
     string lineSpace(Tmp, ' ');
 
     for (int i = 0; i < size; ++i)
@@ -1453,7 +1472,7 @@ void banner()
 
 void showTip(string tip)
 {
-    if (tip.length() >= terminalColumns - 18)
+    if ((int)tip.length() >= terminalColumns - 18)
     {
         return;
     };
@@ -1490,7 +1509,7 @@ void showTip(string tip)
 void showAnimation(string output[], string animation[], int sizeAnimation, int countUp)
 {
     bool noSpace;
-    int i, j, m;
+    int j, m;
     int sizeRow = (terminalRows / 4) - countUp;
     int l = terminalRows - 3;
     for (j = 0; j < sizeAnimation; ++j)
@@ -1507,7 +1526,7 @@ void showAnimation(string output[], string animation[], int sizeAnimation, int c
         else
         { // insert data to output array
             noSpace = 0;
-            for (m = 0; m < animation[j].length(); m++)
+            for (m = 0; m < (int)animation[j].length(); m++)
             {
                 if (!noSpace)
                 { // remove space char in first string
@@ -1520,7 +1539,7 @@ void showAnimation(string output[], string animation[], int sizeAnimation, int c
                         noSpace = 1;
                     };
                 };
-                if ((sizeRow + j) < l)
+                if (((sizeRow + j) >= 0) && ((sizeRow + j) < l))
                 {
                     output[sizeRow + j][3 + m] = animation[j][m];
                 };
@@ -1623,7 +1642,7 @@ void exitProgram()
         __sleep__(500);
 #ifndef _WIN32
         reset_terminal_mode();
-        system("clear");
+        runSystemCommand("clear");
 #endif
         exit(0);
     };
@@ -1638,10 +1657,15 @@ string getRoad()
     // Cache road string
     if (lastTerminalColumns != terminalColumns)
     {
+        int roadWidth = terminalColumns - 2;
+        if (roadWidth < 0)
+        {
+            roadWidth = 0;
+        };
         cachedRoad.clear();
         cachedRoad.reserve(terminalColumns);
         cachedRoad = "[";
-        cachedRoad.append(terminalColumns - 2, '/');
+        cachedRoad.append(roadWidth, '/');
         cachedRoad += "]";
         lastTerminalColumns = terminalColumns;
     };
@@ -1745,8 +1769,11 @@ void loadingFrame(int progress, bool isShowBird)
 
     pauseFrame();
 
-    int sizeAnimation = sizeof(skinFlyAnimation[settingsData[4]]) / sizeof(skinFlyAnimation[settingsData[4]][0]);
-    int i, j, k;
+    // Do not reuse tmp_int here: resizeTerminal() stores the terminal size
+    // in tmp_int and may run at any time from lockSizeTerminal().
+    static int loadingDots = 0;
+    static int birdFrame = 1;
+    static bool birdFrameUp = false;
 
     string text = "";
     int sizeRow = terminalRows - 5;
@@ -1771,14 +1798,14 @@ void loadingFrame(int progress, bool isShowBird)
     cursorPos_move(sizeColumn, sizeRow + 3);
     cout << " LOADING";
 
-    text = string(tmp_int[0], '.');
-    text.append(4 - tmp_int[0], ' ');
+    text = string(loadingDots, '.');
+    text.append(4 - loadingDots, ' ');
     cout << text << "\n";
 
-    tmp_int[0] = tmp_int[0] + 1;
-    if (tmp_int[0] > 4)
+    loadingDots = loadingDots + 1;
+    if (loadingDots > 4)
     {
-        tmp_int[0] = 0;
+        loadingDots = 0;
     };
 
     if (isShowBird)
@@ -1789,23 +1816,23 @@ void loadingFrame(int progress, bool isShowBird)
         {
             showBackground(NULL, 0, terminalRows - 6);
         };
-        showAnimation(NULL, skinFlyAnimation[settingsData[4]][tmp_int[1]], sizeof(skinFlyAnimation[settingsData[4]][tmp_int[1]]) / sizeof(skinFlyAnimation[settingsData[4]][tmp_int[1]][0]), 0);
+        showAnimation(NULL, skinFlyAnimation[settingsData[4]][birdFrame], sizeof(skinFlyAnimation[settingsData[4]][birdFrame]) / sizeof(skinFlyAnimation[settingsData[4]][birdFrame][0]), 0);
 
         cursorPos_move(0, terminalRows - 6);
         cout << text;
 
-        if ((tmp_int[1] >= 3) || (tmp_int[1] <= 0))
+        if ((birdFrame >= 3) || (birdFrame <= 0))
         {
-            tmp_int[2] = !tmp_int[2];
+            birdFrameUp = !birdFrameUp;
         };
 
-        if (!tmp_int[2])
+        if (!birdFrameUp)
         {
-            tmp_int[1] = tmp_int[1] + 1;
+            birdFrame = birdFrame + 1;
         }
         else
         {
-            tmp_int[1] = tmp_int[1] - 1;
+            birdFrame = birdFrame - 1;
         };
     };
 
@@ -1831,7 +1858,7 @@ string menuText(string text[], int size, int type_menu, int choose)
     string finalString = "";
     string lineSpace = "";
     string text2;
-    int i, j;
+    int i;
 
     // animation
     string textLeft = "";
@@ -1927,13 +1954,18 @@ string menuText(string text[], int size, int type_menu, int choose)
     int k = 0;
     for (i = 0; i < size; ++i)
     {
-        if (text[i].length() > k)
+        if ((int)text[i].length() > k)
         {
             k = text[i].length();
         };
     };
 
-    lineSpace = string(((terminalColumns - k) / 2) - 6, ' ');
+    int linePadding = ((terminalColumns - k) / 2) - 8;
+    if (linePadding < 0)
+    {
+        linePadding = 0;
+    };
+    lineSpace = string(linePadding, ' ');
 
     stringstream result;
     for (i = 0; i < size; ++i)
@@ -2027,42 +2059,49 @@ string getNameKey(short value, int isTwoChar)
             case 79:
                 return "F" + to_string(value - 79);
             };
+            // fall through
         case 65:
             switch (isTwoChar)
             {
             case 118:
                 return "UP";
             };
+            // fall through
         case 66:
             switch (isTwoChar)
             {
             case 118:
                 return "DOWN";
             };
+            // fall through
         case 67:
             switch (isTwoChar)
             {
             case 118:
                 return "RIGHT";
             };
+            // fall through
         case 68:
             switch (isTwoChar)
             {
             case 118:
                 return "LEFT";
             };
+            // fall through
         case 70:
             switch (isTwoChar)
             {
             case 118:
                 return "END";
             };
+            // fall through
         case 72:
             switch (isTwoChar)
             {
             case 118:
                 return "HOME";
             };
+            // fall through
         case 126: // 51
             switch (isTwoChar)
             {
@@ -2144,7 +2183,7 @@ bool setKeymap(int value, int key, int isTwoChar)
     }
     else if (key > 7)
     {
-        for (i = 0; i < sizeof(keyAllow) / sizeof(keyAllow[0]); ++i)
+        for (i = 0; i < (int)(sizeof(keyAllow) / sizeof(keyAllow[0])); ++i)
         {
             if (key == keyAllow[i])
             {
@@ -2181,7 +2220,10 @@ void stringToOutput(string str, string output[], int sizeOutput)
             row = row + 1;
             continue;
         };
-        output[row][column] = str[i];
+        if (column < (int)output[row].length())
+        {
+            output[row][column] = str[i];
+        };
         column = column + 1;
     };
     return;
@@ -2207,7 +2249,7 @@ void showMenu(string titleMenu, string *menu, int sizeMenu, int type_menu, int *
             "|_| |_\\__,_| .__/ .__/\\_, | |___/_|_| \\__,_|",
             "           |_|  |_|   |__/                  ",
             ""};
-        for (i = 0; i < (logo[4].length() - version_code.length() - 1) - 2; ++i)
+        for (i = 0; i < ((int)logo[4].length() - (int)version_code.length() - 1) - 2; ++i)
         {
             text = text + logo[4][i];
         };
@@ -2312,7 +2354,7 @@ void credit()
                     tmp = "";
                     for (k = 0; k < count; ++k)
                     {
-                        for (j = 0; j < ((terminalColumns - credit_info[k].length()) / 2); ++j)
+                        for (j = 0; j < ((terminalColumns - (int)credit_info[k].length()) / 2); ++j)
                         {
                             tmp = tmp + ' ';
                         };
@@ -2334,7 +2376,7 @@ void credit()
             color(MAGENTA);
             tmp = ">> Press any key to exit <<";
             text = "";
-            for (i = 0; i < (terminalColumns - tmp.length()) / 2; ++i)
+            for (i = 0; i < (terminalColumns - (int)tmp.length()) / 2; ++i)
             {
                 text = text + ' ';
             };
@@ -2416,7 +2458,7 @@ void changeKeymapping(int value)
     bottomKeymap("");
     flushStdin();
     __getch(p);
-    for (i = 0; i < sizeof(keymapData) / sizeof(keymapData[0]); ++i)
+    for (i = 0; i < (int)(sizeof(keymapData) / sizeof(keymapData[0])); ++i)
     {
         if ((p[0] == keymapData[i][0]) && (p[1] == keymapData[i][1]))
         {
@@ -2591,7 +2633,7 @@ void brightnessSettings()
                     };
                     text = text + "\n";
 
-                    if (currentBrightness > 1)
+                    if ((currentBrightness > 1) && (lineSpace.length() >= 5))
                     {
                         tmp = string(lineSpace);
                         tmp.resize(lineSpace.length() - 5);
@@ -2722,9 +2764,9 @@ void highScore()
 void author()
 {
 #ifdef _WIN32
-    system("start \"\" \"https://github.com/KhanhNguyen9872/\"");
+    runSystemCommand("start \"\" \"https://github.com/KhanhNguyen9872/\"");
 #else
-    system("xdg-open \"https://github.com/KhanhNguyen9872/\"");
+    runSystemCommand("xdg-open \"https://github.com/KhanhNguyen9872/\"");
 #endif
     return;
 };
@@ -2776,9 +2818,9 @@ void showWall(string output[], int skinValue, int column, int up, int down)
     text = skinWall[skinValue][0];
     for (i = 0; i < up - 2; ++i)
     {
-        for (k = 0; k < text.length(); ++k)
+        for (k = 0; k < (int)text.length(); ++k)
         {
-            if ((column + k) <= terminalColumns)
+            if (((column + k) >= 0) && ((column + k) < terminalColumns))
             {
                 output[i][column + k] = text[k];
             };
@@ -2787,9 +2829,9 @@ void showWall(string output[], int skinValue, int column, int up, int down)
     if (up - 2 >= 0)
     {
         text = skinWall[skinValue][1];
-        for (k = 0; k < text.length(); ++k)
+        for (k = 0; k < (int)text.length(); ++k)
         {
-            if (((up - 2) >= 0) && ((column + k) <= terminalColumns))
+            if (((column + k) >= 0) && ((column + k) < terminalColumns))
             {
                 output[up - 2][column + k] = text[k];
             };
@@ -2798,9 +2840,12 @@ void showWall(string output[], int skinValue, int column, int up, int down)
     if (up - 1 >= 0)
     {
         text = skinWall[skinValue][2];
-        for (k = 0; k < text.length(); ++k)
+        for (k = 0; k < (int)text.length(); ++k)
         {
-            output[up - 1][column + k - 1] = text[k];
+            if (((column + k - 1) >= 0) && ((column + k - 1) < terminalColumns))
+            {
+                output[up - 1][column + k - 1] = text[k];
+            };
         };
     };
 
@@ -2809,26 +2854,26 @@ void showWall(string output[], int skinValue, int column, int up, int down)
     j = terminalRows - 3;
     for (i = down + 3; i < j; ++i)
     {
-        for (k = 0; k < text.length(); ++k)
+        for (k = 0; k < (int)text.length(); ++k)
         {
-            if ((column + k) <= terminalColumns)
+            if (((column + k) >= 0) && ((column + k) < terminalColumns))
             {
                 output[i][column + k] = text[k];
             };
         };
     };
     text = skinWall[skinValue][3];
-    for (k = 0; k < text.length(); ++k)
+    for (k = 0; k < (int)text.length(); ++k)
     {
-        if (((down + 1) < j) && ((column + k - 1) <= terminalColumns))
+        if (((down + 1) < j) && ((column + k - 1) >= 0) && ((column + k - 1) < terminalColumns))
         {
             output[down + 1][column + k - 1] = text[k];
         };
     };
     text = skinWall[skinValue][4];
-    for (k = 0; k < text.length(); ++k)
+    for (k = 0; k < (int)text.length(); ++k)
     {
-        if (((down + 2) < j) && ((column + k) <= terminalColumns))
+        if (((down + 2) < j) && ((column + k) >= 0) && ((column + k) < terminalColumns))
         {
             output[down + 2][column + k] = text[k];
         };
@@ -2967,7 +3012,7 @@ void changeSkin(bool isSkinBird)
     for (i = 0; i < size; ++i)
     {
         menu[i] = text + to_string(i + 1) + space;
-        if (j < menu[i].length())
+        if (j < (int)menu[i].length())
         {
             j = menu[i].length();
         };
@@ -3516,7 +3561,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         row = row + 1;
         output[row][column - 1] = '|';
         text = "Length: " + to_string(lengthUserInput);
-        for (i = 0; i < text.length(); ++i)
+        for (i = 0; i < (int)text.length(); ++i)
         {
             output[row][column + 1 + i] = text[i];
         };
@@ -3541,7 +3586,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         row = row + 1;
         output[row][column - 1] = '|';
         text = title;
-        for (i = 0; i < text.length(); ++i)
+        for (i = 0; i < (int)text.length(); ++i)
         {
             output[row][column + (i + 4) - 1] = text[i];
         };
@@ -3559,11 +3604,11 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         // 5 - show input
         row = row + 1;
         output[row][column - 1] = '|';
-        for (i = 0; i < ex.length(); ++i)
+        for (i = 0; i < (int)ex.length(); ++i)
         {
             output[row][column + 3 + i] = ex[i];
         };
-        if (ex.length() > 0)
+        if ((int)ex.length() > 0)
         {
             output[row][column + 3 + ex.length() + 1] = '|';
         }
@@ -3576,18 +3621,18 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         if (j > 0)
         {
             text2 = "";
-            for (i = 0; i < text.length() - j; ++i)
+            for (i = 0; i < (int)text.length() - j; ++i)
             {
                 text2 = text2 + text[i];
             };
             text = text2;
             j = 0;
         };
-        while (text.length() > (sizeShowInput + 1))
+        while ((int)text.length() > (sizeShowInput + 1))
         {
             text.erase(0, 1);
         };
-        for (i = 0; i < text.length(); ++i)
+        for (i = 0; i < (int)text.length(); ++i)
         {
             output[row][column + 3 + i + sizeEx] = text[i];
         };
@@ -3613,7 +3658,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
             output[row][column + sizeBox + 1] = '\\';
 
             errorStr = "> " + errorStr;
-            for (i = 0; i < errorStr.length(); ++i)
+            for (i = 0; i < (int)errorStr.length(); ++i)
             {
                 output[row][column + i + 3] = errorStr[i];
             };
@@ -3715,6 +3760,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
                 {
                     errorStr = "Empty input";
                 };
+                // fall through
             default:
                 if ((p[1] == 32) && (!p[0]))
                 {
@@ -3842,7 +3888,7 @@ string showBoxInput(string title, string ex, string _bottomKeymap, int max_size,
         // };
         // __sleep__(25);
     };
-    return NULL;
+    return "";
 };
 
 void boxInputIP()
@@ -3888,9 +3934,12 @@ void loadConfig()
 {
     if (settingsData[6])
     {
+        int i, j;
+#ifdef _WIN32
         int isTwoChar;
-        int i, j, k;
-        int size = sizeof(keymapData) / sizeof(keymapData[0]);
+        int k;
+#endif
+        int size = (int)(sizeof(keymapData) / sizeof(keymapData[0]));
         vector<vector<int>> newKeymapData(size, vector<int>(2));
         for (i = 0; i < size; ++i)
         {
@@ -4062,7 +4111,7 @@ void loadConfig()
                 {
                     continue;
                 };
-                if (keymapData[i] == keymapData[j])
+                if ((keymapData[i][0] == keymapData[j][0]) && (keymapData[i][1] == keymapData[j][1]))
                 {
                     configError(i);
                 };
@@ -4143,6 +4192,7 @@ int getHighScore(int currentScore)
 {
     int i;
     int j, k, l;
+    k = INT_MAX;
     j = listHighScore[0];
     for (i = 1; i < sizelistHighScore; ++i)
     {
@@ -4205,17 +4255,17 @@ void showHighScore(string output[], int highScore, bool isHigher)
             i = 0;
         };
 
-        for (k = 0; k < text.length(); ++k)
+        for (k = 0; k < (int)text.length(); ++k)
         {
             output[3 - i][j + k] = text[k];
         };
 
-        for (k = 0; k < highScore_str.length(); ++k)
+        for (k = 0; k < (int)highScore_str.length(); ++k)
         {
             output[4 - i][j + k] = highScore_str[k];
         };
 
-        for (k = 0; k < text.length(); ++k)
+        for (k = 0; k < (int)text.length(); ++k)
         {
             output[5 - i][j + k] = text[k];
         };
@@ -4246,17 +4296,17 @@ void showScore(string output[], int score, int higherScore, bool isHigher)
         };
         text = text + "-+";
 
-        for (k = 0; k < text.length(); ++k)
+        for (k = 0; k < (int)text.length(); ++k)
         {
             output[1][j + k] = text[k];
         };
 
-        for (k = 0; k < score_str.length(); ++k)
+        for (k = 0; k < (int)score_str.length(); ++k)
         {
             output[2][j + k] = score_str[k];
         };
 
-        for (k = 0; k < text.length(); ++k)
+        for (k = 0; k < (int)text.length(); ++k)
         {
             output[3][j + k] = text[k];
         };
@@ -4291,7 +4341,12 @@ void showAllWall(string output[], int *nextWall, int *score)
             // show item
             if (locateItem[i] != -1)
             {
-                output[listWall[i][1] + (int)((listWall[i][2] - listWall[i][1]) / 2)][listWall[i][0] + (int)((skinWall[settingsData[15]][1].length()) / 2)] = 'X';
+                int itemColumn = listWall[i][0] + (int)((skinWall[settingsData[15]][1].length()) / 2);
+                int itemRow = listWall[i][1] + (int)((listWall[i][2] - listWall[i][1]) / 2);
+                if ((itemColumn >= 0) && (itemColumn < terminalColumns) && (itemRow >= 0) && (itemRow < terminalRows - 2))
+                {
+                    output[itemRow][itemColumn] = 'X';
+                };
             };
             if (gameStarted)
             {
@@ -4367,7 +4422,7 @@ void resetWall()
     int i, j;
     for (i = 0; i < sizelistWall; ++i)
     {
-        for (j = 0; j < sizeof(listWall[i]) / sizeof(listWall[i][0]); ++j)
+        for (j = 0; j < (int)(sizeof(listWall[i]) / sizeof(listWall[i][0])); ++j)
         {
             listWall[i][j] = -5;
         };
@@ -4511,13 +4566,13 @@ void showFirework(string output[], int firework[3], int sizeOutput)
             };
 
             // right
-            if ((firework[0] + 2) <= terminalColumns)
+            if ((firework[0] + 2) < terminalColumns)
             {
                 output[firework[1]][firework[0] + 2] = '-';
             };
             if (firework[2] < -8)
             {
-                if ((firework[0] + 3) <= terminalColumns)
+                if ((firework[0] + 3) < terminalColumns)
                 {
                     output[firework[1]][firework[0] + 3] = '-';
                 };
@@ -4550,13 +4605,13 @@ void showFirework(string output[], int firework[3], int sizeOutput)
                 };
 
                 // up right
-                if ((firework[0] + 1) <= terminalColumns)
+                if ((firework[0] + 1) < terminalColumns)
                 {
                     output[firework[1] - 1][firework[0] + 1] = '.';
                 };
                 if (firework[2] < -8)
                 {
-                    if ((firework[0] + 2) <= terminalColumns)
+                    if ((firework[0] + 2) < terminalColumns)
                     {
                         output[firework[1] - 1][firework[0] + 2] = '`';
                     };
@@ -4590,18 +4645,19 @@ void showFirework(string output[], int firework[3], int sizeOutput)
                 };
 
                 // down right
-                if ((firework[0] + 1) <= terminalColumns)
+                if ((firework[0] + 1) < terminalColumns)
                 {
                     output[firework[1] + 1][firework[0] + 1] = '`';
                 };
                 if (firework[2] < -9)
                 {
-                    if ((firework[0] + 2) <= terminalColumns)
+                    if ((firework[0] + 2) < terminalColumns)
                     {
                         output[firework[1] + 1][firework[0] + 2] = '.';
                     };
                 };
             };
+            // fall through
         case -3:
         case -4:
         case -5:
@@ -4615,7 +4671,7 @@ void showFirework(string output[], int firework[3], int sizeOutput)
             };
 
             // right
-            if ((firework[0] + 1) <= terminalColumns)
+            if ((firework[0] + 1) < terminalColumns)
             {
                 output[firework[1]][firework[0] + 1] = '-';
             };
@@ -4636,7 +4692,7 @@ void showFirework(string output[], int firework[3], int sizeOutput)
                     // up right
                     if (firework[2] < -5)
                     {
-                        if ((firework[0] + 1) <= terminalColumns)
+                        if ((firework[0] + 1) < terminalColumns)
                         {
                             output[firework[1] - 1][firework[0] + 1] = '.';
                         };
@@ -4663,6 +4719,7 @@ void showFirework(string output[], int firework[3], int sizeOutput)
                     };
                 };
             };
+            // fall through
         case -1:
         case -2:
             // middle
@@ -4717,19 +4774,19 @@ void showItem(string output[], int sizeOutput, int curItem, int maxItem)
     itemBar.append(maxItem - curItem, ' ');
     itemBar += "]|";
     
-    const int startCol = terminalColumns - 2 - topBorder.length();
+    const int startCol = terminalColumns - 2 - (int)topBorder.length();
     
     // Copy borders and bar efficiently
     const char* topPtr = topBorder.c_str();
     const char* barPtr = itemBar.c_str();
     
-    for (int i = 0; i < topBorder.length(); ++i)
+    for (int i = 0; i < (int)topBorder.length(); ++i)
     {
         output[locate - 1][startCol + i] = topPtr[i];
         output[locate + 1][startCol + i] = topPtr[i]; // Same border
     };
     
-    for (int i = 0; i < itemBar.length(); ++i)
+    for (int i = 0; i < (int)itemBar.length(); ++i)
     {
         output[locate][startCol + i] = barPtr[i];
     };
@@ -4737,6 +4794,9 @@ void showItem(string output[], int sizeOutput, int curItem, int maxItem)
 
 void skillBird(string output[], int y, int maxUp, int *nextWall, int *score)
 {
+    (void)output;
+    (void)y;
+    (void)maxUp;
     int i, j, k;
     for (i = 0; i <= 2; ++i)
     {
@@ -4761,7 +4821,7 @@ void skillBird(string output[], int y, int maxUp, int *nextWall, int *score)
 
 void flappyBird()
 {
-    int i, j;
+    int i;
     isInGame = true;
     bool isOver = 0;
     gameStarted = false;
@@ -5754,7 +5814,7 @@ int main(int argc, char const *argv[])
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); // Realtime priority Process
     SetForegroundWindow(consoleWindow);                             // Windows API
 #else
-    system("clear");
+    runSystemCommand("clear");
     set_terminal_mode();
 #endif
 
@@ -5785,12 +5845,12 @@ int main(int argc, char const *argv[])
 
     // Loading time... [cho đẹp thôi chứ k có load gì đâu =)))]
     showTip("");
-    tmp_int[1] = 1;
+    int loadingChoose = 0;
     flushStdin();
     for (int i = 0; i <= 100; i = i + 2)
     {
         loadingFrame(i, true);
-        inputMenu(&tmp_int[0], 0, -1);
+        inputMenu(&loadingChoose, 0, -1);
         if (i < 20)
         {
             __sleep__(200);
